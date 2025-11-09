@@ -1,0 +1,13 @@
+# Exclude only files not needed in the SVN release
+node_modules
+.git
+.github
+.wordpress-org
+.env
+.env.*
+.user.ini
+build-zip.sh
+wp-cli.phar
+test.*
+*.log
+.DS_Store

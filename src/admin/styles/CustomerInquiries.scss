@@ -1,0 +1,40 @@
+// src/adminn/CustomerInquiries.scss
+.admin-customer-inquiries {
+  &__input-search {
+    input {
+      background: none !important;
+      height: 38px !important;
+    }
+
+    label {
+      background-color: #F0F0F1;
+      padding: 0 5px;
+    }
+  }
+  &__input-date-pic {
+    input {
+      background: none !important;
+      height: 38px !important;
+    }
+
+    label {
+      background-color: #F0F0F1;
+      padding: 0 5px;
+    }
+  }
+
+  &__input-select {
+    .MuiSelect-select {
+      border: 1px solid #8c8f94;
+    }
+
+    &-label {
+      background-color: #F0F0F1;
+      padding: 0 5px;
+    }
+  }
+
+  &__button {
+    min-height: 40px;
+  }
+}

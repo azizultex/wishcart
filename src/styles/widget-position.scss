@@ -1,0 +1,46 @@
+.modern-chat-container {
+
+    &.top-right {
+        bottom: inherit;
+        top: 24px;
+    }
+
+    &.top-left {
+        top: 24px;
+        right: inherit;
+        left: 20px;
+        bottom: inherit;
+    }
+
+    &.bottom-left {
+        right: inherit;
+        left: 24px;
+    }
+}
+
+.support-buddy-widget {
+    &.top-right {
+        bottom: inherit;
+        top: 24px;
+
+        .support-buddy-header-close {
+            transform: rotate(180deg);
+        }
+    }
+
+    &.top-left {
+        top: 24px;
+        right: inherit;
+        left: 20px;
+        bottom: inherit;
+
+        .support-buddy-header-close {
+            transform: rotate(180deg);
+        }
+    }
+
+    &.bottom-left {
+        right: inherit;
+        left: 24px;
+    }
+}

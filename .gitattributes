@@ -1,0 +1,29 @@
+# Directories 
+/.wordpress-org export-ignore
+/.github export-ignore
+/.git export-ignore
+/node_modules export-ignore
+# /src export-ignore  # Comment out to include source code
+
+# Files 
+.gitattributes export-ignore
+.gitignore export-ignore
+.babelrc export-ignore
+package-lock.json export-ignore
+package.json export-ignore
+phpcs.xml export-ignore
+tsconfig.json export-ignore
+report.txt export-ignore
+tailwind.config.js export-ignore
+postcss.config.js export-ignore
+components.json export-ignore
+vite.config.js export-ignore
+readme.md export-ignore
+
+# Additional files to exclude
+.user.ini export-ignore
+wp-cli.phar export-ignore
+build-zip.sh export-ignore
+test.* export-ignore
+*.log export-ignore
+.DS_Store export-ignore

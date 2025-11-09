@@ -1,0 +1,76 @@
+.support-buddy-conversations {
+    padding: 16px;
+}
+
+.support-buddy-conversations-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 16px;
+}
+
+.support-buddy-conversations-header h3 {
+    font-size: 1.125rem;
+    font-weight: 500;
+}
+
+.support-buddy-new-chat {
+    padding: 6px 12px;
+    border-radius: 8px;
+    border: none;
+    cursor: pointer;
+    font-size: 0.875rem;
+    transition: opacity 0.2s ease;
+}
+
+.support-buddy-new-chat:hover {
+    opacity: 0.9;
+}
+
+.conversation-list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.conversation-item {
+    padding: 12px;
+    background: white;
+    border-radius: 12px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.conversation-item:hover {
+    background: #f3f4f6;
+}
+
+.conversation-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 4px;
+}
+
+.conversation-date {
+    font-size: 0.875rem;
+    color: #6b7280;
+}
+
+.conversation-status {
+    font-size: 0.75rem;
+    padding: 2px 8px;
+    border-radius: 12px;
+    background: #e5e7eb;
+}
+
+.conversation-preview {
+    font-size: 0.875rem;
+    color: #374151;
+}
+
+.no-conversations {
+    text-align: center;
+    padding: 24px;
+    color: #6b7280;
+}

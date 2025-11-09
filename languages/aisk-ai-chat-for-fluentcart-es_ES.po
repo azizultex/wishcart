@@ -1,0 +1,1040 @@
+# Copyright (C) 2025 Aisk Team <support@aisk.chat>
+# This file is distributed under the GPL-2.0+.
+msgid ""
+msgstr ""
+"Project-Id-Version: Aisk – AI Powered Chatbot | Support Assistant | Support "
+"Bot | Live Chat 1.0.0\n"
+"Report-Msgid-Bugs-To: https://wordpress.org/support/plugin/aisk-ai-chat-for-fluentcart\n"
+"Last-Translator: Khalid Jubair <khalidjubair@khalids-macbook-pro.local>\n"
+"Language-Team: Spanish <es@tp.org.es>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"POT-Creation-Date: 2025-02-16T10:45:02+00:00\n"
+"PO-Revision-Date: 2025-03-10 22:52+0600\n"
+"X-Generator: WP-CLI 2.11.0\n"
+"X-Domain: aisk-ai-chat-for-fluentcart\n"
+"Language: es\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+
+#. Plugin Name of the plugin
+#: aisk-ai-chat-for-fluentcart.php
+msgid "Aisk — AI Sales Chatbot for FluentCart | Knowledgebase & Support bot"
+msgstr ""
+
+#. Plugin URI of the plugin
+#: aisk-ai-chat-for-fluentcart.php
+msgid "https://aisk.chat"
+msgstr ""
+
+#. Description of the plugin
+#: aisk-ai-chat-for-fluentcart.php
+msgid ""
+"AISK is a revolutionary AI-powered chatbot designed specifically for "
+"FluentCart stores and WordPress websites. Say goodbye to repetitive support "
+"tickets and hello to automated, intelligent customer service that works "
+"around the clock."
+msgstr ""
+
+#. Author of the plugin
+#: aisk-ai-chat-for-fluentcart.php
+msgid "Aisk Team <support@aisk.chat>"
+msgstr ""
+
+#. Author URI of the plugin
+#: aisk-ai-chat-for-fluentcart.php
+msgid "https://aisk.chat/"
+msgstr ""
+
+#: includes/class-aisk-admin.php:65 includes/class-aisk-admin.php:66
+msgid "Aisk"
+msgstr ""
+
+#: includes/class-aisk-admin.php:76 includes/class-aisk-admin.php:77
+msgid "Inquiries"
+msgstr ""
+
+#: includes/class-aisk-admin.php:86 includes/class-aisk-admin.php:87
+msgid "Chat History"
+msgstr ""
+
+#: includes/class-aisk-admin.php:96 includes/class-aisk-admin.php:97
+msgid "Settings"
+msgstr ""
+
+#. translators: %s: product category or 'products'
+#: includes/class-chat-handler.php:1139
+msgid ""
+"I couldn't find any %s matching your request. Could you please try "
+"describing what you're looking for in a different way?"
+msgstr ""
+
+#: includes/class-chat-handler.php:1140
+msgid "products"
+msgstr ""
+
+#: includes/class-chat-handler.php:1150
+msgid "Awesome! Here are some products you might like:"
+msgstr ""
+
+#: build/chat-admin.js:614 build/chat-admin.js:673
+#: src/admin/components/dashboard/ChatAdminDashboard.jsx:186
+#: src/admin/components/dashboard/InquiriesPage.jsx:129
+msgid "ID"
+msgstr ""
+
+#: build/chat-admin.js:614
+#: src/admin/components/dashboard/ChatAdminDashboard.jsx:197
+#: src/admin/components/dashboard/ChatAdminDashboard.jsx:386
+#: src/admin/components/dashboard/ChatAdminDashboard.jsx:389
+msgid "Location"
+msgstr ""
+
+#: build/chat-admin.js:614
+#: src/admin/components/dashboard/ChatAdminDashboard.jsx:204
+msgid "Unknown City"
+msgstr ""
+
+#: build/chat-admin.js:614
+#: src/admin/components/dashboard/ChatAdminDashboard.jsx:219
+msgid "Intents"
+msgstr ""
+
+#: build/chat-admin.js:614
+#: src/admin/components/dashboard/ChatAdminDashboard.jsx:242
+msgid "User Info"
+msgstr ""
+
+#: build/chat-admin.js:614
+#: src/admin/components/dashboard/ChatAdminDashboard.jsx:247
+msgid "Anonymous"
+msgstr ""
+
+#: build/chat-admin.js:614
+#: src/admin/components/dashboard/ChatAdminDashboard.jsx:264
+msgid "Source Page"
+msgstr ""
+
+#: build/chat-admin.js:614
+#: src/admin/components/dashboard/ChatAdminDashboard.jsx:276
+msgid "Date & Time"
+msgstr ""
+
+#: build/chat-admin.js:614
+#: src/admin/components/dashboard/ChatAdminDashboard.jsx:293
+msgid "Today"
+msgstr ""
+
+#: build/chat-admin.js:614
+#: src/admin/components/dashboard/ChatAdminDashboard.jsx:297
+msgid "Yesterday"
+msgstr ""
+
+#: build/chat-admin.js:614 build/chat-admin.js:673
+#: src/admin/components/dashboard/ChatAdminDashboard.jsx:309
+#: src/admin/components/dashboard/InquiriesPage.jsx:201
+msgid "Actions"
+msgstr ""
+
+#: build/chat-admin.js:614
+#: src/admin/components/dashboard/ChatAdminDashboard.jsx:318
+msgid "View Chat"
+msgstr ""
+
+#: build/chat-admin.js:614
+#: src/admin/components/dashboard/ChatAdminDashboard.jsx:367
+msgid "Chats"
+msgstr ""
+
+#: build/chat-admin.js:614
+#: src/admin/components/dashboard/ChatAdminDashboard.jsx:373
+#: src/admin/components/dashboard/ChatAdminDashboard.jsx:376
+msgid "Time Period"
+msgstr ""
+
+#: build/chat-admin.js:614
+#: src/admin/components/dashboard/ChatAdminDashboard.jsx:379
+msgid "Past 7 Days"
+msgstr ""
+
+#: build/chat-admin.js:614
+#: src/admin/components/dashboard/ChatAdminDashboard.jsx:380
+msgid "Past 30 Days"
+msgstr ""
+
+#: build/chat-admin.js:614
+#: src/admin/components/dashboard/ChatAdminDashboard.jsx:381
+msgid "Past 90 Days"
+msgstr ""
+
+#: build/chat-admin.js:614
+#: src/admin/components/dashboard/ChatAdminDashboard.jsx:392
+msgid "All Locations"
+msgstr ""
+
+#: build/chat-admin.js:654
+#: src/admin/components/settings/ChatWidgetSettings.jsx:17
+msgid "Select Image"
+msgstr ""
+
+#: build/chat-admin.js:654
+#: src/admin/components/settings/ChatWidgetSettings.jsx:19
+msgid "Use this image"
+msgstr ""
+
+#: build/chat-admin.js:654
+#: src/admin/components/settings/ChatWidgetSettings.jsx:35
+msgid "Chat Widget Settings"
+msgstr ""
+
+#: build/chat-admin.js:654
+#: src/admin/components/settings/ChatWidgetSettings.jsx:37
+msgid "Customize the appearance and behavior of your chat widget"
+msgstr ""
+
+#: build/chat-admin.js:654
+#: src/admin/components/settings/ChatWidgetSettings.jsx:43
+msgid "Chat Bubble Style"
+msgstr ""
+
+#: build/chat-admin.js:654
+#: src/admin/components/settings/ChatWidgetSettings.jsx:53
+msgid "Default Bubble"
+msgstr ""
+
+#: build/chat-admin.js:654
+#: src/admin/components/settings/ChatWidgetSettings.jsx:55
+msgid "Single message with animated emoji"
+msgstr ""
+
+#: build/chat-admin.js:654
+#: src/admin/components/settings/ChatWidgetSettings.jsx:65
+#: src/admin/components/settings/ChatWidgetSettings.jsx:91
+msgid "Rolling Messages"
+msgstr ""
+
+#: build/chat-admin.js:654
+#: src/admin/components/settings/ChatWidgetSettings.jsx:67
+msgid "Multiple rotating messages"
+msgstr ""
+
+#: build/chat-admin.js:654
+#: src/admin/components/settings/ChatWidgetSettings.jsx:78
+msgid "Bubble Message"
+msgstr ""
+
+#: build/chat-admin.js:654
+#: src/admin/components/settings/ChatWidgetSettings.jsx:83
+msgid "Hey, need help? 👋"
+msgstr ""
+
+#: build/chat-admin.js:654
+#: src/admin/components/settings/ChatWidgetSettings.jsx:86
+msgid "Add an emoji to make your message more engaging!"
+msgstr ""
+
+#: build/chat-admin.js:656
+#: src/admin/components/settings/ChatWidgetSettings.jsx:96
+msgid ""
+"👋 Need help?\n"
+"💬 Chat with us!\n"
+"🛍️ Find products"
+msgstr ""
+
+#: build/chat-admin.js:658
+#: src/admin/components/settings/ChatWidgetSettings.jsx:100
+msgid "Enter one message per line. Each message will be shown in rotation."
+msgstr ""
+
+#: build/chat-admin.js:658
+#: src/admin/components/settings/ChatWidgetSettings.jsx:107
+msgid "Chat Bubble Icon"
+msgstr ""
+
+#: build/chat-admin.js:658
+#: src/admin/components/settings/ChatWidgetSettings.jsx:112
+msgid "Chat Icon"
+msgstr ""
+
+#: build/chat-admin.js:658
+#: src/admin/components/settings/ChatWidgetSettings.jsx:120
+msgid "Change Icon"
+msgstr ""
+
+#: build/chat-admin.js:658
+#: src/admin/components/settings/ChatWidgetSettings.jsx:120
+msgid "Upload Icon"
+msgstr ""
+
+#: build/chat-admin.js:658
+#: src/admin/components/settings/ChatWidgetSettings.jsx:127
+msgid "Widget Header Logo"
+msgstr ""
+
+#: build/chat-admin.js:658
+#: src/admin/components/settings/ChatWidgetSettings.jsx:132
+msgid "Widget Logo"
+msgstr ""
+
+#: build/chat-admin.js:658
+#: src/admin/components/settings/ChatWidgetSettings.jsx:140
+msgid "Change Logo"
+msgstr ""
+
+#: build/chat-admin.js:658
+#: src/admin/components/settings/ChatWidgetSettings.jsx:140
+msgid "Upload Logo"
+msgstr ""
+
+#: build/chat-admin.js:658
+#: src/admin/components/settings/ChatWidgetSettings.jsx:147
+msgid "Widget Header Text"
+msgstr ""
+
+#: build/chat-admin.js:658
+#: src/admin/components/settings/ChatWidgetSettings.jsx:152
+msgid "Enter header text"
+msgstr ""
+
+#: build/chat-admin.js:658
+#: src/admin/components/settings/ChatWidgetSettings.jsx:203
+msgid "Widget Theme Color"
+msgstr ""
+
+#: build/chat-admin.js:658
+#: src/admin/components/settings/ChatWidgetSettings.jsx:232
+msgid "Greeting Message"
+msgstr ""
+
+#: build/chat-admin.js:658
+#: src/admin/components/settings/ChatWidgetSettings.jsx:237
+msgid "Enter greeting message"
+msgstr ""
+
+#: build/chat-admin.js:658
+#: src/admin/components/settings/ChatWidgetSettings.jsx:244
+msgid "Suggested Questions"
+msgstr ""
+
+#: build/chat-admin.js:660
+#: src/admin/components/settings/ChatWidgetSettings.jsx:249
+msgid "Enter one question per line"
+msgstr ""
+
+#: build/chat-admin.js:660
+#: src/admin/components/settings/ChatWidgetSettings.jsx:256
+msgid "Input Placeholder"
+msgstr ""
+
+#: build/chat-admin.js:660
+#: src/admin/components/settings/ChatWidgetSettings.jsx:261
+msgid "Type your message..."
+msgstr ""
+
+#: build/chat-admin.js:660
+#: src/admin/components/settings/ChatWidgetSettings.jsx:267
+msgid "Widget Position"
+msgstr ""
+
+#: build/chat-admin.js:660
+#: src/admin/components/settings/ChatWidgetSettings.jsx:273
+msgid "Select position"
+msgstr ""
+
+#: build/chat-admin.js:660
+#: src/admin/components/settings/ChatWidgetSettings.jsx:276
+msgid "Bottom Right"
+msgstr ""
+
+#: build/chat-admin.js:660
+#: src/admin/components/settings/ChatWidgetSettings.jsx:277
+msgid "Bottom Left"
+msgstr ""
+
+#: build/chat-admin.js:660
+#: src/admin/components/settings/ChatWidgetSettings.jsx:278
+msgid "Top Right"
+msgstr ""
+
+#: build/chat-admin.js:660
+#: src/admin/components/settings/ChatWidgetSettings.jsx:279
+msgid "Top Left"
+msgstr ""
+
+#: build/chat-admin.js:665
+#: src/admin/components/settings/AiConfigSettings.jsx:84
+msgid "No content found. Please create some posts, pages, or products first."
+msgstr ""
+
+#: build/chat-admin.js:665
+#: src/admin/components/settings/AiConfigSettings.jsx:88
+msgid ""
+"Failed to load content. Please check if FluentCart is installed and "
+"activated."
+msgstr ""
+
+#: build/chat-admin.js:665
+#: src/admin/components/settings/AiConfigSettings.jsx:99
+msgid "Processing content..."
+msgstr ""
+
+#: build/chat-admin.js:665
+#: src/admin/components/settings/AiConfigSettings.jsx:129
+msgid "Processing completed successfully!"
+msgstr ""
+
+#: build/chat-admin.js:665 build/chat-admin.js:667
+#: src/admin/components/settings/AiConfigSettings.jsx:138
+#: src/admin/components/settings/AiConfigSettings.jsx:147
+msgid "Error:"
+msgstr ""
+
+#: build/chat-admin.js:665
+#: src/admin/components/settings/AiConfigSettings.jsx:138
+msgid "Unknown error occurred"
+msgstr ""
+
+#: build/chat-admin.js:667
+#: src/admin/components/settings/AiConfigSettings.jsx:147
+msgid "Failed to process content. Please check your API keys and try again."
+msgstr ""
+
+#: build/chat-admin.js:667
+#: src/admin/components/settings/AiConfigSettings.jsx:156
+msgid "AI Configuration"
+msgstr ""
+
+#: build/chat-admin.js:667
+#: src/admin/components/settings/AiConfigSettings.jsx:158
+msgid "Configure AI settings and process your content for the chatbot"
+msgstr ""
+
+#: build/chat-admin.js:667
+#: src/admin/components/settings/AiConfigSettings.jsx:165
+msgid "FluentCart Integration"
+msgstr ""
+
+#: build/chat-admin.js:667
+#: src/admin/components/settings/AiConfigSettings.jsx:167
+msgid "Enable AI processing for FluentCart products"
+msgstr ""
+
+#: build/chat-admin.js:667
+#: src/admin/components/settings/AiConfigSettings.jsx:177
+msgid "Excluded Products"
+msgstr ""
+
+#: build/chat-admin.js:667
+#: src/admin/components/settings/AiConfigSettings.jsx:183
+msgid "Loading products..."
+msgstr ""
+
+#: build/chat-admin.js:667
+#: src/admin/components/settings/AiConfigSettings.jsx:187
+msgid "Select products to exclude..."
+msgstr ""
+
+#: build/chat-admin.js:667
+#: src/admin/components/settings/AiConfigSettings.jsx:188
+msgid "No products found"
+msgstr ""
+
+#: build/chat-admin.js:667
+#: src/admin/components/settings/AiConfigSettings.jsx:197
+msgid "Content Types"
+msgstr ""
+
+#: build/chat-admin.js:667
+#: src/admin/components/settings/AiConfigSettings.jsx:210
+msgid "Posts"
+msgstr ""
+
+#: build/chat-admin.js:667
+#: src/admin/components/settings/AiConfigSettings.jsx:223
+msgid "Pages"
+msgstr ""
+
+#: build/chat-admin.js:667
+#: src/admin/components/settings/AiConfigSettings.jsx:236
+msgid "Excluded Posts"
+msgstr ""
+
+#: build/chat-admin.js:667
+#: src/admin/components/settings/AiConfigSettings.jsx:242
+msgid "Loading posts..."
+msgstr ""
+
+#: build/chat-admin.js:667
+#: src/admin/components/settings/AiConfigSettings.jsx:246
+msgid "Select posts to exclude..."
+msgstr ""
+
+#: build/chat-admin.js:667
+#: src/admin/components/settings/AiConfigSettings.jsx:247
+msgid "No posts found"
+msgstr ""
+
+#: build/chat-admin.js:667
+#: src/admin/components/settings/AiConfigSettings.jsx:256
+msgid "Excluded Pages"
+msgstr ""
+
+#: build/chat-admin.js:667
+#: src/admin/components/settings/AiConfigSettings.jsx:262
+msgid "Loading pages..."
+msgstr ""
+
+#: build/chat-admin.js:667
+#: src/admin/components/settings/AiConfigSettings.jsx:266
+msgid "Select pages to exclude..."
+msgstr ""
+
+#: build/chat-admin.js:667
+#: src/admin/components/settings/AiConfigSettings.jsx:267
+msgid "No pages found"
+msgstr ""
+
+#: build/chat-admin.js:667
+#: src/admin/components/settings/AiConfigSettings.jsx:280
+msgid "Contact Information"
+msgstr ""
+
+#: build/chat-admin.js:667
+msgid ""
+"Store Hours: Mon-Fri 9am-5pm\n"
+"Phone: (555) 123-4567\n"
+"Email: support@example.com\n"
+"Address: 123 Main St, City, State 12345\n"
+"Support Team: John (Sales), Mary (Technical Support)"
+msgstr ""
+
+#: build/chat-admin.js:671
+#: src/admin/components/settings/AiConfigSettings.jsx:296
+msgid ""
+"Add contact information that the chatbot can share when users ask about "
+"contacting support or visiting your store."
+msgstr ""
+
+#: build/chat-admin.js:671
+#: src/admin/components/settings/AiConfigSettings.jsx:302
+msgid "Custom Content"
+msgstr ""
+
+#: build/chat-admin.js:671
+msgid ""
+"Return Policy: Items can be returned within 30 days of purchase with "
+"original receipt.\n"
+"Shipping Information: Free shipping on orders over $50. Standard shipping "
+"takes 3-5 business days.\n"
+"Store Locations: Downtown Store (123 Main St), Mall Store (456 Shopping Ave)"
+msgstr ""
+
+#: build/chat-admin.js:673
+#: src/admin/components/settings/AiConfigSettings.jsx:316
+msgid ""
+"Add any additional information that you want the chatbot to know about your "
+"business, policies, or services."
+msgstr ""
+
+#: build/chat-admin.js:673
+#: src/admin/components/settings/AiConfigSettings.jsx:322
+msgid "Processing Batch Size"
+msgstr ""
+
+#: build/chat-admin.js:673
+#: src/admin/components/settings/AiConfigSettings.jsx:332
+msgid "Number of items to process in each batch"
+msgstr ""
+
+#: build/chat-admin.js:673
+#: src/admin/components/settings/AiConfigSettings.jsx:340
+msgid "Knowledge Base Processing"
+msgstr ""
+
+#: build/chat-admin.js:673
+#: src/admin/components/settings/AiConfigSettings.jsx:342
+msgid "Unprocessed items:"
+msgstr ""
+
+#: build/chat-admin.js:673
+#: src/admin/components/settings/AiConfigSettings.jsx:346
+msgid "Processing..."
+msgstr ""
+
+#: build/chat-admin.js:673
+#: src/admin/components/settings/AiConfigSettings.jsx:346
+msgid "Generate Embeddings"
+msgstr ""
+
+#: build/chat-admin.js:673
+#: src/admin/components/settings/IntegrationsSettings.jsx:23
+msgid "WhatsApp"
+msgstr ""
+
+#: build/chat-admin.js:673
+#: src/admin/components/settings/IntegrationsSettings.jsx:27
+msgid "Telegram"
+msgstr ""
+
+#: build/chat-admin.js:673
+#: src/admin/components/settings/IntegrationsSettings.jsx:31
+msgid "Contact Form"
+msgstr ""
+
+#: build/chat-admin.js:673
+#: src/admin/components/settings/IntegrationsSettings.jsx:39
+msgid "WhatsApp Integration"
+msgstr ""
+
+#: build/chat-admin.js:673
+#: src/admin/components/settings/IntegrationsSettings.jsx:40
+msgid "Configure WhatsApp messaging integration"
+msgstr ""
+
+#: build/chat-admin.js:673
+#: src/admin/components/settings/IntegrationsSettings.jsx:45
+msgid "Enable WhatsApp"
+msgstr ""
+
+#: build/chat-admin.js:673
+#: src/admin/components/settings/IntegrationsSettings.jsx:46
+msgid "Activate WhatsApp integration"
+msgstr ""
+
+#: build/chat-admin.js:673
+#: src/admin/components/settings/IntegrationsSettings.jsx:55
+msgid "Twilio Account SID"
+msgstr ""
+
+#: build/chat-admin.js:673
+#: src/admin/components/settings/IntegrationsSettings.jsx:63
+msgid "Get your SID from"
+msgstr ""
+
+#: build/chat-admin.js:673
+#: src/admin/components/settings/IntegrationsSettings.jsx:76
+msgid "Twilio Auth Token"
+msgstr ""
+
+#: build/chat-admin.js:673
+#: src/admin/components/settings/IntegrationsSettings.jsx:84
+msgid "Get your auth token from"
+msgstr ""
+
+#: build/chat-admin.js:673
+#: src/admin/components/settings/IntegrationsSettings.jsx:97
+msgid "WhatsApp Number"
+msgstr ""
+
+#: build/chat-admin.js:673
+#: src/admin/components/settings/IntegrationsSettings.jsx:102
+msgid "whatsapp:+1234567890"
+msgstr ""
+
+#: build/chat-admin.js:673
+#: src/admin/components/settings/IntegrationsSettings.jsx:107
+#: src/admin/components/settings/IntegrationsSettings.jsx:170
+msgid "Welcome Message"
+msgstr ""
+
+#: build/chat-admin.js:673
+#: src/admin/components/settings/IntegrationsSettings.jsx:112
+#: src/admin/components/settings/IntegrationsSettings.jsx:175
+msgid "Enter welcome message"
+msgstr ""
+
+#: build/chat-admin.js:673
+#: src/admin/components/settings/IntegrationsSettings.jsx:123
+msgid "Enable template messages"
+msgstr ""
+
+#: build/chat-admin.js:673
+#: src/admin/components/settings/IntegrationsSettings.jsx:133
+msgid "Telegram Integration"
+msgstr ""
+
+#: build/chat-admin.js:673
+#: src/admin/components/settings/IntegrationsSettings.jsx:134
+msgid "Configure Telegram bot integration"
+msgstr ""
+
+#: build/chat-admin.js:673
+#: src/admin/components/settings/IntegrationsSettings.jsx:139
+msgid "Enable Telegram"
+msgstr ""
+
+#: build/chat-admin.js:673
+#: src/admin/components/settings/IntegrationsSettings.jsx:140
+msgid "Activate Telegram integration"
+msgstr ""
+
+#: build/chat-admin.js:673
+#: src/admin/components/settings/IntegrationsSettings.jsx:149
+msgid "Bot Token"
+msgstr ""
+
+#: build/chat-admin.js:673
+#: src/admin/components/settings/IntegrationsSettings.jsx:156
+msgid "Enter the bot token provided by @BotFather"
+msgstr ""
+
+#: build/chat-admin.js:673
+#: src/admin/components/settings/IntegrationsSettings.jsx:160
+msgid "Bot Username"
+msgstr ""
+
+#: build/chat-admin.js:673
+#: src/admin/components/settings/IntegrationsSettings.jsx:165
+msgid "@YourBotUsername"
+msgstr ""
+
+#: build/chat-admin.js:673
+#: src/admin/components/settings/IntegrationsSettings.jsx:181
+msgid "Webhook URL"
+msgstr ""
+
+#: build/chat-admin.js:673
+#: src/admin/components/settings/IntegrationsSettings.jsx:185
+msgid "Set this as your bot's webhook URL in Telegram"
+msgstr ""
+
+#: build/chat-admin.js:673
+#: src/admin/components/settings/IntegrationsSettings.jsx:195
+msgid "Contact Form Integration"
+msgstr ""
+
+#: build/chat-admin.js:673
+#: src/admin/components/settings/IntegrationsSettings.jsx:196
+msgid "Configure contact form integration"
+msgstr ""
+
+#: build/chat-admin.js:673
+#: src/admin/components/settings/IntegrationsSettings.jsx:201
+msgid "Enable Contact Form"
+msgstr ""
+
+#: build/chat-admin.js:673
+#: src/admin/components/settings/IntegrationsSettings.jsx:202
+msgid "Activate contact form integration"
+msgstr ""
+
+#: build/chat-admin.js:673
+#: src/admin/components/settings/IntegrationsSettings.jsx:211
+msgid "Form Shortcode"
+msgstr ""
+
+#: build/chat-admin.js:673
+#: src/admin/components/settings/IntegrationsSettings.jsx:216
+msgid "[contact-form-7 id='']"
+msgstr ""
+
+#: build/chat-admin.js:673
+#: src/admin/components/settings/IntegrationsSettings.jsx:218
+msgid "Enter your contact form shortcode"
+msgstr ""
+
+#: build/chat-admin.js:673 src/admin/components/settings/MiscSettings.jsx:10
+msgid "Miscellaneous Settings"
+msgstr ""
+
+#: build/chat-admin.js:673 src/admin/components/settings/MiscSettings.jsx:11
+msgid "Additional configuration options"
+msgstr ""
+
+#: build/chat-admin.js:673 src/admin/components/settings/MiscSettings.jsx:15
+msgid "Custom CSS"
+msgstr ""
+
+#: build/chat-admin.js:673 src/admin/components/settings/MiscSettings.jsx:20
+msgid "Add your custom CSS"
+msgstr ""
+
+#: build/chat-admin.js:673 src/admin/components/settings/MiscSettings.jsx:25
+msgid "Available CSS classes for customization:"
+msgstr ""
+
+#: build/chat-admin.js:673 src/admin/components/settings/MiscSettings.jsx:27
+msgid "Main widget container"
+msgstr ""
+
+#: build/chat-admin.js:673 src/admin/components/settings/MiscSettings.jsx:28
+msgid "Chat container"
+msgstr ""
+
+#: build/chat-admin.js:673 src/admin/components/settings/MiscSettings.jsx:29
+msgid "Header section"
+msgstr ""
+
+#: build/chat-admin.js:673 src/admin/components/settings/MiscSettings.jsx:30
+msgid "Messages container"
+msgstr ""
+
+#: build/chat-admin.js:673 src/admin/components/settings/MiscSettings.jsx:31
+msgid "User message bubbles"
+msgstr ""
+
+#: build/chat-admin.js:673 src/admin/components/settings/MiscSettings.jsx:32
+msgid "Bot message bubbles"
+msgstr ""
+
+#: build/chat-admin.js:673 src/admin/components/settings/MiscSettings.jsx:33
+msgid "Input section"
+msgstr ""
+
+#: build/chat-admin.js:673 src/admin/components/settings/MiscSettings.jsx:34
+msgid "Footer section"
+msgstr ""
+
+#: build/chat-admin.js:673 src/admin/components/settings/MiscSettings.jsx:38
+msgid ""
+"Add custom CSS to modify the chat widget appearance. Changes will be applied "
+"to the frontend chat widget."
+msgstr ""
+
+#: build/chat-admin.js:673 src/admin/components/settings/SettingsApp.jsx:130
+msgid "Settings saved successfully!"
+msgstr ""
+
+#: build/chat-admin.js:673 src/admin/components/settings/SettingsApp.jsx:133
+msgid "Your changes have been applied."
+msgstr ""
+
+#: build/chat-admin.js:673 src/admin/components/settings/SettingsApp.jsx:144
+msgid "Failed to save settings"
+msgstr ""
+
+#: build/chat-admin.js:673 src/admin/components/settings/SettingsApp.jsx:147
+msgid "Please try again or contact support if the problem persists."
+msgstr ""
+
+#: build/chat-admin.js:673 src/admin/components/settings/SettingsApp.jsx:172
+msgid "Aisk Settings"
+msgstr ""
+
+#: build/chat-admin.js:673 src/admin/components/settings/SettingsApp.jsx:174
+msgid "Configure your chatbot and integration settings"
+msgstr ""
+
+#: build/chat-admin.js:673 src/admin/components/settings/SettingsApp.jsx:184
+msgid "Need Help?"
+msgstr ""
+
+#: build/chat-admin.js:673 src/admin/components/settings/SettingsApp.jsx:193
+msgid "Documentation"
+msgstr ""
+
+#: build/chat-admin.js:673 src/admin/components/settings/SettingsApp.jsx:209
+msgid "General"
+msgstr ""
+
+#: build/chat-admin.js:673 src/admin/components/settings/SettingsApp.jsx:213
+msgid "Chat Widget"
+msgstr ""
+
+#: build/chat-admin.js:673 src/admin/components/settings/SettingsApp.jsx:217
+msgid "AI Config"
+msgstr ""
+
+#: build/chat-admin.js:673 src/admin/components/settings/SettingsApp.jsx:221
+msgid "Integrations"
+msgstr ""
+
+#: build/chat-admin.js:673 src/admin/components/settings/SettingsApp.jsx:225
+msgid "Misc"
+msgstr ""
+
+#: build/chat-admin.js:673 src/admin/components/settings/SettingsApp.jsx:232
+msgid "General Settings"
+msgstr ""
+
+#: build/chat-admin.js:673 src/admin/components/settings/SettingsApp.jsx:234
+msgid "Configure your API keys and general settings"
+msgstr ""
+
+#: build/chat-admin.js:673 src/admin/components/settings/SettingsApp.jsx:239
+msgid "Aisk Auth Key"
+msgstr ""
+
+#: build/chat-admin.js:673 src/admin/components/settings/SettingsApp.jsx:248
+msgid "Get your auth key from"
+msgstr ""
+
+#: build/chat-admin.js:673 src/admin/components/settings/SettingsApp.jsx:261
+msgid "OpenAI API Key"
+msgstr ""
+
+#: build/chat-admin.js:673 src/admin/components/settings/SettingsApp.jsx:270
+msgid "Generate your API key at"
+msgstr ""
+
+#: build/chat-admin.js:673 src/admin/components/settings/SettingsApp.jsx:352
+msgid "Saving..."
+msgstr ""
+
+#: build/chat-admin.js:673 src/admin/components/settings/SettingsApp.jsx:352
+msgid "Save Settings"
+msgstr ""
+
+#: build/chat-admin.js:673 src/admin/components/dashboard/InquiriesPage.jsx:118
+#: src/admin/components/dashboard/InquiriesPage.jsx:262
+#: src/admin/components/dashboard/InquiryDetails.jsx:103
+msgid "Pending"
+msgstr ""
+
+#: build/chat-admin.js:673 src/admin/components/dashboard/InquiriesPage.jsx:119
+#: src/admin/components/dashboard/InquiriesPage.jsx:263
+#: src/admin/components/dashboard/InquiryDetails.jsx:104
+msgid "In Progress"
+msgstr ""
+
+#: build/chat-admin.js:673 src/admin/components/dashboard/InquiriesPage.jsx:120
+#: src/admin/components/dashboard/InquiriesPage.jsx:264
+#: src/admin/components/dashboard/InquiryDetails.jsx:105
+msgid "Resolved"
+msgstr ""
+
+#: build/chat-admin.js:673 src/admin/components/dashboard/InquiriesPage.jsx:134
+msgid "Order #"
+msgstr ""
+
+#: build/chat-admin.js:673 src/admin/components/dashboard/InquiriesPage.jsx:139
+msgid "Email"
+msgstr ""
+
+#: build/chat-admin.js:673 src/admin/components/dashboard/InquiriesPage.jsx:144
+msgid "Phone"
+msgstr ""
+
+#: build/chat-admin.js:673 src/admin/components/dashboard/InquiriesPage.jsx:149
+#: src/admin/components/dashboard/InquiryDetails.jsx:149
+msgid "Inquiry"
+msgstr ""
+
+#: build/chat-admin.js:673 src/admin/components/dashboard/InquiriesPage.jsx:166
+#: src/admin/components/dashboard/InquiriesPage.jsx:254
+#: src/admin/components/dashboard/InquiriesPage.jsx:258
+msgid "Status"
+msgstr ""
+
+#: build/chat-admin.js:673 src/admin/components/dashboard/InquiriesPage.jsx:195
+msgid "Date"
+msgstr ""
+
+#: build/chat-admin.js:673 src/admin/components/dashboard/InquiriesPage.jsx:227
+msgid "Customer Inquiries"
+msgstr ""
+
+#: build/chat-admin.js:673 src/admin/components/dashboard/InquiriesPage.jsx:233
+msgid "Start Date"
+msgstr ""
+
+#: build/chat-admin.js:673 src/admin/components/dashboard/InquiriesPage.jsx:244
+msgid "End Date"
+msgstr ""
+
+#: build/chat-admin.js:673 src/admin/components/dashboard/InquiriesPage.jsx:261
+msgid "All"
+msgstr ""
+
+#: build/chat-admin.js:673 src/admin/components/dashboard/InquiriesPage.jsx:271
+msgid "Search"
+msgstr ""
+
+#: build/chat-admin.js:673 src/admin/components/dashboard/InquiriesPage.jsx:274
+msgid "Order #, Email, Phone..."
+msgstr ""
+
+#: build/chat-admin.js:673 src/admin/components/dashboard/InquiriesPage.jsx:283
+msgid "Reset Filters"
+msgstr ""
+
+#: build/chat-admin.js:673
+#: src/admin/components/dashboard/InquiryDetails.jsx:116
+msgid "just now"
+msgstr ""
+
+#: build/chat-admin.js:673
+#: src/admin/components/dashboard/InquiryDetails.jsx:119
+msgid "%d minutes ago"
+msgstr ""
+
+#: build/chat-admin.js:673
+#: src/admin/components/dashboard/InquiryDetails.jsx:122
+msgid "%d hours ago"
+msgstr ""
+
+#: build/chat-admin.js:673
+#: src/admin/components/dashboard/InquiryDetails.jsx:125
+msgid "%d days ago"
+msgstr ""
+
+#: build/chat-admin.js:673
+#: src/admin/components/dashboard/InquiryDetails.jsx:128
+msgid "%d months ago"
+msgstr ""
+
+#: build/chat-admin.js:673
+#: src/admin/components/dashboard/InquiryDetails.jsx:131
+msgid "%d years ago"
+msgstr ""
+
+#: build/chat-admin.js:673
+#: src/admin/components/dashboard/InquiryDetails.jsx:134
+msgid "Loading..."
+msgstr ""
+
+#: build/chat-admin.js:673
+#: src/admin/components/dashboard/InquiryDetails.jsx:149
+msgid "Order"
+msgstr ""
+
+#: build/chat-admin.js:673
+#: src/admin/components/dashboard/InquiryDetails.jsx:152
+msgid "Created:"
+msgstr ""
+
+#: build/chat-admin.js:673
+#: src/admin/components/dashboard/InquiryDetails.jsx:171
+msgid "Customer Details"
+msgstr ""
+
+#: build/chat-admin.js:673
+#: src/admin/components/dashboard/InquiryDetails.jsx:173
+msgid "Email:"
+msgstr ""
+
+#: build/chat-admin.js:673
+#: src/admin/components/dashboard/InquiryDetails.jsx:174
+msgid "Phone:"
+msgstr ""
+
+#: build/chat-admin.js:673
+#: src/admin/components/dashboard/InquiryDetails.jsx:179
+msgid "Inquiry Details"
+msgstr ""
+
+#: build/chat-admin.js:673
+#: src/admin/components/dashboard/InquiryDetails.jsx:188
+msgid "Notes History"
+msgstr ""
+
+#: build/chat-admin.js:673
+#: src/admin/components/dashboard/InquiryDetails.jsx:208
+msgid "Added by"
+msgstr ""
+
+#: build/chat-admin.js:673
+#: src/admin/components/dashboard/InquiryDetails.jsx:216
+#: src/admin/components/dashboard/InquiryDetails.jsx:231
+msgid "Add Note"
+msgstr ""
+
+#: build/chat-admin.js:673
+#: src/admin/components/dashboard/InquiryDetails.jsx:223
+msgid "Type your note here..."
+msgstr ""
+
+#: build/chat-admin.js:673
+#: src/admin/components/dashboard/InquiryDetails.jsx:135
+msgid "Inquiry not found"
+msgstr ""

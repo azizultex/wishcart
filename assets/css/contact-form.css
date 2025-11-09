@@ -1,0 +1,115 @@
+body {
+    margin: 0;
+    padding: 16px;
+    background: transparent;
+    font-size: 14px;
+    min-height: 100px;
+}
+
+/* Form container */
+form {
+    max-width: 100%;
+    margin: 0;
+    padding: 0;
+    background: transparent;
+}
+/* Form inputs */
+input[type="text"],
+input[type="email"],
+input[type="tel"],
+textarea {
+    width: 100% !important;
+    max-width: 100% !important;
+    box-sizing: border-box !important;
+    margin-bottom: 12px;
+    margin-bottom: 4px;
+    padding: 10px;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    background: white;
+    font-size: 14px;
+    transition: border-color 0.2s;
+}
+
+input[type="text"]:focus,
+input[type="email"]:focus,
+input[type="tel"]:focus,
+textarea:focus {
+    outline: none;
+    border-color: #1976d2;
+    box-shadow: 0 0 0 2px rgba(25, 118, 210, 0.1);
+}
+
+/* Submit button */
+input[type="submit"],
+button[type="submit"] {
+    background: #1976d2;
+    color: white;
+    padding: 10px 20px;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 14px;
+    transition: background-color 0.2s;
+}
+
+input[type="submit"]:hover,
+button[type="submit"]:hover {
+    background: #1565c0;
+}
+
+/* Labels */
+label {
+    display: block;
+    margin-bottom: 6px;
+    color: #4a5568;
+    font-size: 14px;
+    font-weight: 500;
+}
+
+/* Remove any theme margins/padding */
+.entry-content,
+.post-content,
+.page-content,
+.form-container {
+    margin: 0 !important;
+    padding: 0 !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    background: transparent !important;
+}
+
+/* Handle form validation messages */
+.wpcf7-response-output {
+    margin: 10px 0 !important;
+    padding: 10px !important;
+    border-radius: 6px;
+    font-size: 13px;
+    border: 1px solid transparent !important;
+}
+
+.wpcf7-not-valid-tip {
+    color: #dc2626;
+    font-size: 12px;
+    margin-top: -8px;
+    margin-bottom: 8px;
+}
+
+/* Make textareas reasonable size */
+textarea {
+    height: 120px !important;
+    resize: vertical;
+    min-height: 80px;
+    max-height: 200px;
+}
+
+/* Form plugin specific fixes */
+.wpforms-container,
+.gform_wrapper,
+.wpcf7-form {
+    margin: 0 !important;
+    padding: 0 !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    background: transparent !important;
+}
