@@ -8,16 +8,16 @@
  * @category   Messenger
  * @package    AISK
  * @subpackage Messenger
- * @author     Aisk Team <support@aisk.chat>
+ * @author     WishCart Team <support@wishcart.chat>
  * @license    GPL-2.0+ https://www.gnu.org/licenses/gpl-2.0.html
- * @link       https://aisk.chat
+ * @link       https://wishcart.chat
  */
 
 if ( ! defined('ABSPATH') ) {
 	exit;
 }
 /**
- * Class AISK_Telegram_Handler
+ * Class WISHCART_Telegram_Handler
  *
  * Manages all Telegram bot interactions including:
  * - Webhook registration and processing
@@ -28,11 +28,11 @@ if ( ! defined('ABSPATH') ) {
  *
  * @category Class
  * @package  AISK
- * @author   Aisk Team <support@aisk.chat>
+ * @author   WishCart Team <support@wishcart.chat>
  * @license  GPL-2.0+ https://www.gnu.org/licenses/gpl-2.0.html
- * @link     https://aisk.chat
+ * @link     https://wishcart.chat
  */
-class AISK_Telegram_Handler {
+class WISHCART_Telegram_Handler {
 
     private $bot_token;
     private $chat_handler;
@@ -53,9 +53,9 @@ class AISK_Telegram_Handler {
      * @return void
      */
 	public function __construct() {
-        $settings = get_option('aisk_settings', []);
+        $settings = get_option('wishcart_settings', []);
         $this->bot_token = isset($settings['integrations']['telegram']['bot_token']) ? $settings['integrations']['telegram']['bot_token'] : '';
-        $this->webhook_url = get_site_url(null, '/wp-json/aisk/v1/telegram-webhook');
+        $this->webhook_url = get_site_url(null, '/wp-json/wishcart/v1/telegram-webhook');
 
 		$this->log('Initialized Telegram handler', [
 			'webhook_url' => $this->webhook_url,
@@ -63,10 +63,10 @@ class AISK_Telegram_Handler {
 		]);
 
         // Initialize handlers
-        $this->chat_handler = new AISK_Chat_Handler();
-        $this->product_handler = new AISK_Product_Handler();
-        $this->order_handler = new AISK_Order_Handler();
-        $this->chat_storage = AISK_Chat_Storage::get_instance(); // Get singleton instance
+        $this->chat_handler = new WISHCART_Chat_Handler();
+        $this->product_handler = new WISHCART_Product_Handler();
+        $this->order_handler = new WISHCART_Order_Handler();
+        $this->chat_storage = WISHCART_Chat_Storage::get_instance(); // Get singleton instance
 
         // Register webhook endpoint
 		add_action('rest_api_init', [ $this, 'register_webhook' ]);
@@ -81,7 +81,7 @@ class AISK_Telegram_Handler {
 	public function register_webhook() {
 		$this->log('Registering Telegram webhook route');
         register_rest_route(
-            'aisk/v1', '/telegram-webhook', [
+            'wishcart/v1', '/telegram-webhook', [
 				'methods' => 'POST',
 				'callback' => [ $this, 'handle_webhook' ],
 				'permission_callback' => [ $this, 'verify_telegram_request' ],
@@ -699,4 +699,4 @@ class AISK_Telegram_Handler {
 }
 
 // Initialize the Telegram handler
-new AISK_Telegram_Handler();
+new WISHCART_Telegram_Handler();

@@ -5,21 +5,21 @@ if ( ! defined( 'ABSPATH' ) ) exit;
  *
  * @category WordPress
  * @package  AISK
- * @author   Aisk Team <support@aisk.chat>
+ * @author   WishCart Team <support@wishcart.chat>
  * @license  GPL-2.0+ https://www.gnu.org/licenses/gpl-2.0.html
- * @link     https://aisk.chat
+ * @link     https://wishcart.chat
  */
 
 /**
- * AISK_Database Class
+ * WISHCART_Database Class
  *
  * @category WordPress
  * @package  AISK
- * @author   Aisk Team <support@aisk.chat>
+ * @author   WishCart Team <support@wishcart.chat>
  * @license  GPL-2.0+ https://www.gnu.org/licenses/gpl-2.0.html
- * @link     https://aisk.chat
+ * @link     https://wishcart.chat
  */
-class AISK_Database {
+class WISHCART_Database {
 
 
     private $wpdb;
@@ -35,14 +35,14 @@ class AISK_Database {
         global $wpdb;
         $this->wpdb = $wpdb;
         $this->table_prefix = $wpdb->prefix;
-        $this->embedding_table = $this->table_prefix . 'aisk_embeddings';
+        $this->embedding_table = $this->table_prefix . 'wishcart_embeddings';
 		
-		$this->log_debug('AISK_Database::__construct start');
+		$this->log_debug('WISHCART_Database::__construct start');
 		// Ensure tables are created using the previously stored version
-		// so version-based creation logic (e.g., aisk_api_usage) can run.
+		// so version-based creation logic (e.g., wishcart_api_usage) can run.
 		$this->create_tables();
 		$this->check_version_upgrade();
-		$this->log_debug('AISK_Database::__construct end');
+		$this->log_debug('WISHCART_Database::__construct end');
     }
 
     /**
@@ -56,7 +56,7 @@ class AISK_Database {
 		$charset_collate = $this->wpdb->get_charset_collate();
 		$this->log_debug('create_tables: start');
 
-        $sql_conversations = "CREATE TABLE IF NOT EXISTS {$this->table_prefix}aisk_conversations (
+        $sql_conversations = "CREATE TABLE IF NOT EXISTS {$this->table_prefix}wishcart_conversations (
             id bigint(20) NOT NULL AUTO_INCREMENT,
             conversation_id varchar(50) NOT NULL,
             user_id bigint(20),
@@ -83,7 +83,7 @@ class AISK_Database {
         ) $charset_collate;";
 
         // Messages table
-        $sql_messages = "CREATE TABLE IF NOT EXISTS {$this->table_prefix}aisk_messages (
+        $sql_messages = "CREATE TABLE IF NOT EXISTS {$this->table_prefix}wishcart_messages (
             id bigint(20) NOT NULL AUTO_INCREMENT,
             conversation_id varchar(50) NOT NULL,
             message_type enum('user', 'bot') NOT NULL,
@@ -96,7 +96,7 @@ class AISK_Database {
         ) $charset_collate;";
 
         // Add new table for user states
-        $sql_states = "CREATE TABLE IF NOT EXISTS {$this->table_prefix}aisk_user_states (
+        $sql_states = "CREATE TABLE IF NOT EXISTS {$this->table_prefix}wishcart_user_states (
             id bigint(20) NOT NULL AUTO_INCREMENT,
             platform_user_id varchar(50) NOT NULL,
             platform varchar(20) NOT NULL,
@@ -107,7 +107,7 @@ class AISK_Database {
             UNIQUE KEY platform_user (platform_user_id, platform)
         ) $charset_collate;";
 
-        $sql_inquiries = "CREATE TABLE IF NOT EXISTS {$this->table_prefix}aisk_inquiries (
+        $sql_inquiries = "CREATE TABLE IF NOT EXISTS {$this->table_prefix}wishcart_inquiries (
             id bigint(20) NOT NULL AUTO_INCREMENT,
             conversation_id varchar(50) NOT NULL,
             order_number varchar(50) NOT NULL,
@@ -123,7 +123,7 @@ class AISK_Database {
             KEY status (status)
         ) $charset_collate;";
 
-        $sql_inquiry_notes = "CREATE TABLE IF NOT EXISTS {$this->table_prefix}aisk_inquiry_notes (
+        $sql_inquiry_notes = "CREATE TABLE IF NOT EXISTS {$this->table_prefix}wishcart_inquiry_notes (
             id bigint(20) NOT NULL AUTO_INCREMENT,
             inquiry_id bigint(20) NOT NULL,
             note text NOT NULL,
@@ -134,7 +134,7 @@ class AISK_Database {
             KEY inquiry_id (inquiry_id)
         ) $charset_collate;";
 
-        $sql_embeddings = "CREATE TABLE IF NOT EXISTS {$this->table_prefix}aisk_embeddings (
+        $sql_embeddings = "CREATE TABLE IF NOT EXISTS {$this->table_prefix}wishcart_embeddings (
             id bigint(20) NOT NULL AUTO_INCREMENT,
             content_type varchar(50) NOT NULL,
             content_id bigint(20) NOT NULL,
@@ -150,7 +150,7 @@ class AISK_Database {
             KEY parent_url (parent_url)
         ) {$charset_collate};";
 
-		$sql_api_usage = $this->get_api_usage_table_sql($this->table_prefix . 'aisk_api_usage', $charset_collate);
+		$sql_api_usage = $this->get_api_usage_table_sql($this->table_prefix . 'wishcart_api_usage', $charset_collate);
 
         include_once ABSPATH . 'wp-admin/includes/upgrade.php';
 
@@ -170,14 +170,14 @@ class AISK_Database {
 		}
 
 		// Safety net: ensure the API usage table exists regardless of version option state
-		$api_usage_table = $this->table_prefix . 'aisk_api_usage';
+		$api_usage_table = $this->table_prefix . 'wishcart_api_usage';
 		// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared -- False positive, this is properly prepared
 		$prepared_query = $this->wpdb->prepare('SHOW TABLES LIKE %s', $api_usage_table);
 		// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared -- Using a pre-prepared query variable
 		$existing_table = $this->wpdb->get_var($prepared_query);
 		$this->log_debug('create_tables: SHOW TABLES LIKE result=' . ($existing_table ? $existing_table : 'null'));
 		if ($existing_table !== $api_usage_table) {
-			$this->log_debug('create_tables: safety net creating aisk_api_usage');
+			$this->log_debug('create_tables: safety net creating wishcart_api_usage');
 			$result2 = dbDelta($sql_api_usage);
 			$this->log_debug('create_tables: safety net dbDelta outcome=' . json_encode(array_values($result2)));
 		}
@@ -185,7 +185,7 @@ class AISK_Database {
     }
 
 	/**
-	 * Build SQL for creating the aisk_api_usage table with a single source of truth
+	 * Build SQL for creating the wishcart_api_usage table with a single source of truth
 	 *
 	 * @param string $table_name
 	 * @param string $charset_collate
@@ -291,8 +291,8 @@ class AISK_Database {
      */
     public function get_embeddings($content_type, $content_id)
     {
-        $cache_key = 'aisk_embedding_' . $content_type . '_' . $content_id;
-        $embeddings = wp_cache_get($cache_key, 'aisk_embeddings');
+        $cache_key = 'wishcart_embedding_' . $content_type . '_' . $content_id;
+        $embeddings = wp_cache_get($cache_key, 'wishcart_embeddings');
         
         if (false === $embeddings) {
             // @codingStandardsIgnoreStart
@@ -309,7 +309,7 @@ class AISK_Database {
             // @codingStandardsIgnoreEnd
             
             if ($embeddings) {
-                wp_cache_set($cache_key, $embeddings, 'aisk_embeddings', 3600); // Cache for 1 hour
+                wp_cache_set($cache_key, $embeddings, 'wishcart_embeddings', 3600); // Cache for 1 hour
             }
         }
         
@@ -325,8 +325,8 @@ class AISK_Database {
      */
     public function get_all_embeddings()
     {
-        $cache_key = 'aisk_all_embeddings';
-        $embeddings = wp_cache_get($cache_key, 'aisk_embeddings');
+        $cache_key = 'wishcart_all_embeddings';
+        $embeddings = wp_cache_get($cache_key, 'wishcart_embeddings');
         
         if (false === $embeddings) {
             // @codingStandardsIgnoreStart
@@ -338,7 +338,7 @@ class AISK_Database {
             // @codingStandardsIgnoreEnd
             
             if ($embeddings) {
-                wp_cache_set($cache_key, $embeddings, 'aisk_embeddings', 3600); // Cache for 1 hour
+                wp_cache_set($cache_key, $embeddings, 'wishcart_embeddings', 3600); // Cache for 1 hour
             }
         }
         
@@ -367,7 +367,7 @@ class AISK_Database {
      * @return int|false Number of rows affected or false on error
      */
     public function store_api_usage( $data ) {
-        $table_name = $this->table_prefix . 'aisk_api_usage';
+        $table_name = $this->table_prefix . 'wishcart_api_usage';
         
         return $this->wpdb->insert(
             $table_name,
@@ -408,14 +408,14 @@ class AISK_Database {
      * @return void
      */
     private function check_version_upgrade() {
-        $stored_version = get_option('aisk_plugin_version', '1.0.0');
-        $current_version = AISK_VERSION;
+        $stored_version = get_option('wishcart_plugin_version', '1.0.0');
+        $current_version = WISHCART_VERSION;
 		$this->log_debug('check_version_upgrade: stored_version=' . $stored_version . ', current_version=' . $current_version);
         // If versions are different, this is an upgrade
         if (version_compare($stored_version, $current_version, '!=')) {
             // Update the stored version
-            update_option('aisk_plugin_version', $current_version);
-            $this->log_debug("check_version_upgrade: updated option aisk_plugin_version to {$current_version}");
+            update_option('wishcart_plugin_version', $current_version);
+            $this->log_debug("check_version_upgrade: updated option wishcart_plugin_version to {$current_version}");
         }
     }
 
@@ -427,8 +427,8 @@ class AISK_Database {
      * @return bool True if table should be created, false otherwise
      */
     private function should_create_api_usage_table() {
-        $stored_version = get_option('aisk_plugin_version', '1.0.0');
-        $current_version = AISK_VERSION;
+        $stored_version = get_option('wishcart_plugin_version', '1.0.0');
+        $current_version = WISHCART_VERSION;
 		$this->log_debug('should_create_api_usage_table: stored=' . $stored_version . ', current=' . $current_version);
         // Case 1: Fresh install of 2.5.0+ (no stored version or very old version)
         if (version_compare($stored_version, '2.5.0', '<')) {

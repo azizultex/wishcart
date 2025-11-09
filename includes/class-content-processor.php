@@ -1,10 +1,10 @@
 <?php
 if ( ! defined( 'ABSPATH' ) ) exit;
 /**
- * Class AISK_ContentProcessor
+ * Class WISHCART_ContentProcessor
  * Handles processing and cleaning content
  */
-class AISK_ContentProcessor {
+class WISHCART_ContentProcessor {
     /**
      * Process HTML content
      *

@@ -40,12 +40,12 @@ const AiConfigSettings = ({ settings, updateSettings }) => {
     const hasInitialized = useRef(false);
 
     // Initialize REST URL and nonce
-    const restUrl = window?.wpApiSettings?.root || window?.AiskData?.restUrl || '/wp-json/';
-    const nonce = window?.wpApiSettings?.nonce || window?.AiskData?.nonce;
+    const restUrl = window?.wpApiSettings?.root || window?.WishCartData?.restUrl || '/wp-json/';
+    const nonce = window?.wpApiSettings?.nonce || window?.WishCartData?.nonce;
 
     const checkFluentCartStatus = async () => {
         try {
-            const response = await fetch(`${restUrl}aisk/v1/check-fluentcart`, {
+            const response = await fetch(`${restUrl}wishcart/v1/check-fluentcart`, {
                 headers: {
                     'Content-Type': 'application/json',
                     'X-WP-Nonce': nonce
@@ -66,12 +66,12 @@ const AiConfigSettings = ({ settings, updateSettings }) => {
 
     useEffect(() => {
         if (!nonce) {
-            setError(__('Authentication token missing. Please refresh the page.', 'aisk-ai-chat-for-fluentcart'));
+            setError(__('Authentication token missing. Please refresh the page.', 'wish-cart'));
             return;
         }
 
         if (!restUrl) {
-            setError(__('API endpoint not configured. Please refresh the page.', 'aisk-ai-chat-for-fluentcart'));
+            setError(__('API endpoint not configured. Please refresh the page.', 'wish-cart'));
             return;
         }
 
@@ -79,7 +79,7 @@ const AiConfigSettings = ({ settings, updateSettings }) => {
         loadPostsAndPages();
 
         // Check if FluentCart is active using the global variable
-        setIsFluentCartActive(!!window?.AiskSettings?.isFluentCartActive);
+        setIsFluentCartActive(!!window?.WishCartSettings?.isFluentCartActive);
         
         // Also check status from server to ensure it's up to date
         checkFluentCartStatus();
@@ -126,15 +126,15 @@ const AiConfigSettings = ({ settings, updateSettings }) => {
 
         try {
             if (!nonce) {
-                throw new Error(__('Authentication token missing. Please refresh the page.', 'aisk-ai-chat-for-fluentcart'));
+                throw new Error(__('Authentication token missing. Please refresh the page.', 'wish-cart'));
             }
 
             if (!restUrl) {
-                throw new Error(__('API endpoint not configured. Please refresh the page.', 'aisk-ai-chat-for-fluentcart'));
+                throw new Error(__('API endpoint not configured. Please refresh the page.', 'wish-cart'));
             }
 
 
-            const response = await fetch(`${restUrl}aisk/v1/get-unprocessed-count`, {
+            const response = await fetch(`${restUrl}wishcart/v1/get-unprocessed-count`, {
                 method: 'GET',
                 headers: {
                     'Content-Type': 'application/json',
@@ -147,7 +147,7 @@ const AiConfigSettings = ({ settings, updateSettings }) => {
             // Check if we got redirected to login page
             const responseText = await response.text();
             if (responseText.includes('wp-login.php') || responseText.includes('login')) {
-                throw new Error(__('Authentication required. Please refresh the page and try again.', 'aisk-ai-chat-for-fluentcart'));
+                throw new Error(__('Authentication required. Please refresh the page and try again.', 'wish-cart'));
             }
 
             if (!response.ok) {
@@ -159,22 +159,22 @@ const AiConfigSettings = ({ settings, updateSettings }) => {
             try {
                 data = JSON.parse(responseText);
             } catch (e) {
-                throw new Error(__('Invalid response format from server', 'aisk-ai-chat-for-fluentcart'));
+                throw new Error(__('Invalid response format from server', 'wish-cart'));
             }
 
             if (data && typeof data === 'object') {
                 if ('success' in data && 'count' in data) {
                     setUnprocessedCount(data.count);
-                } else if (data.message === __('No content available to process', 'aisk-ai-chat-for-fluentcart')) {
+                } else if (data.message === __('No content available to process', 'wish-cart')) {
                     setUnprocessedCount(0);
                 } else {
-                    throw new Error(__('Invalid response structure from server', 'aisk-ai-chat-for-fluentcart'));
+                    throw new Error(__('Invalid response structure from server', 'wish-cart'));
                 }
             } else {
-                throw new Error(__('Invalid response data from server', 'aisk-ai-chat-for-fluentcart'));
+                throw new Error(__('Invalid response data from server', 'wish-cart'));
             }
         } catch (error) {
-            setError(error.message || __('Failed to load unprocessed count. Please try again.', 'aisk-ai-chat-for-fluentcart'));
+            setError(error.message || __('Failed to load unprocessed count. Please try again.', 'wish-cart'));
             setUnprocessedCount(0);
         }
     };
@@ -219,9 +219,9 @@ const AiConfigSettings = ({ settings, updateSettings }) => {
             })));
 
                     // Only try to load products if FluentCart is active
-                    if (window?.AiskSettings?.isFluentCartActive) {
+                    if (window?.WishCartSettings?.isFluentCartActive) {
                 try {
-                    const productsResponse = await fetch(`${restUrl}aisk/v1/products`, {
+                    const productsResponse = await fetch(`${restUrl}wishcart/v1/products`, {
                         headers: {
                             'Content-Type': 'application/json',
                             'X-WP-Nonce': nonce
@@ -247,11 +247,11 @@ const AiConfigSettings = ({ settings, updateSettings }) => {
 
             // Only show no content error if both posts and pages are empty
             if (!postsData.length && !pagesData.length) {
-                setError(__('No posts or pages found. Please create some content first.', 'aisk-ai-chat-for-fluentcart'));
+                setError(__('No posts or pages found. Please create some content first.', 'wish-cart'));
             }
         } catch (error) {
             console.error('Error loading content:', error);
-            setError(__('Failed to load posts and pages. Please try again.', 'aisk-ai-chat-for-fluentcart'));
+            setError(__('Failed to load posts and pages. Please try again.', 'wish-cart'));
         } finally {
             setIsLoading(false);
         }
@@ -265,11 +265,11 @@ const AiConfigSettings = ({ settings, updateSettings }) => {
             setSuccessMessage(null);
 
             if (!nonce) {
-                throw new Error(__('Authentication token missing. Please refresh the page.', 'aisk-ai-chat-for-fluentcart'));
+                throw new Error(__('Authentication token missing. Please refresh the page.', 'wish-cart'));
             }
 
             if (!restUrl) {
-                throw new Error(__('API endpoint not configured. Please refresh the page.', 'aisk-ai-chat-for-fluentcart'));
+                throw new Error(__('API endpoint not configured. Please refresh the page.', 'wish-cart'));
             }
 
             // If there are settings changes, update the original values first
@@ -280,7 +280,7 @@ const AiConfigSettings = ({ settings, updateSettings }) => {
                 setHasSettingsChanges(false);
             }
 
-            const response = await fetch(`${restUrl}aisk/v1/process-content`, {
+            const response = await fetch(`${restUrl}wishcart/v1/process-content`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -312,14 +312,14 @@ const AiConfigSettings = ({ settings, updateSettings }) => {
             console.log('Processed data:', data);
 
             if (data.success) {
-                let message = __('Successfully processed content', 'aisk-ai-chat-for-fluentcart');
+                let message = __('Successfully processed content', 'wish-cart');
                 if (data.processed > 0) {
-                    message += `: ${data.processed} ${__('items processed', 'aisk-ai-chat-for-fluentcart')}`;
+                    message += `: ${data.processed} ${__('items processed', 'wish-cart')}`;
                     if (data.total > 0) {
-                        message += `, ${data.total} ${__('remaining', 'aisk-ai-chat-for-fluentcart')}`;
+                        message += `, ${data.total} ${__('remaining', 'wish-cart')}`;
                     }
                 } else {
-                    message += `: ${__('No items to process', 'aisk-ai-chat-for-fluentcart')}`;
+                    message += `: ${__('No items to process', 'wish-cart')}`;
                 }
 
                 setSuccessMessage(message);
@@ -335,11 +335,11 @@ const AiConfigSettings = ({ settings, updateSettings }) => {
                 // Refresh unprocessed count after processing
                 await loadUnprocessedCount();
             } else {
-                throw new Error(data.message || __('Failed to process content', 'aisk-ai-chat-for-fluentcart'));
+                throw new Error(data.message || __('Failed to process content', 'wish-cart'));
             }
         } catch (error) {
             console.error('Error processing content:', error);
-            setError(error.message || __('Error processing content', 'aisk-ai-chat-for-fluentcart'));
+            setError(error.message || __('Error processing content', 'wish-cart'));
         } finally {
             setProcessing(false);
         }
@@ -357,10 +357,10 @@ const AiConfigSettings = ({ settings, updateSettings }) => {
     // Function to clean up excluded content embeddings
     const cleanupExcludedEmbeddings = async () => {
         setIsCleaningUp(true);
-        setCleanupStatus(__('Removing embeddings for excluded content...', 'aisk-ai-chat-for-fluentcart'));
+        setCleanupStatus(__('Removing embeddings for excluded content...', 'wish-cart'));
 
         try {
-            const response = await fetch('/wp-json/aisk/v1/cleanup-excluded-embeddings', {
+            const response = await fetch('/wp-json/wishcart/v1/cleanup-excluded-embeddings', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -371,15 +371,15 @@ const AiConfigSettings = ({ settings, updateSettings }) => {
             const data = await response.json();
 
             if (data.success) {
-                setCleanupStatus(data.message || __('Successfully removed embeddings for excluded content.', 'aisk-ai-chat-for-fluentcart'));
+                setCleanupStatus(data.message || __('Successfully removed embeddings for excluded content.', 'wish-cart'));
                 // Refresh unprocessed count after cleanup
                 await loadUnprocessedCount();
             } else {
-                setCleanupStatus(`${__('Error:', 'aisk-ai-chat-for-fluentcart')} ${data.message || __('Failed to remove embeddings for excluded content.', 'aisk-ai-chat-for-fluentcart')}`);
+                setCleanupStatus(`${__('Error:', 'wish-cart')} ${data.message || __('Failed to remove embeddings for excluded content.', 'wish-cart')}`);
             }
         } catch (error) {
             console.error('Error cleaning up excluded embeddings:', error);
-            setCleanupStatus(`${__('Error:', 'aisk-ai-chat-for-fluentcart')} ${error.message || __('Failed to remove embeddings for excluded content.', 'aisk-ai-chat-for-fluentcart')}`);
+            setCleanupStatus(`${__('Error:', 'wish-cart')} ${error.message || __('Failed to remove embeddings for excluded content.', 'wish-cart')}`);
         } finally {
             // Clear status message after a delay
             setTimeout(() => {
@@ -392,18 +392,18 @@ const AiConfigSettings = ({ settings, updateSettings }) => {
     return (
         <Card>
             <CardHeader>
-                <CardTitle>{__('AI Configuration', 'aisk-ai-chat-for-fluentcart')}</CardTitle>
+                <CardTitle>{__('AI Configuration', 'wish-cart')}</CardTitle>
                 <CardDescription>
-                    {__('Configure AI settings and process your content for the chatbot', 'aisk-ai-chat-for-fluentcart')}
+                    {__('Configure AI settings and process your content for the chatbot', 'wish-cart')}
                 </CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">
                 {/* FluentCart Integration */}
                 <div className="flex items-center justify-between">
                     <div className="space-y-0.5">
-                        <Label>{__('FluentCart Integration', 'aisk-ai-chat-for-fluentcart')}</Label>
+                        <Label>{__('FluentCart Integration', 'wish-cart')}</Label>
                         <p className="text-sm text-gray-500">
-                            {__('Enable AI processing for FluentCart products', 'aisk-ai-chat-for-fluentcart')}
+                            {__('Enable AI processing for FluentCart products', 'wish-cart')}
                         </p>
                         <div className="flex items-center gap-4">
                             <Switch
@@ -421,10 +421,10 @@ const AiConfigSettings = ({ settings, updateSettings }) => {
                                         className="text-blue-500 hover:text-blue-700 p-0"
                                         onClick={async () => {
                                             setProcessing(true);
-                                            setProcessMessage(__('Installing FluentCart...', 'aisk-ai-chat-for-fluentcart'));
+                                            setProcessMessage(__('Installing FluentCart...', 'wish-cart'));
 
                                             try {
-                                                const response = await fetch('/wp-json/aisk/v1/install-fluentcart', {
+                                                const response = await fetch('/wp-json/wishcart/v1/install-fluentcart', {
                                                     method: 'POST',
                                                     headers: {
                                                         'Content-Type': 'application/json',
@@ -437,7 +437,7 @@ const AiConfigSettings = ({ settings, updateSettings }) => {
                                                 // Check for WordPress REST API error format
                                                 if (!response.ok || data.code) {
                                                     // Handle WordPress REST API error format
-                                                    const errorMessage = data.message || data.code || __('Failed to install FluentCart', 'aisk-ai-chat-for-fluentcart');
+                                                    const errorMessage = data.message || data.code || __('Failed to install FluentCart', 'wish-cart');
                                                     setProcessMessage(errorMessage);
                                                     setTimeout(() => {
                                                         setProcessing(false);
@@ -450,14 +450,14 @@ const AiConfigSettings = ({ settings, updateSettings }) => {
                                                     // Refresh the status from server after installation
                                                     await checkFluentCartStatus();
                                                     
-                                                    setProcessMessage(__('FluentCart installed and activated successfully!', 'aisk-ai-chat-for-fluentcart'));
+                                                    setProcessMessage(__('FluentCart installed and activated successfully!', 'wish-cart'));
                                                     setTimeout(() => {
                                                         setProcessing(false);
                                                         setProcessMessage('');
                                                     }, 2000);
                                                 } else {
                                                     // Handle error response
-                                                    const errorMessage = data.message || __('Failed to install FluentCart', 'aisk-ai-chat-for-fluentcart');
+                                                    const errorMessage = data.message || __('Failed to install FluentCart', 'wish-cart');
                                                     setProcessMessage(errorMessage);
                                                     setTimeout(() => {
                                                         setProcessing(false);
@@ -466,7 +466,7 @@ const AiConfigSettings = ({ settings, updateSettings }) => {
                                                 }
                                             } catch (error) {
                                                 console.error('Error installing FluentCart:', error);
-                                                let errorMessage = __('Error installing FluentCart. Please check your connection and try again.', 'aisk-ai-chat-for-fluentcart');
+                                                let errorMessage = __('Error installing FluentCart. Please check your connection and try again.', 'wish-cart');
                                                 
                                                 // Try to get error message from response if available
                                                 if (error.message) {
@@ -481,22 +481,22 @@ const AiConfigSettings = ({ settings, updateSettings }) => {
                                             }
                                         }}
                                     >
-                                        {__('Install & Activate FluentCart', 'aisk-ai-chat-for-fluentcart')}
+                                        {__('Install & Activate FluentCart', 'wish-cart')}
                                     </Button>
                                     <Button
                                         variant="link"
                                         size="sm"
                                         className="text-gray-500 hover:text-gray-700 p-0"
                                         onClick={async () => {
-                                            setProcessMessage(__('Checking FluentCart status...', 'aisk-ai-chat-for-fluentcart'));
+                                            setProcessMessage(__('Checking FluentCart status...', 'wish-cart'));
                                             await checkFluentCartStatus();
                                             setTimeout(() => {
                                                 setProcessMessage('');
                                             }, 1500);
                                         }}
-                                        title={__('Refresh FluentCart detection status', 'aisk-ai-chat-for-fluentcart')}
+                                        title={__('Refresh FluentCart detection status', 'wish-cart')}
                                     >
-                                        {__('Refresh', 'aisk-ai-chat-for-fluentcart')}
+                                        {__('Refresh', 'wish-cart')}
                                     </Button>
                                 </>
                             )}
@@ -509,18 +509,18 @@ const AiConfigSettings = ({ settings, updateSettings }) => {
 
                 {settings.ai_config.fluentcart_enabled && isFluentCartActive && (
                     <div>
-                        <Label className="mb-2 block">{__('Excluded Products', 'aisk-ai-chat-for-fluentcart')}</Label>
+                        <Label className="mb-2 block">{__('Excluded Products', 'wish-cart')}</Label>
                         <MultiSelect
                             options={products}
                             selected={settings.ai_config.excluded_products || []}
                             onChange={(selected) => handleExclusionUpdate('ai_config', 'excluded_products', selected)}
                             placeholder={isLoading ?
-                                __('Loading products...', 'aisk-ai-chat-for-fluentcart') :
+                                __('Loading products...', 'wish-cart') :
                                 products.length ?
                                     settings.ai_config.excluded_products?.length ?
                                         '' :
-                                        __('Select products to exclude...', 'aisk-ai-chat-for-fluentcart') :
-                                    __('No products found', 'aisk-ai-chat-for-fluentcart')
+                                        __('Select products to exclude...', 'wish-cart') :
+                                    __('No products found', 'wish-cart')
                             }
                             disabled={isLoading || !products.length || isCleaningUp}
                             type="product"
@@ -530,7 +530,7 @@ const AiConfigSettings = ({ settings, updateSettings }) => {
 
                 {/* Content Types */}
                 <div className="space-y-3">
-                    <Label>{__('Content Types', 'aisk-ai-chat-for-fluentcart')}</Label>
+                    <Label>{__('Content Types', 'wish-cart')}</Label>
                     <div className="space-y-2">
                         <div className="flex items-center space-x-2">
                             <Checkbox
@@ -543,7 +543,7 @@ const AiConfigSettings = ({ settings, updateSettings }) => {
                                     updateSettings('ai_config', 'included_post_types', types);
                                 }}
                             />
-                            <label htmlFor="posts" className="text-sm font-medium">{__('Posts', 'aisk-ai-chat-for-fluentcart')}</label>
+                            <label htmlFor="posts" className="text-sm font-medium">{__('Posts', 'wish-cart')}</label>
                         </div>
                         <div className="flex items-center space-x-2">
                             <Checkbox
@@ -556,7 +556,7 @@ const AiConfigSettings = ({ settings, updateSettings }) => {
                                     updateSettings('ai_config', 'included_post_types', types);
                                 }}
                             />
-                            <label htmlFor="pages" className="text-sm font-medium">{__('Pages', 'aisk-ai-chat-for-fluentcart')}</label>
+                            <label htmlFor="pages" className="text-sm font-medium">{__('Pages', 'wish-cart')}</label>
                         </div>
                     </div>
                 </div>
@@ -570,18 +570,18 @@ const AiConfigSettings = ({ settings, updateSettings }) => {
                         <div className="space-y-4">
                             {settings.ai_config.included_post_types.includes('post') && (
                                 <div>
-                                    <Label className="mb-2 block">{__('Excluded Posts', 'aisk-ai-chat-for-fluentcart')}</Label>
+                                    <Label className="mb-2 block">{__('Excluded Posts', 'wish-cart')}</Label>
                                     <MultiSelect
                                         options={posts}
                                         selected={settings.ai_config.excluded_posts || []}
                                         onChange={(selected) => handleExclusionUpdate('ai_config', 'excluded_posts', selected)}
                                         placeholder={isLoading ?
-                                            __('Loading posts...', 'aisk-ai-chat-for-fluentcart') :
+                                            __('Loading posts...', 'wish-cart') :
                                             posts.length ?
                                                 settings.ai_config.excluded_posts?.length ?
                                                     '' :
-                                                    __('Select posts to exclude...', 'aisk-ai-chat-for-fluentcart') :
-                                                __('No posts found', 'aisk-ai-chat-for-fluentcart')
+                                                    __('Select posts to exclude...', 'wish-cart') :
+                                                __('No posts found', 'wish-cart')
                                         }
                                         disabled={isLoading || !posts.length || isCleaningUp}
                                         type="post"
@@ -590,18 +590,18 @@ const AiConfigSettings = ({ settings, updateSettings }) => {
                             )}
                             {settings.ai_config.included_post_types.includes('page') && (
                                 <div>
-                                    <Label className="mb-2 block">{__('Excluded Pages', 'aisk-ai-chat-for-fluentcart')}</Label>
+                                    <Label className="mb-2 block">{__('Excluded Pages', 'wish-cart')}</Label>
                                     <MultiSelect
                                         options={pages}
                                         selected={settings.ai_config.excluded_pages || []}
                                         onChange={(selected) => handleExclusionUpdate('ai_config', 'excluded_pages', selected)}
                                         placeholder={isLoading ?
-                                            __('Loading pages...', 'aisk-ai-chat-for-fluentcart') :
+                                            __('Loading pages...', 'wish-cart') :
                                             pages.length ?
                                                 settings.ai_config.excluded_pages?.length ?
                                                     '' :
-                                                    __('Select pages to exclude...', 'aisk-ai-chat-for-fluentcart') :
-                                                __('No pages found', 'aisk-ai-chat-for-fluentcart')
+                                                    __('Select pages to exclude...', 'wish-cart') :
+                                                __('No pages found', 'wish-cart')
                                         }
                                         disabled={isLoading || !pages.length || isCleaningUp}
                                         type="page"
@@ -625,10 +625,10 @@ const AiConfigSettings = ({ settings, updateSettings }) => {
                 {/* Contact Information */}
                 <div className="space-y-2">
                     <div className="flex items-center gap-2">
-                        <Label htmlFor="contact_info">{__('Contact Information', 'aisk-ai-chat-for-fluentcart')}</Label>
+                        <Label htmlFor="contact_info">{__('Contact Information', 'wish-cart')}</Label>
                         {settings.ai_config.contact_info !== originalContactInfo && (
                             <span className="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded-full">
-                                {__('Modified', 'aisk-ai-chat-for-fluentcart')}
+                                {__('Modified', 'wish-cart')}
                             </span>
                         )}
                     </div>
@@ -642,22 +642,22 @@ const AiConfigSettings = ({ settings, updateSettings }) => {
                             'Email: support@example.com\n' +
                             'Address: 123 Main St, City, State 12345\n' +
                             'Support Team: John (Sales), Mary (Technical Support)',
-                            'aisk-ai-chat-for-fluentcart'
+                            'wish-cart'
                         )}
                         className={`h-40 ${settings.ai_config.contact_info !== originalContactInfo ? 'border-blue-300 bg-blue-50' : ''}`}
                     />
                     <p className="text-sm text-muted-foreground text-gray-500">
-                        {__('Add contact information that the chatbot can share when users ask about contacting support or visiting your store.', 'aisk-ai-chat-for-fluentcart')}
+                        {__('Add contact information that the chatbot can share when users ask about contacting support or visiting your store.', 'wish-cart')}
                     </p>
                 </div>
 
                 {/* Custom Content */}
                 <div className="space-y-2">
                     <div className="flex items-center gap-2">
-                        <Label htmlFor="custom_content">{__('Custom Content', 'aisk-ai-chat-for-fluentcart')}</Label>
+                        <Label htmlFor="custom_content">{__('Custom Content', 'wish-cart')}</Label>
                         {settings.ai_config.custom_content !== originalCustomContent && (
                             <span className="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded-full">
-                                {__('Modified', 'aisk-ai-chat-for-fluentcart')}
+                                {__('Modified', 'wish-cart')}
                             </span>
                         )}
                     </div>
@@ -669,18 +669,18 @@ const AiConfigSettings = ({ settings, updateSettings }) => {
                             'Return Policy: Items can be returned within 30 days of purchase with original receipt.\n' +
                             'Shipping Information: Free shipping on orders over $50. Standard shipping takes 3-5 business days.\n' +
                             'Store Locations: Downtown Store (123 Main St), Mall Store (456 Shopping Ave)',
-                            'aisk-ai-chat-for-fluentcart'
+                            'wish-cart'
                         )}
                         className={`h-60 ${settings.ai_config.custom_content !== originalCustomContent ? 'border-blue-300 bg-blue-50' : ''}`}
                     />
                     <p className="text-sm text-muted-foreground text-gray-500">
-                        {__('Add any additional information that you want the chatbot to know about your business, policies, or services.', 'aisk-ai-chat-for-fluentcart')}
+                        {__('Add any additional information that you want the chatbot to know about your business, policies, or services.', 'wish-cart')}
                     </p>
                 </div>
 
                 {/* Batch Size */}
                 <div className="space-y-2">
-                    <Label htmlFor="batch_size">{__('Processing Batch Size', 'aisk-ai-chat-for-fluentcart')}</Label>
+                    <Label htmlFor="batch_size">{__('Processing Batch Size', 'wish-cart')}</Label>
                     <Input
                         id="batch_size"
                         type="number"
@@ -690,7 +690,7 @@ const AiConfigSettings = ({ settings, updateSettings }) => {
                         onChange={(e) => updateSettings('ai_config', 'batch_size', parseInt(e.target.value))}
                     />
                     <p className="text-sm text-gray-500">
-                        {__('Number of items to process in each batch', 'aisk-ai-chat-for-fluentcart')}
+                        {__('Number of items to process in each batch', 'wish-cart')}
                     </p>
                 </div>
 
@@ -698,12 +698,12 @@ const AiConfigSettings = ({ settings, updateSettings }) => {
                 <div className="space-y-4 pt-4 border-t">
                     <div className="flex justify-between items-center">
                         <div>
-                            <h4 className="text-sm font-medium">{__('Knowledge Base Processing', 'aisk-ai-chat-for-fluentcart')}</h4>
+                            <h4 className="text-sm font-medium">{__('Knowledge Base Processing', 'wish-cart')}</h4>
                             <p className="text-sm text-gray-500">
-                                {__('Unprocessed items:', 'aisk-ai-chat-for-fluentcart')} {unprocessedCount + (hasSettingsChanges ? 1 : 0)}
+                                {__('Unprocessed items:', 'wish-cart')} {unprocessedCount + (hasSettingsChanges ? 1 : 0)}
                                 {hasSettingsChanges && (
                                     <span className="text-blue-600 ml-1">
-                                        ({__('includes Contact Information & Custom Content changes', 'aisk-ai-chat-for-fluentcart')})
+                                        ({__('includes Contact Information & Custom Content changes', 'wish-cart')})
                                     </span>
                                 )}
                             </p>
@@ -714,14 +714,14 @@ const AiConfigSettings = ({ settings, updateSettings }) => {
                                 onClick={cleanupExcludedEmbeddings}
                                 disabled={processing || isCleaningUp}
                             >
-                                {isCleaningUp ? __('Cleaning...', 'aisk-ai-chat-for-fluentcart') : __('Clean Excluded Content', 'aisk-ai-chat-for-fluentcart')}
+                                {isCleaningUp ? __('Cleaning...', 'wish-cart') : __('Clean Excluded Content', 'wish-cart')}
                             </Button>
 
                             <Button
                                 onClick={processContent}
                                 disabled={processing || isCleaningUp}
                             >
-                                {processing ? __('Processing...', 'aisk-ai-chat-for-fluentcart') : __('Generate Embeddings', 'aisk-ai-chat-for-fluentcart')}
+                                {processing ? __('Processing...', 'wish-cart') : __('Generate Embeddings', 'wish-cart')}
                             </Button>
                         </div>
                     </div>

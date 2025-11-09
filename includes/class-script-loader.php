@@ -8,23 +8,23 @@ if ( ! defined('ABSPATH') ) {
  *
  * @category Functionality
  * @package  AISK
- * @author   Aisk Team <support@aisk.chat>
+ * @author   WishCart Team <support@wishcart.chat>
  * @license  GPL-2.0+ https://www.gnu.org/licenses/gpl-2.0.html
- * @link     https://aisk.chat
+ * @link     https://wishcart.chat
  */
 
 /**
- * AISK_Scripts Class
+ * WISHCART_Scripts Class
  *
  * Handles loading and localization of scripts and styles for the chat widget
  *
  * @category Class
  * @package  AISK
- * @author   Aisk Team <support@aisk.chat>
+ * @author   WishCart Team <support@wishcart.chat>
  * @license  GPL-2.0+ https://www.gnu.org/licenses/gpl-2.0.html
- * @link     https://aisk.chat
+ * @link     https://wishcart.chat
  */
-class AISK_Scripts {
+class WISHCART_Scripts {
 
     /**
      * Loads chat widget assets and localizes settings
@@ -37,37 +37,37 @@ class AISK_Scripts {
     public static function load_chat_widget_assets() {
         // Register and enqueue chat widget styles
         wp_register_style(
-            'aisk-chat-widget-styles',
-            AISK_PLUGIN_URL . 'build/chat-widget.css',
+            'wishcart-chat-widget-styles',
+            WISHCART_PLUGIN_URL . 'build/chat-widget.css',
             [],
-            AISK_VERSION
+            WISHCART_VERSION
         );
-        wp_enqueue_style('aisk-chat-widget-styles');
+        wp_enqueue_style('wishcart-chat-widget-styles');
 
         // Register and enqueue chat formatter styles
         wp_register_style(
-            'aisk-chat-formatter-styles',
-            AISK_PLUGIN_URL . 'assets/css/chat-formatter.css',
-            ['aisk-chat-widget-styles'],
-            AISK_VERSION
+            'wishcart-chat-formatter-styles',
+            WISHCART_PLUGIN_URL . 'assets/css/chat-formatter.css',
+            ['wishcart-chat-widget-styles'],
+            WISHCART_VERSION
         );
-        wp_enqueue_style('aisk-chat-formatter-styles');
+        wp_enqueue_style('wishcart-chat-formatter-styles');
 
         // Register and enqueue chat widget scripts
         wp_register_script(
-            'aisk-chat-widget',
-            AISK_PLUGIN_URL . 'build/chat-widget.js',
+            'wishcart-chat-widget',
+            WISHCART_PLUGIN_URL . 'build/chat-widget.js',
             ['wp-element', 'react', 'react-dom'],
-            AISK_VERSION,
+            WISHCART_VERSION,
             [
                 'in_footer' => true,
                 'strategy' => 'defer'
             ]
         );
-        wp_enqueue_script('aisk-chat-widget');
+        wp_enqueue_script('wishcart-chat-widget');
 
         // Get settings
-        $settings = get_option('aisk_settings', []);
+        $settings = get_option('wishcart_settings', []);
         // Create frontend-only settings object
         $frontend_settings = [
             'chatwidget' => [
@@ -110,8 +110,8 @@ class AISK_Scripts {
                 'text' => isset($settings['colors']['text']) ? $settings['colors']['text'] : '#FFFFFF',
             ],
             // Essential system paths/urls
-            'pluginUrl' => AISK_PLUGIN_URL,
-            'apiUrl' => rest_url('aisk/v1'),
+            'pluginUrl' => WISHCART_PLUGIN_URL,
+            'apiUrl' => rest_url('wishcart/v1'),
             'adminUrl' => admin_url('admin.php'),
             'nonce' => wp_create_nonce('wp_rest'),
         ];
@@ -119,16 +119,16 @@ class AISK_Scripts {
         // Add custom CSS if exists
         if ( ! empty($settings['misc']['custom_css']) ) {
             wp_add_inline_style(
-                'aisk-chat-widget-styles',
+                'wishcart-chat-widget-styles',
                 esc_html( $settings['misc']['custom_css'] )
             );
         }
 
         // Allow features to modify settings
-        $settings = apply_filters('aisk_script_data', $frontend_settings);
+        $settings = apply_filters('wishcart_script_data', $frontend_settings);
 
         // Localize script
-        wp_localize_script('aisk-chat-widget', 'AiskData', $settings);
+        wp_localize_script('wishcart-chat-widget', 'WishCartData', $settings);
 
         return $settings;
     }

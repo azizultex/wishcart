@@ -199,17 +199,17 @@ const UsesAnalytics = () => {
         try {
             // Load analytics data from API (overview, usage, errors, costs)
             const [overviewResponse, usageResponse, errorsResponse, costsResponse] = await Promise.all([
-                fetch(`${AiskSettings.apiUrl}/analytics/overview?time_filter=${timeFilter}`, {
-                    headers: { 'X-WP-Nonce': AiskSettings.nonce }
+                fetch(`${WishCartSettings.apiUrl}/analytics/overview?time_filter=${timeFilter}`, {
+                    headers: { 'X-WP-Nonce': WishCartSettings.nonce }
                 }),
-                fetch(`${AiskSettings.apiUrl}/analytics/usage?time_filter=${timeFilter}`, {
-                    headers: { 'X-WP-Nonce': AiskSettings.nonce }
+                fetch(`${WishCartSettings.apiUrl}/analytics/usage?time_filter=${timeFilter}`, {
+                    headers: { 'X-WP-Nonce': WishCartSettings.nonce }
                 }),
-                fetch(`${AiskSettings.apiUrl}/analytics/errors?time_filter=${timeFilter}`, {
-                    headers: { 'X-WP-Nonce': AiskSettings.nonce }
+                fetch(`${WishCartSettings.apiUrl}/analytics/errors?time_filter=${timeFilter}`, {
+                    headers: { 'X-WP-Nonce': WishCartSettings.nonce }
                 }),
-                fetch(`${AiskSettings.apiUrl}/analytics/costs?time_filter=${timeFilter}`, {
-                    headers: { 'X-WP-Nonce': AiskSettings.nonce }
+                fetch(`${WishCartSettings.apiUrl}/analytics/costs?time_filter=${timeFilter}`, {
+                    headers: { 'X-WP-Nonce': WishCartSettings.nonce }
                 })
             ]);
 
@@ -244,7 +244,7 @@ const UsesAnalytics = () => {
             <Grid container spacing={3} sx={{ mb: 3 }}>
                 <Grid item xs={12} sm={6} md={2}>
                     <KPICard
-                        title={__('Total Requests', 'aisk-ai-chat-for-fluentcart')}
+                        title={__('Total Requests', 'wish-cart')}
                         value={overviewData.totalRequests.toLocaleString()}
                         change={12.5}
                         icon={Activity}
@@ -253,7 +253,7 @@ const UsesAnalytics = () => {
                 </Grid>
                 <Grid item xs={12} sm={6} md={2}>
                     <KPICard
-                        title={__('Chat Requests', 'aisk-ai-chat-for-fluentcart')}
+                        title={__('Chat Requests', 'wish-cart')}
                         value={(overviewData.chatRequests ?? 0).toLocaleString()}
                         change={0}
                         icon={MessageSquare}
@@ -262,7 +262,7 @@ const UsesAnalytics = () => {
                 </Grid>
                 <Grid item xs={12} sm={6} md={2}>
                     <KPICard
-                        title={__('Success Rate', 'aisk-ai-chat-for-fluentcart')}
+                        title={__('Success Rate', 'wish-cart')}
                         value={`${overviewData.successRate}%`}
                         change={2.1}
                         icon={CheckCircle}
@@ -272,7 +272,7 @@ const UsesAnalytics = () => {
                 
                 <Grid item xs={12} sm={6} md={2}>
                     <KPICard
-                        title={__('Total Tokens', 'aisk-ai-chat-for-fluentcart')}
+                        title={__('Total Tokens', 'wish-cart')}
                         value={overviewData.totalTokens.toLocaleString()}
                         change={15.3}
                         icon={Zap}
@@ -281,7 +281,7 @@ const UsesAnalytics = () => {
                 </Grid>
                 <Grid item xs={12} sm={6} md={2}>
                     <KPICard
-                        title={__('Error Rate', 'aisk-ai-chat-for-fluentcart')}
+                        title={__('Error Rate', 'wish-cart')}
                         value={`${overviewData.errorRate}%`}
                         change={-1.2}
                         icon={AlertTriangle}
@@ -290,7 +290,7 @@ const UsesAnalytics = () => {
                 </Grid>
                 <Grid item xs={12} sm={6} md={2}>
                     <KPICard
-                        title={__('Cost', 'aisk-ai-chat-for-fluentcart')}
+                        title={__('Cost', 'wish-cart')}
                         value={`$${(costData.reduce((sum, d) => sum + (parseFloat(d.total ?? 0) || 0), 0)).toFixed(2)}`}
                         change={0}
                         icon={DollarSign}
@@ -303,7 +303,7 @@ const UsesAnalytics = () => {
             <Grid container spacing={3}>
                 <Grid item xs={12} md={8}>
                     <Card>
-                        <CardHeader title={<Typography variant="h6">{__('Usage Over Time', 'aisk-ai-chat-for-fluentcart')}</Typography>} />
+                        <CardHeader title={<Typography variant="h6">{__('Usage Over Time', 'wish-cart')}</Typography>} />
                         <CardContent>
                             <ResponsiveContainer width="100%" height={300}>
                                 <LineChart data={usageData}>
@@ -329,7 +329,7 @@ const UsesAnalytics = () => {
             <Grid container spacing={3}>
                 <Grid item xs={12} md={6}>
                     <Card>
-                        <CardHeader title={<Typography variant="h6">{__('Error Distribution', 'aisk-ai-chat-for-fluentcart')}</Typography>} />
+                        <CardHeader title={<Typography variant="h6">{__('Error Distribution', 'wish-cart')}</Typography>} />
                         <CardContent>
                             <ResponsiveContainer width="100%" height={300}>
                                 <PieChart>
@@ -355,7 +355,7 @@ const UsesAnalytics = () => {
                 </Grid>
                 <Grid item xs={12} md={6}>
                     <Card>
-                        <CardHeader title={<Typography variant="h6">{__('Error Details', 'aisk-ai-chat-for-fluentcart')}</Typography>} />
+                        <CardHeader title={<Typography variant="h6">{__('Error Details', 'wish-cart')}</Typography>} />
                         <CardContent>
                             <Stack spacing={2}>
                                 {errorData.map((error, index) => (
@@ -383,21 +383,21 @@ const UsesAnalytics = () => {
         <ThemeProvider theme={theme}>
             <Box sx={{ p: 3 }}>
                 <Typography variant="h4" component="h1" gutterBottom>
-                    {__('API Usage Analytics', 'aisk-ai-chat-for-fluentcart')}
+                    {__('API Usage Analytics', 'wish-cart')}
                 </Typography>
 
                 {/* Filters */}
                 <Box sx={{ mb: 3, display: 'flex', gap: 2 }}>
                     <FormControl size="small" sx={{ width: 200 }}>
-                        <InputLabel>{__('Time Period', 'aisk-ai-chat-for-fluentcart')}</InputLabel>
+                        <InputLabel>{__('Time Period', 'wish-cart')}</InputLabel>
                         <Select
                             value={timeFilter}
-                            label={__('Time Period', 'aisk-ai-chat-for-fluentcart')}
+                            label={__('Time Period', 'wish-cart')}
                             onChange={(e) => setTimeFilter(e.target.value)}
                         >
-                            <MenuItem value="7days">{__('Past 7 Days', 'aisk-ai-chat-for-fluentcart')}</MenuItem>
-                            <MenuItem value="30days">{__('Past 30 Days', 'aisk-ai-chat-for-fluentcart')}</MenuItem>
-                            <MenuItem value="90days">{__('Past 90 Days', 'aisk-ai-chat-for-fluentcart')}</MenuItem>
+                            <MenuItem value="7days">{__('Past 7 Days', 'wish-cart')}</MenuItem>
+                            <MenuItem value="30days">{__('Past 30 Days', 'wish-cart')}</MenuItem>
+                            <MenuItem value="90days">{__('Past 90 Days', 'wish-cart')}</MenuItem>
                         </Select>
                     </FormControl>
                 </Box>
@@ -405,8 +405,8 @@ const UsesAnalytics = () => {
                 {/* Tabs */}
                 <Box sx={{ borderBottom: 1, borderColor: 'divider', mb: 3 }}>
                     <Tabs value={activeTab} onChange={handleTabChange}>
-                        <Tab label={__('Overview', 'aisk-ai-chat-for-fluentcart')} />
-                        <Tab label={__('Errors', 'aisk-ai-chat-for-fluentcart')} />
+                        <Tab label={__('Overview', 'wish-cart')} />
+                        <Tab label={__('Errors', 'wish-cart')} />
                     </Tabs>
                 </Box>
 

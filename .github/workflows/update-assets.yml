@@ -18,5 +18,5 @@ jobs:
       env:
         SVN_PASSWORD: ${{ secrets.SVN_PASSWORD }}
         SVN_USERNAME: ${{ secrets.SVN_USERNAME }}
-        SLUG: aisk-ai-chat-for-fluentcart
+        SLUG: wish-cart
         IGNORE_OTHER_FILES: true 

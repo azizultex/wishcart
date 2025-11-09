@@ -1,12 +1,12 @@
 # Changelog
 
-All notable changes to the Aisk AI Chatbot plugin will be documented in this file.
+All notable changes to the WishCart AI Chatbot plugin will be documented in this file.
 
 
 ## [1.0.0] - 2025-11-04
 
 ### Added
-- Initial release of Aisk AI Chatbot
+- Initial release of WishCart AI Chatbot
 - AI-powered customer support system
 - WooCommerce integration
 - WhatsApp and Telegram integration

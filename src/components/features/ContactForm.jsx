@@ -3,7 +3,7 @@ import '../../styles/features/ContactForm.scss';
 
 const ContactForm = () => {
     const iframeRef = useRef(null);
-    const formUrl = window.AiskData?.contactFormUrl;
+    const formUrl = window.WishCartData?.contactFormUrl;
     const [iframeLoaded, setIframeLoaded] = useState(false);
     const [iframeHeight, setIframeHeight] = useState(450); // Default height
     const [showSuccessMessage, setShowSuccessMessage] = useState(false);

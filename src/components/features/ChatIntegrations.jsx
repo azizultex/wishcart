@@ -19,12 +19,12 @@ const ChatIntegrations = ({ isOpen = false, whatsappNumber, telegramUsername,  w
         <div className="chat-integrations">
             {whatsappEnabled && whatsappNumber && (
                 <a href="#" onClick={openWhatsApp} className="chat-integration-link whatsapp" title="Chat on WhatsApp">
-                    <img src={`${AiskData.pluginUrl}assets/images/whatsapp.svg`} alt="WhatsApp" />
+                    <img src={`${WishCartData.pluginUrl}assets/images/whatsapp.svg`} alt="WhatsApp" />
                 </a>
             )}
             {telegramEnabled && telegramUsername && (
                 <a href="#" onClick={openTelegram} className="chat-integration-link telegram" title="Chat on Telegram">
-                    <img src={`${AiskData.pluginUrl}assets/images/telegram.svg`} alt="Telegram" />
+                    <img src={`${WishCartData.pluginUrl}assets/images/telegram.svg`} alt="Telegram" />
                 </a>
             )}
         </div>

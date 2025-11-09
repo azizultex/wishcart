@@ -8,15 +8,15 @@ if ( ! defined( 'ABSPATH' ) ) exit;
  *
  * @category Functionality
  * @package  AISK
- * @author   Aisk Team <support@aisk.chat>
+ * @author   WishCart Team <support@wishcart.chat>
  * @license  GPL-2.0+ https://www.gnu.org/licenses/gpl-2.0.html
- * @link     https://aisk.chat
+ * @link     https://wishcart.chat
  */
 
 /**
  * AISK FluentCart Product Wrapper Class
  */
-class AISK_FluentCart_Product {
+class WISHCART_FluentCart_Product {
     private $post_id;
     private $post;
     private $meta_cache = [];
@@ -209,7 +209,7 @@ class AISK_FluentCart_Product {
 /**
  * AISK FluentCart Order Wrapper Class
  */
-class AISK_FluentCart_Order {
+class WISHCART_FluentCart_Order {
     private $fc_order;
     private $meta_cache = [];
 
@@ -282,7 +282,7 @@ class AISK_FluentCart_Order {
         if ( ! $this->fc_order ) {
             return null;
         }
-        return new AISK_FluentCart_DateTime( $this->fc_order->created_at );
+        return new WISHCART_FluentCart_DateTime( $this->fc_order->created_at );
     }
 
     public function get_formatted_order_total() {
@@ -376,7 +376,7 @@ class AISK_FluentCart_Order {
         // Get order items from relationship
         if ( $this->fc_order->order_items ) {
             foreach ( $this->fc_order->order_items as $fc_item ) {
-                $items[] = new AISK_FluentCart_Order_Item( [
+                $items[] = new WISHCART_FluentCart_Order_Item( [
                     'id' => $fc_item->id,
                     'name' => $fc_item->title,
                     'product_id' => $fc_item->post_id,
@@ -433,7 +433,7 @@ class AISK_FluentCart_Order {
 /**
  * AISK FluentCart Order Item Wrapper Class
  */
-class AISK_FluentCart_Order_Item {
+class WISHCART_FluentCart_Order_Item {
     private $item_data;
 
     public function __construct( $item_data ) {
@@ -450,7 +450,7 @@ class AISK_FluentCart_Order_Item {
 
     public function get_product() {
         $product_id = isset( $this->item_data['product_id'] ) ? $this->item_data['product_id'] : null;
-        return $product_id ? AISK_FluentCart_Helper::get_product( $product_id ) : null;
+        return $product_id ? WISHCART_FluentCart_Helper::get_product( $product_id ) : null;
     }
 
     public function get_total() {
@@ -461,7 +461,7 @@ class AISK_FluentCart_Order_Item {
 /**
  * AISK FluentCart DateTime Wrapper Class
  */
-class AISK_FluentCart_DateTime {
+class WISHCART_FluentCart_DateTime {
     private $datetime;
 
     public function __construct( $datetime_string ) {
@@ -474,17 +474,17 @@ class AISK_FluentCart_DateTime {
 }
 
 /**
- * AISK_FluentCart_Helper Class
+ * WISHCART_FluentCart_Helper Class
  *
  * Handles FluentCart-specific operations for products and orders
  *
  * @category Class
  * @package  AISK
- * @author   Aisk Team <support@aisk.chat>
+ * @author   WishCart Team <support@wishcart.chat>
  * @license  GPL-2.0+ https://www.gnu.org/licenses/gpl-2.0.html
- * @link     https://aisk.chat
+ * @link     https://wishcart.chat
  */
-class AISK_FluentCart_Helper {
+class WISHCART_FluentCart_Helper {
 
     /**
      * Cached result of FluentCart detection to avoid repeated checks
@@ -552,11 +552,11 @@ class AISK_FluentCart_Helper {
         $candidates = [ 'fc_product', 'fluent-products', 'fluent_product', 'fluentcart_product' ];
         foreach ( $candidates as $slug ) {
             if ( post_type_exists( $slug ) ) {
-                return apply_filters( 'aisk_fluentcart_product_post_type', $slug );
+                return apply_filters( 'wishcart_fluentcart_product_post_type', $slug );
             }
         }
         // Fallback to default
-        return apply_filters( 'aisk_fluentcart_product_post_type', 'fc_product' );
+        return apply_filters( 'wishcart_fluentcart_product_post_type', 'fc_product' );
     }
 
     /**
@@ -565,14 +565,14 @@ class AISK_FluentCart_Helper {
      * @return string
      */
     public static function get_order_post_type() {
-        return apply_filters( 'aisk_fluentcart_order_post_type', 'fc_order' );
+        return apply_filters( 'wishcart_fluentcart_order_post_type', 'fc_order' );
     }
 
     /**
      * Get product by ID (replaces wc_get_product)
      *
      * @param int|WP_Post $product_id Product ID or post object
-     * @return AISK_FluentCart_Product|null FluentCart product object or null
+     * @return WISHCART_FluentCart_Product|null FluentCart product object or null
      */
     public static function get_product( $product_id ) {
         if ( ! self::is_fluentcart_active() ) {
@@ -594,14 +594,14 @@ class AISK_FluentCart_Helper {
             return null;
         }
 
-        return new AISK_FluentCart_Product( $post );
+        return new WISHCART_FluentCart_Product( $post );
     }
 
     /**
      * Get order by ID (replaces wc_get_order)
      *
      * @param int|string $order_id Order ID or order number
-     * @return AISK_FluentCart_Order|null FluentCart order object or null
+     * @return WISHCART_FluentCart_Order|null FluentCart order object or null
      */
     public static function get_order( $order_id ) {
         if ( ! self::is_fluentcart_active() ) {
@@ -631,7 +631,7 @@ class AISK_FluentCart_Helper {
                     ->find( $order_id );
                 
                 if ( $fc_order ) {
-                    return new AISK_FluentCart_Order( $fc_order );
+                    return new WISHCART_FluentCart_Order( $fc_order );
                 }
             } catch ( Exception $e ) {
                 return null;
@@ -745,7 +745,7 @@ class AISK_FluentCart_Helper {
                 $orders = [];
                 
                 foreach ( $fc_orders as $fc_order ) {
-                    $orders[] = new AISK_FluentCart_Order( $fc_order );
+                    $orders[] = new WISHCART_FluentCart_Order( $fc_order );
                 }
                 
                 return $orders;
@@ -772,7 +772,7 @@ class AISK_FluentCart_Helper {
             }
         }
         // Fallback placeholder
-        return AISK_PLUGIN_URL . 'assets/images/placeholder.png';
+        return WISHCART_PLUGIN_URL . 'assets/images/placeholder.png';
     }
 
     /**
@@ -781,6 +781,6 @@ class AISK_FluentCart_Helper {
      * @return string Capability name
      */
     public static function get_manage_capability() {
-        return apply_filters( 'aisk_fluentcart_manage_capability', 'manage_options' );
+        return apply_filters( 'wishcart_fluentcart_manage_capability', 'manage_options' );
     }
 }

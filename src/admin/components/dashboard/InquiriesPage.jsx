@@ -40,7 +40,7 @@ const InquiriesPage = () => {
 
     
     useEffect(() => {
-        setIsFluentCartActive(!!window?.AiskSettings?.isFluentCartActive);
+        setIsFluentCartActive(!!window?.WishCartSettings?.isFluentCartActive);
     }, []);
 
     const loadInquiries = async () => {
@@ -54,15 +54,15 @@ const InquiriesPage = () => {
                 end_date: endDate
             });
 
-            const restUrl = window?.wpApiSettings?.root || window?.AiskData?.apiUrl || '/wp-json/';
-            const nonce = window?.wpApiSettings?.nonce || window?.AiskData?.nonce;
+            const restUrl = window?.wpApiSettings?.root || window?.WishCartData?.apiUrl || '/wp-json/';
+            const nonce = window?.wpApiSettings?.nonce || window?.WishCartData?.nonce;
 
             if (!nonce) {
-                throw new Error(__('Authentication token missing. Please refresh the page.', 'aisk-ai-chat-for-fluentcart'));
+                throw new Error(__('Authentication token missing. Please refresh the page.', 'wish-cart'));
             }
 
             const response = await fetch(
-                `${restUrl}aisk/v1/inquiries?${queryParams.toString()}`,
+                `${restUrl}wishcart/v1/inquiries?${queryParams.toString()}`,
                 {
                     headers: {
                         'Content-Type': 'application/json',
@@ -95,20 +95,20 @@ const InquiriesPage = () => {
     };
 
     const handleViewDetails = (id) => {
-        window.location.href = `${window.AiskData.adminUrl}?page=aisk-inquiries&view=details&id=${id}`;
+        window.location.href = `${window.WishCartData.adminUrl}?page=wishcart-inquiries&view=details&id=${id}`;
     };
 
     const handleStatusUpdate = async (inquiryId, newStatus) => {
         try {
-            const restUrl = window?.wpApiSettings?.root || window?.AiskData?.apiUrl || '/wp-json/';
-            const nonce = window?.wpApiSettings?.nonce || window?.AiskData?.nonce;
+            const restUrl = window?.wpApiSettings?.root || window?.WishCartData?.apiUrl || '/wp-json/';
+            const nonce = window?.wpApiSettings?.nonce || window?.WishCartData?.nonce;
 
             if (!nonce) {
-                throw new Error(__('Authentication token missing. Please refresh the page.', 'aisk-ai-chat-for-fluentcart'));
+                throw new Error(__('Authentication token missing. Please refresh the page.', 'wish-cart'));
             }
 
             const response = await fetch(
-                `${restUrl}aisk/v1/inquiries/${inquiryId}/status`,
+                `${restUrl}wishcart/v1/inquiries/${inquiryId}/status`,
                 {
                     method: 'POST',
                     headers: {
@@ -138,9 +138,9 @@ const InquiriesPage = () => {
 
     const getStatusChip = (status) => {
         const statusConfig = {
-            pending: { color: 'warning', label: __('Pending', 'aisk-ai-chat-for-fluentcart') },
-            in_progress: { color: 'info', label: __('In Progress', 'aisk-ai-chat-for-fluentcart') },
-            resolved: { color: 'success', label: __('Resolved', 'aisk-ai-chat-for-fluentcart') }
+            pending: { color: 'warning', label: __('Pending', 'wish-cart') },
+            in_progress: { color: 'info', label: __('In Progress', 'wish-cart') },
+            resolved: { color: 'success', label: __('Resolved', 'wish-cart') }
         };
         const config = statusConfig[status] || statusConfig.pending;
         return <Chip label={config.label} color={config.color} size="small" />;
@@ -149,27 +149,27 @@ const InquiriesPage = () => {
     const columns = [
         {
             field: 'id',
-            headerName: __('ID', 'aisk-ai-chat-for-fluentcart'),
+            headerName: __('ID', 'wish-cart'),
             width: 70
         },
         {
             field: 'order_number',
-            headerName: __('Order #', 'aisk-ai-chat-for-fluentcart'),
+            headerName: __('Order #', 'wish-cart'),
             width: 100
         },
         {
             field: 'customer_email',
-            headerName: __('Email', 'aisk-ai-chat-for-fluentcart'),
+            headerName: __('Email', 'wish-cart'),
             width: 200
         },
         {
             field: 'customer_phone',
-            headerName: __('Phone', 'aisk-ai-chat-for-fluentcart'),
+            headerName: __('Phone', 'wish-cart'),
             width: 130
         },
         {
             field: 'note',
-            headerName: __('Inquiry', 'aisk-ai-chat-for-fluentcart'),
+            headerName: __('Inquiry', 'wish-cart'),
             width: 300,
             renderCell: (params) => (
                 <Typography
@@ -186,7 +186,7 @@ const InquiriesPage = () => {
         },
         {
             field: 'status',
-            headerName: __('Status', 'aisk-ai-chat-for-fluentcart'),
+            headerName: __('Status', 'wish-cart'),
             width: 150,
             renderCell: (params) => (
                 <FormControl size="small" sx={{ minWidth: 120 }}>
@@ -215,7 +215,7 @@ const InquiriesPage = () => {
         },
         {
             field: 'created_at',
-            headerName: __('Date', 'aisk-ai-chat-for-fluentcart'),
+            headerName: __('Date', 'wish-cart'),
             width: 180,
             valueFormatter: (params) => {
                 let utcDateString = params.value;
@@ -247,7 +247,7 @@ const InquiriesPage = () => {
         },
         {
             field: 'actions',
-            headerName: __('Actions', 'aisk-ai-chat-for-fluentcart'),
+            headerName: __('Actions', 'wish-cart'),
             width: 200,
             renderCell: (params) => (
                 <Stack direction="row" spacing={1}>
@@ -273,13 +273,13 @@ const InquiriesPage = () => {
     return (
         <Box sx={{ p: 3 }} className="admin-customer-inquiries">
             <Typography variant="h4" component="h1" gutterBottom>
-                {__('Customer Inquiries', 'aisk-ai-chat-for-fluentcart')}
+                {__('Customer Inquiries', 'wish-cart')}
             </Typography>
 
             <Stack direction="row" spacing={2} sx={{ mb: 3 }} alignItems="center">
                 <TextField
                     type="date"
-                    label={__('Start Date', 'aisk-ai-chat-for-fluentcart')}
+                    label={__('Start Date', 'wish-cart')}
                     className="admin-customer-inquiries__input-date-pic"
                     value={startDate}
                     onChange={(e) => setStartDate(e.target.value)}
@@ -290,7 +290,7 @@ const InquiriesPage = () => {
 
                 <TextField
                     type="date"
-                    label={__('End Date', 'aisk-ai-chat-for-fluentcart')}
+                    label={__('End Date', 'wish-cart')}
                     className="admin-customer-inquiries__input-date-pic"
                     value={endDate}
                     onChange={(e) => setEndDate(e.target.value)}
@@ -300,27 +300,27 @@ const InquiriesPage = () => {
                 />
 
                 <FormControl size="small" sx={{ minWidth: 120 }}>
-                    <InputLabel className="admin-customer-inquiries__input-select-label">{__('Status', 'aisk-ai-chat-for-fluentcart')}</InputLabel>
+                    <InputLabel className="admin-customer-inquiries__input-select-label">{__('Status', 'wish-cart')}</InputLabel>
                     <Select
                         className="admin-customer-inquiries__input-select"
                         value={statusFilter}
-                        label={__('Status', 'aisk-ai-chat-for-fluentcart')}
+                        label={__('Status', 'wish-cart')}
                         onChange={(e) => setStatusFilter(e.target.value)}
                     >
-                        <MenuItem value="all">{__('All', 'aisk-ai-chat-for-fluentcart')}</MenuItem>
-                        <MenuItem value="pending">{__('Pending', 'aisk-ai-chat-for-fluentcart')}</MenuItem>
-                        <MenuItem value="in_progress">{__('In Progress', 'aisk-ai-chat-for-fluentcart')}</MenuItem>
-                        <MenuItem value="resolved">{__('Resolved', 'aisk-ai-chat-for-fluentcart')}</MenuItem>
+                        <MenuItem value="all">{__('All', 'wish-cart')}</MenuItem>
+                        <MenuItem value="pending">{__('Pending', 'wish-cart')}</MenuItem>
+                        <MenuItem value="in_progress">{__('In Progress', 'wish-cart')}</MenuItem>
+                        <MenuItem value="resolved">{__('Resolved', 'wish-cart')}</MenuItem>
                     </Select>
                 </FormControl>
 
                 <TextField
                     size="small"
                     className="admin-customer-inquiries__input-search"
-                    label={__('Search', 'aisk-ai-chat-for-fluentcart')}
+                    label={__('Search', 'wish-cart')}
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
-                    placeholder={__('Order #, Email, Phone...', 'aisk-ai-chat-for-fluentcart')}
+                    placeholder={__('Order #, Email, Phone...', 'wish-cart')}
                     sx={{ width: 250 }}
                 />
 
@@ -329,7 +329,7 @@ const InquiriesPage = () => {
                     className="admin-customer-inquiries__button"
                     onClick={handleResetFilters}
                 >
-                    {__('Reset Filters', 'aisk-ai-chat-for-fluentcart')}
+                    {__('Reset Filters', 'wish-cart')}
                 </Button>
             </Stack>
 

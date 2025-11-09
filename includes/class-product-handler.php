@@ -5,23 +5,23 @@ if ( ! defined( 'ABSPATH' ) ) exit;
  *
  * @category Functionality
  * @package  AISK
- * @author   Aisk Team <support@aisk.chat>
+ * @author   WishCart Team <support@wishcart.chat>
  * @license  GPL-2.0+ https://www.gnu.org/licenses/gpl-2.0.html
- * @link     https://aisk.chat
+ * @link     https://wishcart.chat
  */
 
 /**
- * AISK_Product_Handler Class
+ * WISHCART_Product_Handler Class
  *
  * Handles product-related operations including searching and formatting product data
  *
  * @category Class
  * @package  AISK
- * @author   Aisk Team <support@aisk.chat>
+ * @author   WishCart Team <support@wishcart.chat>
  * @license  GPL-2.0+ https://www.gnu.org/licenses/gpl-2.0.html
- * @link     https://aisk.chat
+ * @link     https://wishcart.chat
  */
-class AISK_Product_Handler {
+class WISHCART_Product_Handler {
 
     public function __construct() {
     }
@@ -30,7 +30,7 @@ class AISK_Product_Handler {
     /**
      * Gets singleton instance of the class
      *
-     * @return AISK_Product_Handler Instance of this class
+     * @return WISHCART_Product_Handler Instance of this class
      */
     public static function get_instance() {
         if ( null === self::$instance ) {
@@ -55,7 +55,7 @@ class AISK_Product_Handler {
         $products = [];
 
         foreach ( $product_ids as $product_id ) {
-            $product = AISK_FluentCart_Helper::get_product( $product_id );
+            $product = WISHCART_FluentCart_Helper::get_product( $product_id );
 
             if ( ! $product ) {
                 continue;
@@ -85,7 +85,7 @@ class AISK_Product_Handler {
         $products = [];
 
         foreach ( $product_ids as $product_id ) {
-            $product = AISK_FluentCart_Helper::get_product( $product_id );
+            $product = WISHCART_FluentCart_Helper::get_product( $product_id );
 
             if ( ! $product ) {
                 continue;
@@ -116,7 +116,7 @@ class AISK_Product_Handler {
      */
     public function get_featured_products( $limit = 6 ) {
         // Get featured product IDs using FluentCart helper
-        $featured_ids = AISK_FluentCart_Helper::get_featured_product_ids();
+        $featured_ids = WISHCART_FluentCart_Helper::get_featured_product_ids();
         
         // Limit the number of products
         $featured_ids = array_slice($featured_ids, 0, $limit);
@@ -135,7 +135,7 @@ class AISK_Product_Handler {
     private function format_products( $posts ) {
         $products = [];
         foreach ( $posts as $post ) {
-            $product = AISK_FluentCart_Helper::get_product($post);
+            $product = WISHCART_FluentCart_Helper::get_product($post);
             if ( ! $product ) {
 				continue;
             }

@@ -13,7 +13,7 @@
     "build:clean": "rimraf dist/",
     "build:copy": "mkdir -p dist && rsync -av --exclude-from='.gitignore' --exclude='node_modules' --exclude='.git' --exclude='.github' --exclude='tests' --exclude='.env*' --exclude='*.log' --exclude='*.tmp' --exclude='*.temp' --exclude='*.swp' . dist/",
     "build:composer": "cd dist && composer install --no-dev --optimize-autoloader",
-    "build:zip": "cd dist && zip -r ../aisk-ai-chat-for-fluentcart.zip ."
+    "build:zip": "cd dist && zip -r ../wish-cart.zip ."
   },
   "dependencies": {
     "@emotion/react": "^11.11.3",

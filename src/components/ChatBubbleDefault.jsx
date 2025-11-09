@@ -33,7 +33,7 @@ const ChatBubbleDefault = ({ onClick, settings }) => {
       {/* Chat bubble with icon */}
       <div className="chat-bubble" style={{ backgroundColor: settings.widgetColor || '#1976d2' }}>
         <img
-          src={settings.chatIcon || `${window.AiskData.pluginUrl}assets/images/icons/message-square.svg`}
+          src={settings.chatIcon || `${window.WishCartData.pluginUrl}assets/images/icons/message-square.svg`}
           alt="Chat"
           width="24"
           height="24"

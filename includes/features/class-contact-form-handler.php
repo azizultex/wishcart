@@ -8,26 +8,26 @@ if ( ! defined('ABSPATH') ) {
  *
  * @category Functionality
  * @package  AISK
- * @author   Aisk Team <support@aisk.chat>
+ * @author   WishCart Team <support@wishcart.chat>
  * @license  GPL-2.0+ https://www.gnu.org/licenses/gpl-2.0.html
- * @link     https://aisk.chat
+ * @link     https://wishcart.chat
  */
 
 /**
- * AISK_Contact_Form_Handler Class
+ * WISHCART_Contact_Form_Handler Class
  *
  * Manages the creation, display and handling of the AISK contact form
  *
  * @category Class
  * @package  AISK
- * @author   Aisk Team <support@aisk.chat>
+ * @author   WishCart Team <support@wishcart.chat>
  * @license  GPL-2.0+ https://www.gnu.org/licenses/gpl-2.0.html
- * @link     https://aisk.chat
+ * @link     https://wishcart.chat
  */
-class AISK_Contact_Form_Handler {
+class WISHCART_Contact_Form_Handler {
 
     private static $instance = null;
-    private $page_slug = 'aisk-contact-form';
+    private $page_slug = 'wishcart-contact-form';
     private $template_name = 'templates/contact-form.php';
 
     /**
@@ -35,11 +35,11 @@ class AISK_Contact_Form_Handler {
      *
      * @category Instance
      * @package  AISK
-     * @author   Aisk Team <support@aisk.chat>
+     * @author   WishCart Team <support@wishcart.chat>
      * @license  GPL-2.0+ https://www.gnu.org/licenses/gpl-2.0.html
-     * @link     https://aisk.chat
+     * @link     https://wishcart.chat
      *
-     * @return AISK_Contact_Form_Handler Instance of the class
+     * @return WISHCART_Contact_Form_Handler Instance of the class
      */
     public static function get_instance() {
         if ( null === self::$instance ) {
@@ -53,20 +53,20 @@ class AISK_Contact_Form_Handler {
      *
      * @category Initialization
      * @package  AISK
-     * @author   Aisk Team <support@aisk.chat>
+     * @author   WishCart Team <support@wishcart.chat>
      * @license  GPL-2.0+ https://www.gnu.org/licenses/gpl-2.0.html
-     * @link     https://aisk.chat
+     * @link     https://wishcart.chat
      *
      * @return void
      */
     public static function maybe_init() {
-        $settings = get_option('aisk_settings', []);
+        $settings = get_option('wishcart_settings', []);
         $enabled = ! empty($settings['integrations']['contact_form']['enabled']);
 
         if ( $enabled ) {
             $instance = self::get_instance();
             $instance->ensure_page_and_template_exists();
-            add_filter('aisk_script_data', [ $instance, 'add_form_data' ]);
+            add_filter('wishcart_script_data', [ $instance, 'add_form_data' ]);
         } else {
             $instance = self::get_instance();
             $instance->maybe_disable_form_page();
@@ -78,14 +78,14 @@ class AISK_Contact_Form_Handler {
      *
      * @category Utility
      * @package  AISK
-     * @author   Aisk Team <support@aisk.chat>
+     * @author   WishCart Team <support@wishcart.chat>
      * @license  GPL-2.0+ https://www.gnu.org/licenses/gpl-2.0.html
-     * @link     https://aisk.chat
+     * @link     https://wishcart.chat
      *
      * @return boolean True if enabled, false otherwise
      */
     public function is_enabled() {
-        $settings = get_option('aisk_settings', []);
+        $settings = get_option('wishcart_settings', []);
         return ! empty($settings['integrations']['contact_form']['enabled']);
     }
 
@@ -96,9 +96,9 @@ class AISK_Contact_Form_Handler {
      *
      * @category Data
      * @package  AISK
-     * @author   Aisk Team <support@aisk.chat>
+     * @author   WishCart Team <support@wishcart.chat>
      * @license  GPL-2.0+ https://www.gnu.org/licenses/gpl-2.0.html
-     * @link     https://aisk.chat
+     * @link     https://wishcart.chat
      *
      * @return array Modified script data with contact form URL
      */
@@ -112,9 +112,9 @@ class AISK_Contact_Form_Handler {
      *
      * @category Setup
      * @package  AISK
-     * @author   Aisk Team <support@aisk.chat>
+     * @author   WishCart Team <support@wishcart.chat>
      * @license  GPL-2.0+ https://www.gnu.org/licenses/gpl-2.0.html
-     * @link     https://aisk.chat
+     * @link     https://wishcart.chat
      *
      * @return void
      */
@@ -126,7 +126,7 @@ class AISK_Contact_Form_Handler {
         if ( ! $existing_page ) {
             // Create the contact form page
             $page_data = array(
-                'post_title'    => 'Aisk Contact Form',
+                'post_title'    => 'WishCart Contact Form',
                 'post_name'     => $this->page_slug,
                 'post_status'   => 'publish',
                 'post_type'     => 'page',
@@ -154,9 +154,9 @@ class AISK_Contact_Form_Handler {
      *
      * @category Setup
      * @package  AISK
-     * @author   Aisk Team <support@aisk.chat>
+     * @author   WishCart Team <support@wishcart.chat>
      * @license  GPL-2.0+ https://www.gnu.org/licenses/gpl-2.0.html
-     * @link     https://aisk.chat
+     * @link     https://wishcart.chat
      *
      * @return void
      */
@@ -169,7 +169,7 @@ class AISK_Contact_Form_Handler {
             wp_mkdir_p(dirname($theme_template_path));
 
             // Copy template from plugin
-            $plugin_template = AISK_PLUGIN_DIR . '/includes/' . $this->template_name;
+            $plugin_template = WISHCART_PLUGIN_DIR . '/includes/' . $this->template_name;
             if ( file_exists($plugin_template) ) {
                 copy($plugin_template, $theme_template_path);
             }
@@ -181,9 +181,9 @@ class AISK_Contact_Form_Handler {
      *
      * @category Management
      * @package  AISK
-     * @author   Aisk Team <support@aisk.chat>
+     * @author   WishCart Team <support@wishcart.chat>
      * @license  GPL-2.0+ https://www.gnu.org/licenses/gpl-2.0.html
-     * @link     https://aisk.chat
+     * @link     https://wishcart.chat
      *
      * @return void
      */
@@ -205,9 +205,9 @@ class AISK_Contact_Form_Handler {
      *
      * @category Management
      * @package  AISK
-     * @author   Aisk Team <support@aisk.chat>
+     * @author   WishCart Team <support@wishcart.chat>
      * @license  GPL-2.0+ https://www.gnu.org/licenses/gpl-2.0.html
-     * @link     https://aisk.chat
+     * @link     https://wishcart.chat
      *
      * @return void
      */

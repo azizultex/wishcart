@@ -9,9 +9,9 @@ if ( ! defined('ABSPATH') ) {
  *
  * @category Functionality
  * @package  AISK
- * @author   Aisk Team <support@aisk.chat>
+ * @author   WishCart Team <support@wishcart.chat>
  * @license  GPL-2.0+ https://www.gnu.org/licenses/gpl-2.0.html
- * @link     https://aisk.chat
+ * @link     https://wishcart.chat
  */
 
 use Opis\JsonSchema\Keywords\ConstKeyword;
@@ -25,17 +25,17 @@ require_once plugin_dir_path(__FILE__) . 'class-content-processor.php';
 require_once plugin_dir_path(__FILE__) . 'class-crawler.php';
 
 /**
- * AISK_External_Embeddings_Handler Class
+ * WISHCART_External_Embeddings_Handler Class
  *
  * Manages the generation, storage, and retrieval of embeddings for various content types
  *
  * @category Class
  * @package  AISK
- * @author   Aisk Team <support@aisk.chat>
+ * @author   WishCart Team <support@wishcart.chat>
  * @license  GPL-2.0+ https://www.gnu.org/licenses/gpl-2.0.html
- * @link     https://aisk.chat
+ * @link     https://wishcart.chat
  */
-class AISK_External_Embeddings_Handler {
+class WISHCART_External_Embeddings_Handler {
 
     private $db;
     private $api_key;
@@ -61,7 +61,7 @@ class AISK_External_Embeddings_Handler {
      * @return void
      */
     public function __construct() {
-        $this->settings = get_option('aisk_settings');
+        $this->settings = get_option('wishcart_settings');
         $this->api_key = isset($this->settings['general']['openai_key']) ? $this->settings['general']['openai_key'] : '';
         $this->auth_key = isset($this->settings['general']['auth_key']) ? $this->settings['general']['auth_key'] : '';
         
@@ -83,13 +83,13 @@ class AISK_External_Embeddings_Handler {
         add_action('init', array($this, 'create_pdf_queue_table'));
 
         // Register PDF background processing action
-        add_action('aisk_process_pdf_background', array($this, 'process_pdf_background'), 10, 3);
+        add_action('wishcart_process_pdf_background', array($this, 'process_pdf_background'), 10, 3);
 
         // Register REST API endpoint for processing
         add_action('rest_api_init', [ $this, 'register_rest_routes' ]);
         
         // Register background processing action
-        add_action('aisk_process_url_background', [ $this, 'process_url_background' ]);
+        add_action('wishcart_process_url_background', [ $this, 'process_url_background' ]);
         
         // clean up embedding for deleted content
         add_action('before_delete_post', [ $this, 'delete_content_embeddings' ]);
@@ -113,10 +113,10 @@ class AISK_External_Embeddings_Handler {
         // Check if we need to show the notice
         if ($this->max_upload_size < $this->optimum_upload_size) {
             wp_register_script(
-                'aisk-upload-instructions',
+                'wishcart-upload-instructions',
                 false,
                 ['jquery'],
-                AISK_VERSION,
+                WISHCART_VERSION,
                 true
             );
             
@@ -129,8 +129,8 @@ class AISK_External_Embeddings_Handler {
                 });
             ";
             
-            wp_add_inline_script('aisk-upload-instructions', $script);
-            wp_enqueue_script('aisk-upload-instructions');
+            wp_add_inline_script('wishcart-upload-instructions', $script);
+            wp_enqueue_script('wishcart-upload-instructions');
         }
     }
 
@@ -144,7 +144,7 @@ class AISK_External_Embeddings_Handler {
      * @return void
      */
     public function register_rest_routes() {
-        register_rest_route('aisk/v1', '/process-urls', [
+        register_rest_route('wishcart/v1', '/process-urls', [
             'methods' => 'POST',
             'callback' => [ $this, 'handle_url_processing' ],
             'permission_callback' => function () {
@@ -187,7 +187,7 @@ class AISK_External_Embeddings_Handler {
         ]);
 
         register_rest_route(
-            'aisk/v1',
+            'wishcart/v1',
             '/check-url-status',
             [
                 'methods' => 'POST',
@@ -208,7 +208,7 @@ class AISK_External_Embeddings_Handler {
         );
 
         register_rest_route(
-            'aisk/v1',
+            'wishcart/v1',
             '/get-crawled-urls',
             [
                 'methods' => 'POST',
@@ -220,7 +220,7 @@ class AISK_External_Embeddings_Handler {
         );
 
         register_rest_route(
-            'aisk/v1', '/delete-url', [
+            'wishcart/v1', '/delete-url', [
                 'methods'  => 'POST',
                 'callback' => [ $this, 'delete_crawled_url' ],
                 'permission_callback' => function () {
@@ -230,7 +230,7 @@ class AISK_External_Embeddings_Handler {
         );
 
         register_rest_route(
-            'aisk/v1', '/process-pdf', [
+            'wishcart/v1', '/process-pdf', [
                 'methods' => 'POST',
                 'callback' => [ $this, 'handle_pdf_processing' ],
                 'permission_callback' => function ( $request ) {
@@ -241,7 +241,7 @@ class AISK_External_Embeddings_Handler {
         );
 
         register_rest_route(
-            'aisk/v1', '/get-pdf-status', [
+            'wishcart/v1', '/get-pdf-status', [
                 'methods' => 'GET',
                 'callback' => [ $this, 'get_pdf_status' ],
                 'permission_callback' => function ( $request ) {
@@ -261,7 +261,7 @@ class AISK_External_Embeddings_Handler {
         );
 
         register_rest_route(
-            'aisk/v1', '/pdf-job-status', [
+            'wishcart/v1', '/pdf-job-status', [
                 'methods' => 'GET',
                 'callback' => [ $this, 'get_pdf_job_status' ],
                 'permission_callback' => function ( $request ) {
@@ -287,7 +287,7 @@ class AISK_External_Embeddings_Handler {
             ]
         );
         register_rest_route(
-            'aisk/v1',
+            'wishcart/v1',
             '/delete-pdf',
             array(
                 'methods' => 'POST',
@@ -299,7 +299,7 @@ class AISK_External_Embeddings_Handler {
             )
         );
         register_rest_route(
-            'aisk/v1', '/pdf-queue-list', [
+            'wishcart/v1', '/pdf-queue-list', [
                 'methods' => 'GET',
                 'callback' => [ $this, 'get_pdf_queue_list' ],
                 'permission_callback' => function ( $request ) {
@@ -451,7 +451,7 @@ class AISK_External_Embeddings_Handler {
      * Process URLs in background to prevent timeouts
      */
     public function process_url_background($job_id) {
-        $job_data = get_option('aisk_url_processing_' . $job_id);
+        $job_data = get_option('wishcart_url_processing_' . $job_id);
         if (!$job_data) {
             return;
         }
@@ -461,18 +461,18 @@ class AISK_External_Embeddings_Handler {
             // Update job status to processing
             $job_data['status'] = 'processing';
             $job_data['updated_at'] = current_time('mysql');
-            update_option('aisk_url_processing_' . $job_id, $job_data);
+            update_option('wishcart_url_processing_' . $job_id, $job_data);
 
             // Initialize the crawler components
-            $content_fetcher = new AISK_URLContentFetcher();
-            $url_discoverer = new AISK_URLDiscoverer($content_fetcher);
-            $content_processor = new AISK_ContentProcessor();
-            $crawler = new AISK_Crawler($content_fetcher, $url_discoverer, $content_processor);
+            $content_fetcher = new WISHCART_URLContentFetcher();
+            $url_discoverer = new WISHCART_URLDiscoverer($content_fetcher);
+            $content_processor = new WISHCART_ContentProcessor();
+            $crawler = new WISHCART_Crawler($content_fetcher, $url_discoverer, $content_processor);
 
             // Check for bot protection first
             $response = wp_remote_get($job_data['url'], [
                 'timeout' => 30,
-                'user-agent' => 'Aisk Chat Bot Crawler (+https://aisk.chat)',
+                'user-agent' => 'WishCart Chat Bot Crawler (+https://wishcart.chat)',
                 'sslverify' => false,
                 'headers' => [
                     'Accept' => 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
@@ -505,10 +505,10 @@ class AISK_External_Embeddings_Handler {
                     $job_data['error'] = 'Bot protection detected';
                     $job_data['error_type'] = 'bot_protection';
                     $job_data['updated_at'] = current_time('mysql');
-                    update_option('aisk_url_processing_' . $job_id, $job_data);
+                    update_option('wishcart_url_processing_' . $job_id, $job_data);
                     
                     // Store the bot protection status in a separate option for future reference
-                    update_option('aisk_bot_protected_url_' . md5($job_data['url']), true);
+                    update_option('wishcart_bot_protected_url_' . md5($job_data['url']), true);
                     
                     return;
                 }
@@ -528,14 +528,14 @@ class AISK_External_Embeddings_Handler {
             $job_data['status'] = $save_success ? 'completed' : 'failed';
             $job_data['results'] = $results;
             $job_data['updated_at'] = current_time('mysql');
-            update_option('aisk_url_processing_' . $job_id, $job_data);
+            update_option('wishcart_url_processing_' . $job_id, $job_data);
 
         } catch (Exception $e) {
             // Update job status to failed
             $job_data['status'] = 'failed';
             $job_data['error'] = $e->getMessage();
             $job_data['updated_at'] = current_time('mysql');
-            update_option('aisk_url_processing_' . $job_id, $job_data);
+            update_option('wishcart_url_processing_' . $job_id, $job_data);
         }
     }
 
@@ -554,7 +554,7 @@ class AISK_External_Embeddings_Handler {
 
         // Check if URL was previously detected as bot protected
         $normalized_url = $this->normalize_url_for_job_id($url);
-        if (get_option('aisk_bot_protected_url_' . md5($normalized_url))) {
+        if (get_option('wishcart_bot_protected_url_' . md5($normalized_url))) {
             return new WP_Error(
                 'bot_protected',
                 'This URL is protected against automated access. Please try a different URL or contact the website administrator.',
@@ -566,7 +566,7 @@ class AISK_External_Embeddings_Handler {
         $job_id = md5($normalized_url);
 
         // Overwrite any existing job for this URL
-        delete_option('aisk_url_processing_' . $job_id);
+        delete_option('wishcart_url_processing_' . $job_id);
 
         // Store the job data in WordPress options
         $job_data = [
@@ -583,10 +583,10 @@ class AISK_External_Embeddings_Handler {
             'updated_at' => current_time('mysql')
         ];
 
-        update_option('aisk_url_processing_' . $job_id, $job_data);
+        update_option('wishcart_url_processing_' . $job_id, $job_data);
 
         // Schedule the background processing
-        wp_schedule_single_event(time() + 1, 'aisk_process_url_background', [$job_id]);
+        wp_schedule_single_event(time() + 1, 'wishcart_process_url_background', [$job_id]);
 
         // Return immediately with the job ID
         return new WP_REST_Response([
@@ -609,7 +609,7 @@ class AISK_External_Embeddings_Handler {
             );
         }
 
-        $job_data = get_option('aisk_url_processing_' . $job_id);
+        $job_data = get_option('wishcart_url_processing_' . $job_id);
         if (!$job_data) {
             return new WP_Error(
                 'invalid_job_id',
@@ -667,7 +667,7 @@ class AISK_External_Embeddings_Handler {
         $processed = 0;
         $updated = 0;
         $errors = [];
-        $table_name = $wpdb->prefix . 'aisk_embeddings';
+        $table_name = $wpdb->prefix . 'wishcart_embeddings';
 
         foreach ($urls as $url) {
             try {
@@ -675,15 +675,15 @@ class AISK_External_Embeddings_Handler {
                 $content = $this->get_url_content($url, $include_selectors, $exclude_selectors);
                 if (!empty($content)) {
                     $url_id = md5($url);
-                    $cache_key = 'aisk_embedding_external_url_' . $url;
+                    $cache_key = 'wishcart_embedding_external_url_' . $url;
 
                     // Check if the exact URL already exists in the database
-                    $existing = wp_cache_get($cache_key, 'aisk_embeddings');
+                    $existing = wp_cache_get($cache_key, 'wishcart_embeddings');
                     
                     if (false === $existing) {
                         // Use WordPress's transient API to check URL existence
                         $existing = $this->check_url_exists($url);
-                        wp_cache_set($cache_key, $existing, 'aisk_embeddings', 3600); // Cache for 1 hour
+                        wp_cache_set($cache_key, $existing, 'wishcart_embeddings', 3600); // Cache for 1 hour
                     }
 
                     $extra_data = [
@@ -739,12 +739,12 @@ class AISK_External_Embeddings_Handler {
             $normalized_url = $this->normalize_url_for_job_id($url);
             
             // Check if URL is bot protected
-            $bot_protected_cache_key = 'aisk_bot_protected_' . md5($normalized_url);
-            $is_bot_protected = wp_cache_get($bot_protected_cache_key, 'aisk_embeddings');
+            $bot_protected_cache_key = 'wishcart_bot_protected_' . md5($normalized_url);
+            $is_bot_protected = wp_cache_get($bot_protected_cache_key, 'wishcart_embeddings');
             
             if (false === $is_bot_protected) {
-                $is_bot_protected = get_option('aisk_bot_protected_url_' . md5($normalized_url));
-                wp_cache_set($bot_protected_cache_key, $is_bot_protected, 'aisk_embeddings', 3600);
+                $is_bot_protected = get_option('wishcart_bot_protected_url_' . md5($normalized_url));
+                wp_cache_set($bot_protected_cache_key, $is_bot_protected, 'wishcart_embeddings', 3600);
             }
             
             if ($is_bot_protected) {
@@ -758,30 +758,30 @@ class AISK_External_Embeddings_Handler {
 
             // Check job status in options table using normalized URL
             $job_id = md5($normalized_url);
-            $job_cache_key = 'aisk_job_status_' . $job_id;
-            $job_data = wp_cache_get($job_cache_key, 'aisk_embeddings');
+            $job_cache_key = 'wishcart_job_status_' . $job_id;
+            $job_data = wp_cache_get($job_cache_key, 'wishcart_embeddings');
             
             if (false === $job_data) {
-                $job_data = get_option('aisk_url_processing_' . $job_id);
-                wp_cache_set($job_cache_key, $job_data, 'aisk_embeddings', 3600);
+                $job_data = get_option('wishcart_url_processing_' . $job_id);
+                wp_cache_set($job_cache_key, $job_data, 'wishcart_embeddings', 3600);
             }
             
             $job_status = $job_data['status'] ?? null;
 
             // Check for main URL embedding using normalized URL
-            $cache_key = 'aisk_embedding_count_' . md5($normalized_url);
-            $main_embedding = wp_cache_get($cache_key, 'aisk_embeddings');
+            $cache_key = 'wishcart_embedding_count_' . md5($normalized_url);
+            $main_embedding = wp_cache_get($cache_key, 'wishcart_embeddings');
             
             if (false === $main_embedding) {
                 // @codingStandardsIgnoreStart
                 $main_embedding = $wpdb->get_var(
                     $wpdb->prepare(
-                        "SELECT COUNT(*) FROM {$wpdb->prefix}aisk_embeddings WHERE content_type = 'external_url' AND crawled_url = %s",
+                        "SELECT COUNT(*) FROM {$wpdb->prefix}wishcart_embeddings WHERE content_type = 'external_url' AND crawled_url = %s",
                         $normalized_url
                     )
                 );
                 // @codingStandardsIgnoreEnd
-                wp_cache_set($cache_key, $main_embedding, 'aisk_embeddings', 3600);
+                wp_cache_set($cache_key, $main_embedding, 'wishcart_embeddings', 3600);
             }
 
             if ($job_status === 'completed') {
@@ -789,12 +789,12 @@ class AISK_External_Embeddings_Handler {
                     $statuses[$url] = 'processed';
                 } else {
                     // No embedding, show user message if available
-                    $user_message_cache_key = 'aisk_user_message_' . md5($normalized_url);
-                    $user_message = wp_cache_get($user_message_cache_key, 'aisk_embeddings');
+                    $user_message_cache_key = 'wishcart_user_message_' . md5($normalized_url);
+                    $user_message = wp_cache_get($user_message_cache_key, 'wishcart_embeddings');
                     
                     if (false === $user_message) {
-                        $user_message = get_option('aisk_url_user_message_' . md5($normalized_url));
-                        wp_cache_set($user_message_cache_key, $user_message, 'aisk_embeddings', 3600);
+                        $user_message = get_option('wishcart_url_user_message_' . md5($normalized_url));
+                        wp_cache_set($user_message_cache_key, $user_message, 'wishcart_embeddings', 3600);
                     }
                     
                     $statuses[$url] = [
@@ -803,7 +803,7 @@ class AISK_External_Embeddings_Handler {
                     ];
                 }
             } else if ($job_status === 'failed') {
-                $user_message = $job_data['error'] ?? get_option('aisk_url_user_message_' . md5($normalized_url));
+                $user_message = $job_data['error'] ?? get_option('wishcart_url_user_message_' . md5($normalized_url));
                 $statuses[$url] = [
                     'status' => 'failed',
                     'user_message' => $user_message ?: 'Job failed for this URL.'
@@ -826,7 +826,7 @@ class AISK_External_Embeddings_Handler {
         global $wpdb;
         $chunks = $this->split_content($content);
         $success = false;
-        $cache_key = 'aisk_embedding_' . $content_type . '_' . $content_id;
+        $cache_key = 'wishcart_embedding_' . $content_type . '_' . $content_id;
 
         foreach ( $chunks as $chunk ) {
             try {
@@ -853,13 +853,13 @@ class AISK_External_Embeddings_Handler {
                     }
 
                     // @codingStandardsIgnoreStart
-                    $result = $wpdb->insert("{$wpdb->prefix}aisk_embeddings", $data, $format);
+                    $result = $wpdb->insert("{$wpdb->prefix}wishcart_embeddings", $data, $format);
                     // @codingStandardsIgnoreEnd
                     if ( $result !== false ) {
                         $success = true;
                         // Clear the cache after successful insertion
-                        wp_cache_delete($cache_key, 'aisk_embeddings');
-                        wp_cache_delete('aisk_embeddings_type_' . $content_type, 'aisk_embeddings');
+                        wp_cache_delete($cache_key, 'wishcart_embeddings');
+                        wp_cache_delete('wishcart_embeddings_type_' . $content_type, 'wishcart_embeddings');
                     }
                 }
             } catch (Exception $e) {
@@ -872,7 +872,7 @@ class AISK_External_Embeddings_Handler {
 
     private function update_embedding( $content_type, $content_id, $content, $extra_data = [] ) {
         global $wpdb;
-        $cache_key = 'aisk_embedding_' . $content_type . '_' . $content_id;
+        $cache_key = 'wishcart_embedding_' . $content_type . '_' . $content_id;
         
         $embedding = $this->generate_embedding($content);
         if ( ! $embedding ) {
@@ -896,7 +896,7 @@ class AISK_External_Embeddings_Handler {
         
         // @codingStandardsIgnoreStart
         $result = $wpdb->update(
-            "{$wpdb->prefix}aisk_embeddings",
+            "{$wpdb->prefix}wishcart_embeddings",
             $data,
             [
                 'content_type' => $content_type,
@@ -907,8 +907,8 @@ class AISK_External_Embeddings_Handler {
         
         if ($result !== false) {
             // Clear the cache after successful update
-            wp_cache_delete($cache_key, 'aisk_embeddings');
-            wp_cache_delete('aisk_embeddings_type_' . $content_type, 'aisk_embeddings');
+            wp_cache_delete($cache_key, 'wishcart_embeddings');
+            wp_cache_delete('wishcart_embeddings_type_' . $content_type, 'wishcart_embeddings');
         }
         
         return $result;
@@ -1120,7 +1120,7 @@ class AISK_External_Embeddings_Handler {
     private function get_url_content($url, $include_selectors = [], $exclude_selectors = []) {
         $response = wp_remote_get($url, [
             'timeout' => 30,
-            'user-agent' => 'Aisk Chat Bot Crawler (+https://aisk.chat)',
+            'user-agent' => 'WishCart Chat Bot Crawler (+https://wishcart.chat)',
             'sslverify' => false,
             'headers' => [
                 'Accept' => 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
@@ -1628,17 +1628,17 @@ class AISK_External_Embeddings_Handler {
         if (empty($parent_url)) {
             return new WP_Error(
                 'missing_url',
-                __('Parent URL is required', 'aisk-ai-chat-for-fluentcart'),
+                __('Parent URL is required', 'wish-cart'),
                 ['status' => 400]
             );
         }
 
         // Normalize the parent_url for consistent lookups
         $normalized_url = $this->normalize_url_for_job_id($parent_url);
-        $cache_key = 'aisk_crawled_urls_' . md5($normalized_url);
+        $cache_key = 'wishcart_crawled_urls_' . md5($normalized_url);
         
         // Try to get results from cache first
-        $results = wp_cache_get($cache_key, 'aisk_embeddings');
+        $results = wp_cache_get($cache_key, 'wishcart_embeddings');
         
         if (false === $results) {
             global $wpdb;
@@ -1646,13 +1646,13 @@ class AISK_External_Embeddings_Handler {
             // Custom table query that cannot be handled by WordPress core functions
             $results = $wpdb->get_results(
                 $wpdb->prepare(
-                    "SELECT crawled_url FROM {$wpdb->prefix}aisk_embeddings 
+                    "SELECT crawled_url FROM {$wpdb->prefix}wishcart_embeddings 
                     WHERE content_type = 'external_url' AND parent_url = %s",
                     $normalized_url
                 )
             );
             // @codingStandardsIgnoreEnd
-            wp_cache_set($cache_key, $results, 'aisk_embeddings', 3600); // Cache for 1 hour
+            wp_cache_set($cache_key, $results, 'wishcart_embeddings', 3600); // Cache for 1 hour
         }
 
         $urls = array_map(function($result) {
@@ -1677,7 +1677,7 @@ class AISK_External_Embeddings_Handler {
         $delete_all = $request->get_param('delete_all');
         
         global $wpdb;
-        $table_name = $wpdb->prefix . 'aisk_embeddings';
+        $table_name = $wpdb->prefix . 'wishcart_embeddings';
         $deleted_jobs = 0;
         $deleted_options = 0;
         
@@ -1685,7 +1685,7 @@ class AISK_External_Embeddings_Handler {
         if (!empty($parent_url) && $delete_all) {
             // Normalize parent_url
             $normalized_url = $this->normalize_url_for_job_id($parent_url);
-            $cache_key = 'aisk_crawled_urls_' . md5($normalized_url);
+            $cache_key = 'wishcart_crawled_urls_' . md5($normalized_url);
             
             // @codingStandardsIgnoreStart
             // Custom table query that cannot be handled by WordPress core functions
@@ -1700,16 +1700,16 @@ class AISK_External_Embeddings_Handler {
             // @codingStandardsIgnoreEnd
             
             // Clear cache after deletion
-            wp_cache_delete($cache_key, 'aisk_embeddings');
-            wp_cache_delete('aisk_embedding_count_' . md5($normalized_url), 'aisk_embeddings');
-            wp_cache_delete('aisk_bot_protected_' . md5($normalized_url), 'aisk_embeddings');
-            wp_cache_delete('aisk_user_message_' . md5($normalized_url), 'aisk_embeddings');
+            wp_cache_delete($cache_key, 'wishcart_embeddings');
+            wp_cache_delete('wishcart_embedding_count_' . md5($normalized_url), 'wishcart_embeddings');
+            wp_cache_delete('wishcart_bot_protected_' . md5($normalized_url), 'wishcart_embeddings');
+            wp_cache_delete('wishcart_user_message_' . md5($normalized_url), 'wishcart_embeddings');
             
             // Delete job from options table
             $job_id = md5($normalized_url);
-            if (delete_option('aisk_url_processing_' . $job_id)) $deleted_jobs++;
-            if (delete_option('aisk_bot_protected_url_' . $job_id)) $deleted_options++;
-            if (delete_option('aisk_url_user_message_' . $job_id)) $deleted_options++;
+            if (delete_option('wishcart_url_processing_' . $job_id)) $deleted_jobs++;
+            if (delete_option('wishcart_bot_protected_url_' . $job_id)) $deleted_options++;
+            if (delete_option('wishcart_url_user_message_' . $job_id)) $deleted_options++;
             
             if (false === $result) {
                 return new WP_Error('db_error', 'Could not delete URLs', ['status' => 500]);
@@ -1731,7 +1731,7 @@ class AISK_External_Embeddings_Handler {
         
         // Normalize url
         $normalized_url = $this->normalize_url_for_job_id($url);
-        $cache_key = 'aisk_embedding_count_' . md5($normalized_url);
+        $cache_key = 'wishcart_embedding_count_' . md5($normalized_url);
         
         // @codingStandardsIgnoreStart
         // Custom table query that cannot be handled by WordPress core functions
@@ -1746,15 +1746,15 @@ class AISK_External_Embeddings_Handler {
         // @codingStandardsIgnoreEnd
         
         // Clear cache after deletion
-        wp_cache_delete($cache_key, 'aisk_embeddings');
-        wp_cache_delete('aisk_bot_protected_' . md5($normalized_url), 'aisk_embeddings');
-        wp_cache_delete('aisk_user_message_' . md5($normalized_url), 'aisk_embeddings');
+        wp_cache_delete($cache_key, 'wishcart_embeddings');
+        wp_cache_delete('wishcart_bot_protected_' . md5($normalized_url), 'wishcart_embeddings');
+        wp_cache_delete('wishcart_user_message_' . md5($normalized_url), 'wishcart_embeddings');
         
         // Delete job from options table
         $job_id = md5($normalized_url);
-        if (delete_option('aisk_url_processing_' . $job_id)) $deleted_jobs++;
-        if (delete_option('aisk_bot_protected_url_' . $job_id)) $deleted_options++;
-        if (delete_option('aisk_url_user_message_' . $job_id)) $deleted_options++;
+        if (delete_option('wishcart_url_processing_' . $job_id)) $deleted_jobs++;
+        if (delete_option('wishcart_bot_protected_url_' . $job_id)) $deleted_options++;
+        if (delete_option('wishcart_url_user_message_' . $job_id)) $deleted_options++;
         
         if (false === $result) {
             return new WP_Error('db_error', 'Could not delete URL', ['status' => 500]);
@@ -1776,14 +1776,14 @@ class AISK_External_Embeddings_Handler {
      */
     public function get_pdf_queue_list($request) {
         global $wpdb;
-        $table = $wpdb->prefix . 'aisk_pdf_queue';
-        $cache_key = 'aisk_pdf_queue_list';
-        $rows = wp_cache_get($cache_key, 'aisk_pdf_queue');
+        $table = $wpdb->prefix . 'wishcart_pdf_queue';
+        $cache_key = 'wishcart_pdf_queue_list';
+        $rows = wp_cache_get($cache_key, 'wishcart_pdf_queue');
         if ($rows === false) {
             // @codingStandardsIgnoreStart
             $rows = $wpdb->get_results("SELECT attachment_id, file_name, status, error_message, file_size, created_at, updated_at FROM $table ORDER BY created_at DESC", ARRAY_A);
             // @codingStandardsIgnoreEnd
-            wp_cache_set($cache_key, $rows, 'aisk_pdf_queue', 300);
+            wp_cache_set($cache_key, $rows, 'wishcart_pdf_queue', 300);
         }
         return new WP_REST_Response($rows, 200);
     }
@@ -1796,8 +1796,8 @@ class AISK_External_Embeddings_Handler {
      */
     public function delete_content_embeddings($post_id) {
         global $wpdb;
-        $table_name = $wpdb->prefix . 'aisk_embeddings';
-        $cache_key = 'aisk_embedding_post_' . $post_id;
+        $table_name = $wpdb->prefix . 'wishcart_embeddings';
+        $cache_key = 'wishcart_embedding_post_' . $post_id;
         
         // @codingStandardsIgnoreStart
         // Custom table query that cannot be handled by WordPress core functions
@@ -1812,8 +1812,8 @@ class AISK_External_Embeddings_Handler {
         
         if ($result !== false) {
             // Clear the cache after successful deletion
-            wp_cache_delete($cache_key, 'aisk_embeddings');
-            wp_cache_delete('aisk_embeddings_type_post', 'aisk_embeddings');
+            wp_cache_delete($cache_key, 'wishcart_embeddings');
+            wp_cache_delete('wishcart_embeddings_type_post', 'wishcart_embeddings');
         }
         
         return $result;
@@ -1827,11 +1827,11 @@ class AISK_External_Embeddings_Handler {
      */
     public function clear_pdf_files($request) {
         global $wpdb;
-        $cache_key = 'aisk_pdf_attachments';
+        $cache_key = 'wishcart_pdf_attachments';
 
         try {
             // Try to get PDF attachments from cache first
-            $pdf_attachments = wp_cache_get($cache_key, 'aisk_embeddings');
+            $pdf_attachments = wp_cache_get($cache_key, 'wishcart_embeddings');
             
             if (false === $pdf_attachments) {
                 // @codingStandardsIgnoreStart
@@ -1843,13 +1843,13 @@ class AISK_External_Embeddings_Handler {
                     AND post_mime_type = 'application/pdf'"
                 );
                 // @codingStandardsIgnoreEnd
-                wp_cache_set($cache_key, $pdf_attachments, 'aisk_embeddings', 3600); // Cache for 1 hour
+                wp_cache_set($cache_key, $pdf_attachments, 'wishcart_embeddings', 3600); // Cache for 1 hour
             }
 
             if (empty($pdf_attachments)) {
                 return new WP_REST_Response([
                     'success' => true,
-                    'message' => __('No PDF files found in media library', 'aisk-ai-chat-for-fluentcart'),
+                    'message' => __('No PDF files found in media library', 'wish-cart'),
                     'deleted_count' => 0
                 ], 200);
             }
@@ -1868,7 +1868,7 @@ class AISK_External_Embeddings_Handler {
                     // @codingStandardsIgnoreStart
                     // Custom table query that cannot be handled by WordPress core functions
                     $wpdb->delete(
-                        $wpdb->prefix . 'aisk_embeddings',
+                        $wpdb->prefix . 'wishcart_embeddings',
                         [
                             'content_type' => 'pdf',
                             'content_id' => $attachment->ID
@@ -1878,33 +1878,33 @@ class AISK_External_Embeddings_Handler {
 
                     // Delete from PDF queue if exists
                     $wpdb->delete(
-                        $wpdb->prefix . 'aisk_pdf_queue',
+                        $wpdb->prefix . 'wishcart_pdf_queue',
                         ['attachment_id' => $attachment->ID],
                         ['%d']
                     );
                     // @codingStandardsIgnoreEnd
 
                     // Clear relevant caches
-                    wp_cache_delete('aisk_pdf_status_' . $attachment->ID, 'aisk_embeddings');
-                    wp_cache_delete('aisk_pdf_embedding_count_' . $attachment->ID, 'aisk_embeddings');
-                    wp_cache_delete('aisk_pdf_queue_list', 'aisk_embeddings');
+                    wp_cache_delete('wishcart_pdf_status_' . $attachment->ID, 'wishcart_embeddings');
+                    wp_cache_delete('wishcart_pdf_embedding_count_' . $attachment->ID, 'wishcart_embeddings');
+                    wp_cache_delete('wishcart_pdf_queue_list', 'wishcart_embeddings');
                 } else {
                     $errors[] = sprintf(
                         /* translators: %s: PDF file name */
-                        __('Failed to delete PDF: %s', 'aisk-ai-chat-for-fluentcart'),
+                        __('Failed to delete PDF: %s', 'wish-cart'),
                         $attachment->post_title
                     );
                 }
             }
 
             // Clear the PDF attachments cache after deletion
-            wp_cache_delete($cache_key, 'aisk_embeddings');
+            wp_cache_delete($cache_key, 'wishcart_embeddings');
 
             return new WP_REST_Response([
                 'success' => true,
                 'message' => sprintf(
                     /* translators: %d: Number of PDF files deleted */
-                    __('Successfully deleted %d PDF files from media library', 'aisk-ai-chat-for-fluentcart'),
+                    __('Successfully deleted %d PDF files from media library', 'wish-cart'),
                     $deleted_count
                 ),
                 'deleted_count' => $deleted_count,
@@ -1930,15 +1930,15 @@ class AISK_External_Embeddings_Handler {
     private function create_pdf_job($file_data) {
         try {
             global $wpdb;
-            $table_name = $wpdb->prefix . 'aisk_pdf_queue';
+            $table_name = $wpdb->prefix . 'wishcart_pdf_queue';
 
             // Validate required file data.
             if (empty($file_data['file_name']) || empty($file_data['file_path'])) {
-                throw new Exception(esc_html__('Missing required file data', 'aisk-ai-chat-for-fluentcart'));
+                throw new Exception(esc_html__('Missing required file data', 'wish-cart'));
             }
 
             // Generate a unique cache key based on file name and path.
-            $cache_key = 'aisk_pdf_job_' . md5($file_data['file_name'] . $file_data['file_path']);
+            $cache_key = 'wishcart_pdf_job_' . md5($file_data['file_name'] . $file_data['file_path']);
             // @codingStandardsIgnoreStart
             // Check if job already exists.
             $existing_job = $wpdb->get_row(
@@ -1973,7 +1973,7 @@ class AISK_External_Embeddings_Handler {
             $job_id = $wpdb->insert_id;
 
             // Cache the job ID.
-            wp_cache_set($cache_key, $job_id, 'aisk_pdf_jobs', HOUR_IN_SECONDS);
+            wp_cache_set($cache_key, $job_id, 'wishcart_pdf_jobs', HOUR_IN_SECONDS);
 
             return $job_id;
 
@@ -1988,8 +1988,8 @@ class AISK_External_Embeddings_Handler {
 
     private function update_pdf_job_status($job_id, $status, $message = '') {
         global $wpdb;
-        $table_name = $wpdb->prefix . 'aisk_pdf_queue';
-        $cache_key = 'aisk_pdf_job_' . $job_id;
+        $table_name = $wpdb->prefix . 'wishcart_pdf_queue';
+        $cache_key = 'wishcart_pdf_job_' . $job_id;
         
         $data = [
             'status' => $status,
@@ -2012,8 +2012,8 @@ class AISK_External_Embeddings_Handler {
         
         if ($result !== false) {
             // Clear the cache after successful update
-            wp_cache_delete($cache_key, 'aisk_embeddings');
-            wp_cache_delete('aisk_pdf_queue_list', 'aisk_embeddings');
+            wp_cache_delete($cache_key, 'wishcart_embeddings');
+            wp_cache_delete('wishcart_pdf_queue_list', 'wishcart_embeddings');
         }
         
         return $result;
@@ -2034,7 +2034,7 @@ class AISK_External_Embeddings_Handler {
             );
             
             // Call OpenAI API to generate embedding
-            $response = wp_remote_post(AISK_OPENAI_API_URL . '/embeddings', array(
+            $response = wp_remote_post(WISHCART_OPENAI_API_URL . '/embeddings', array(
                 'headers' => array(
                     'Authorization' => 'Bearer ' . $this->api_key,
                     'Content-Type' => 'application/json'
@@ -2122,7 +2122,7 @@ class AISK_External_Embeddings_Handler {
                     );
                     
                     global $wpdb;
-                    $table_name = $wpdb->prefix . 'aisk_embeddings';
+                    $table_name = $wpdb->prefix . 'wishcart_embeddings';
                     // @codingStandardsIgnoreStart
                     $wpdb->insert($table_name, $embedding_data);
                     // @codingStandardsIgnoreEnd
@@ -2131,8 +2131,8 @@ class AISK_External_Embeddings_Handler {
                 }
                 
                 // Update PDF processing status
-                update_post_meta($attachment_id, '_aisk_pdf_processed', true);
-                update_post_meta($attachment_id, '_aisk_pdf_chunks_count', count($chunks));
+                update_post_meta($attachment_id, '_wishcart_pdf_processed', true);
+                update_post_meta($attachment_id, '_wishcart_pdf_chunks_count', count($chunks));
                 
                 return array(
                     'success' => true,
@@ -2164,7 +2164,7 @@ class AISK_External_Embeddings_Handler {
         }
 
         global $wpdb;
-        $table_name = $wpdb->prefix . 'aisk_embeddings';
+        $table_name = $wpdb->prefix . 'wishcart_embeddings';
         
         // Prepare batch insert
         $values = array();
@@ -2279,7 +2279,7 @@ class AISK_External_Embeddings_Handler {
         if (!isset($_POST['_wpnonce']) || !wp_verify_nonce(sanitize_text_field(wp_unslash($_POST['_wpnonce'])), 'wp_rest')) {
             return new WP_Error(
                 'invalid_nonce',
-                esc_html__('Security check failed', 'aisk-ai-chat-for-fluentcart'),
+                esc_html__('Security check failed', 'wish-cart'),
                 array('status' => 403)
             );
         }
@@ -2289,7 +2289,7 @@ class AISK_External_Embeddings_Handler {
         if (!isset($_FILES['pdf_file']) || !isset($_FILES['pdf_file']['size'])) {
             return new WP_Error(
                 'missing_file',
-                esc_html__('No PDF file provided', 'aisk-ai-chat-for-fluentcart'),
+                esc_html__('No PDF file provided', 'wish-cart'),
                 array('status' => 400)
             );
         }
@@ -2300,7 +2300,7 @@ class AISK_External_Embeddings_Handler {
                 'file_too_large',
                 sprintf(
                     /* translators: %s: File size, %s: System POST limit */
-                    esc_html__('File size (%1$s) exceeds the system POST limit (%2$s). Please contact your server administrator to increase the limit.', 'aisk-ai-chat-for-fluentcart'),
+                    esc_html__('File size (%1$s) exceeds the system POST limit (%2$s). Please contact your server administrator to increase the limit.', 'wish-cart'),
                     size_format($file_size),
                     size_format($system_limits['post_max_size'])
                 ),
@@ -2312,7 +2312,7 @@ class AISK_External_Embeddings_Handler {
         if (!isset($_FILES['pdf_file']) || !is_array($_FILES['pdf_file'])) {
             return new WP_Error(
                 'invalid_file',
-                esc_html__('Invalid file upload', 'aisk-ai-chat-for-fluentcart'),
+                esc_html__('Invalid file upload', 'wish-cart'),
                 array('status' => 400)
             );
         }
@@ -2356,7 +2356,7 @@ class AISK_External_Embeddings_Handler {
 
         return new WP_REST_Response([
             'success' => true,
-            'message' => esc_html__('PDF processed successfully', 'aisk-ai-chat-for-fluentcart'),
+            'message' => esc_html__('PDF processed successfully', 'wish-cart'),
             'file_path' => esc_html($file_path)
         ], 200);
     }
@@ -2367,16 +2367,16 @@ class AISK_External_Embeddings_Handler {
         if (!$attachment_id) {
             return new WP_Error(
                 'missing_attachment_id',
-                __('Attachment ID is required', 'aisk-ai-chat-for-fluentcart'),
+                __('Attachment ID is required', 'wish-cart'),
                 ['status' => 400]
             );
         }
 
         global $wpdb;
-        $cache_key = 'aisk_pdf_status_' . $attachment_id;
+        $cache_key = 'wishcart_pdf_status_' . $attachment_id;
         
         // Try to get status from cache first
-        $status = wp_cache_get($cache_key, 'aisk_embeddings');
+        $status = wp_cache_get($cache_key, 'wishcart_embeddings');
         
         if (false === $status) {
             // @codingStandardsIgnoreStart
@@ -2384,39 +2384,39 @@ class AISK_External_Embeddings_Handler {
             $status = $wpdb->get_row(
                 $wpdb->prepare(
                     "SELECT status, error_message, created_at, updated_at 
-                    FROM {$wpdb->prefix}aisk_pdf_queue 
+                    FROM {$wpdb->prefix}wishcart_pdf_queue 
                     WHERE attachment_id = %d",
                     $attachment_id
                 )
             );
             // @codingStandardsIgnoreEnd
-            wp_cache_set($cache_key, $status, 'aisk_embeddings', 3600); // Cache for 1 hour
+            wp_cache_set($cache_key, $status, 'wishcart_embeddings', 3600); // Cache for 1 hour
         }
 
         if (!$status) {
             return new WP_Error(
                 'not_found',
-                __('PDF processing status not found', 'aisk-ai-chat-for-fluentcart'),
+                __('PDF processing status not found', 'wish-cart'),
                 ['status' => 404]
             );
         }
 
         // Check for embeddings
-        $embedding_cache_key = 'aisk_pdf_embedding_count_' . $attachment_id;
-        $embedding_count = wp_cache_get($embedding_cache_key, 'aisk_embeddings');
+        $embedding_cache_key = 'wishcart_pdf_embedding_count_' . $attachment_id;
+        $embedding_count = wp_cache_get($embedding_cache_key, 'wishcart_embeddings');
         
         if (false === $embedding_count) {
             // @codingStandardsIgnoreStart
             // Custom table query that cannot be handled by WordPress core functions
             $embedding_count = $wpdb->get_var(
                 $wpdb->prepare(
-                    "SELECT COUNT(*) FROM {$wpdb->prefix}aisk_embeddings 
+                    "SELECT COUNT(*) FROM {$wpdb->prefix}wishcart_embeddings 
                     WHERE content_type = 'pdf' AND content_id = %d",
                     $attachment_id
                 )
             );
             // @codingStandardsIgnoreEnd
-            wp_cache_set($embedding_cache_key, $embedding_count, 'aisk_embeddings', 3600);
+            wp_cache_set($embedding_cache_key, $embedding_count, 'wishcart_embeddings', 3600);
         }
 
         return new WP_REST_Response([
@@ -2435,12 +2435,12 @@ class AISK_External_Embeddings_Handler {
         if (!$job_id && !$attachment_id) {
             return new WP_Error(
                 'missing_parameters',
-                __('Either job_id or attachment_id is required', 'aisk-ai-chat-for-fluentcart'),
+                __('Either job_id or attachment_id is required', 'wish-cart'),
                 ['status' => 400]
             );
         }
 
-        $queue_handler = new AISK_PDF_Queue_Handler();
+        $queue_handler = new WISHCART_PDF_Queue_Handler();
         
         // If we have an attachment_id, get its status
         if ($attachment_id) {
@@ -2448,20 +2448,20 @@ class AISK_External_Embeddings_Handler {
         } else {
             // If we only have a job_id, get the attachment_id first
             global $wpdb;
-            $attachment_id = wp_cache_get('aisk_pdf_attachment_' . $job_id, 'aisk_pdf_queue');
+            $attachment_id = wp_cache_get('wishcart_pdf_attachment_' . $job_id, 'wishcart_pdf_queue');
             if ($attachment_id === false) {
                 // @codingStandardsIgnoreStart
                 $attachment_id = $wpdb->get_var($wpdb->prepare(
-                    "SELECT attachment_id FROM {$wpdb->prefix}aisk_pdf_queue WHERE id = %d",
+                    "SELECT attachment_id FROM {$wpdb->prefix}wishcart_pdf_queue WHERE id = %d",
                     $job_id
                 ));
                 // @codingStandardsIgnoreEnd
-                wp_cache_set('aisk_pdf_attachment_' . $job_id, $attachment_id, 'aisk_pdf_queue', 300);
+                wp_cache_set('wishcart_pdf_attachment_' . $job_id, $attachment_id, 'wishcart_pdf_queue', 300);
             }
             if (!$attachment_id) {
                 return new WP_Error(
                     'invalid_job_id',
-                    __('Invalid job ID', 'aisk-ai-chat-for-fluentcart'),
+                    __('Invalid job ID', 'wish-cart'),
                     ['status' => 404]
                 );
             }
@@ -2469,7 +2469,7 @@ class AISK_External_Embeddings_Handler {
         }
         // If status is 'completed' or 'failed', return cached status without querying embeddings
         if ($status['status'] === 'completed' || $status['status'] === 'failed') {
-            $user_message = ($status['status'] === 'failed') ? ($status['error_message'] ?: __('PDF processing failed.', 'aisk-ai-chat-for-fluentcart')) : __('Processed', 'aisk-ai-chat-for-fluentcart');
+            $user_message = ($status['status'] === 'failed') ? ($status['error_message'] ?: __('PDF processing failed.', 'wish-cart')) : __('Processed', 'wish-cart');
             return new WP_REST_Response([
                 'status' => $status['status'],
                 'processed' => ($status['status'] === 'completed'),
@@ -2486,26 +2486,26 @@ class AISK_External_Embeddings_Handler {
         }
         // Check for embeddings (with caching)
         global $wpdb;
-        $embedding_cache_key = 'aisk_pdf_embedding_count_' . $attachment_id;
-        $embedding_count = wp_cache_get($embedding_cache_key, 'aisk_pdf_queue');
+        $embedding_cache_key = 'wishcart_pdf_embedding_count_' . $attachment_id;
+        $embedding_count = wp_cache_get($embedding_cache_key, 'wishcart_pdf_queue');
         if ($embedding_count === false) {
             // @codingStandardsIgnoreStart
             $embedding_count = $wpdb->get_var($wpdb->prepare(
-                "SELECT COUNT(*) FROM {$wpdb->prefix}aisk_embeddings WHERE content_type = 'pdf' AND content_id = %d",
+                "SELECT COUNT(*) FROM {$wpdb->prefix}wishcart_embeddings WHERE content_type = 'pdf' AND content_id = %d",
                 $attachment_id
             ));
-            wp_cache_set($embedding_cache_key, $embedding_count, 'aisk_pdf_queue', 300);
+            wp_cache_set($embedding_cache_key, $embedding_count, 'wishcart_pdf_queue', 300);
         }
         $processed = ($status['status'] === 'completed' && $embedding_count > 0);
         $processing = ($status['status'] === 'pending' || $status['status'] === 'processing' || ($status['status'] === 'completed' && $embedding_count == 0));
         $failed = ($status['status'] === 'failed');
         $user_message = '';
         if ($failed) {
-            $user_message = $status['error_message'] ?: __('PDF processing failed.', 'aisk-ai-chat-for-fluentcart');
+            $user_message = $status['error_message'] ?: __('PDF processing failed.', 'wish-cart');
         } elseif ($processing) {
-            $user_message = __('Processing in background...', 'aisk-ai-chat-for-fluentcart');
+            $user_message = __('Processing in background...', 'wish-cart');
         } elseif ($processed) {
-            $user_message = __('Processed', 'aisk-ai-chat-for-fluentcart');
+            $user_message = __('Processed', 'wish-cart');
         }
         return new WP_REST_Response([
             'status' => $status['status'],
@@ -2524,7 +2524,7 @@ class AISK_External_Embeddings_Handler {
 
     public function create_pdf_queue_table() {
         global $wpdb;
-        $table_name = $wpdb->prefix . 'aisk_pdf_queue';
+        $table_name = $wpdb->prefix . 'wishcart_pdf_queue';
         $charset_collate = $wpdb->get_charset_collate();
 
         $sql = "CREATE TABLE IF NOT EXISTS $table_name (
@@ -2557,7 +2557,7 @@ class AISK_External_Embeddings_Handler {
             // Extract text from PDF
             $pdf_text = $this->extract_pdf_text($file_path);
             if (empty($pdf_text)) {
-                throw new Exception(__('Failed to extract text from PDF', 'aisk-ai-chat-for-fluentcart'));
+                throw new Exception(__('Failed to extract text from PDF', 'wish-cart'));
             }
 
             // Split content into chunks
@@ -2571,12 +2571,12 @@ class AISK_External_Embeddings_Handler {
 
             // If no embeddings were created, or store_embedding failed, mark as failed
             if (!$success || count($chunks) === 0) {
-                $this->update_pdf_job_status($job_id, 'failed', __('No text content found in PDF or failed to store embeddings', 'aisk-ai-chat-for-fluentcart'));
+                $this->update_pdf_job_status($job_id, 'failed', __('No text content found in PDF or failed to store embeddings', 'wish-cart'));
                 wp_delete_attachment($attachment_id, true);
                 return;
             }
 
-            $this->update_pdf_job_status($job_id, 'completed', __('PDF processed successfully', 'aisk-ai-chat-for-fluentcart'));
+            $this->update_pdf_job_status($job_id, 'completed', __('PDF processed successfully', 'wish-cart'));
 
         } catch (Exception $e) {
             $this->update_pdf_job_status($job_id, 'failed', $e->getMessage());
@@ -2770,15 +2770,15 @@ class AISK_External_Embeddings_Handler {
 
     public function delete_pdf_embeddings($request) {
         global $wpdb;
-        $table_name = $wpdb->prefix . 'aisk_embeddings';
-        $pdf_queue_table = $wpdb->prefix . 'aisk_pdf_queue';
+        $table_name = $wpdb->prefix . 'wishcart_embeddings';
+        $pdf_queue_table = $wpdb->prefix . 'wishcart_pdf_queue';
 
         // Get the PDF ID from the request
         $pdf_id = $request->get_param('attachment_id');
         if (!$pdf_id) {
             return new WP_Error(
                 'missing_pdf_id',
-                __('PDF ID is required', 'aisk-ai-chat-for-fluentcart'),
+                __('PDF ID is required', 'wish-cart'),
                 array('status' => 400)
             );
         }
@@ -2796,9 +2796,9 @@ class AISK_External_Embeddings_Handler {
         // @codingStandardsIgnoreEnd
 
         // Clear relevant caches
-        wp_cache_delete('aisk_pdf_status_' . $pdf_id, 'aisk_embeddings');
-        wp_cache_delete('aisk_pdf_embedding_count_' . $pdf_id, 'aisk_embeddings');
-        wp_cache_delete('aisk_pdf_queue_list', 'aisk_embeddings');
+        wp_cache_delete('wishcart_pdf_status_' . $pdf_id, 'wishcart_embeddings');
+        wp_cache_delete('wishcart_pdf_embedding_count_' . $pdf_id, 'wishcart_embeddings');
+        wp_cache_delete('wishcart_pdf_queue_list', 'wishcart_embeddings');
 
         // If there are no embeddings, also delete from the queue table
         // @codingStandardsIgnoreStart
@@ -2829,13 +2829,13 @@ class AISK_External_Embeddings_Handler {
         );
         
         $normalized_file_name = $this->normalize_filename($file_name);
-        $all_queue_files_cache_key = 'aisk_pdf_queue_files';
-        $all_queue_files = wp_cache_get($all_queue_files_cache_key, 'aisk_embeddings');
+        $all_queue_files_cache_key = 'wishcart_pdf_queue_files';
+        $all_queue_files = wp_cache_get($all_queue_files_cache_key, 'wishcart_embeddings');
         if (false === $all_queue_files) {
             // @codingStandardsIgnoreStart
             $all_queue_files = $wpdb->get_results("SELECT id, file_name FROM $pdf_queue_table");
             // @codingStandardsIgnoreEnd
-            wp_cache_set($all_queue_files_cache_key, $all_queue_files, 'aisk_embeddings', 3600);
+            wp_cache_set($all_queue_files_cache_key, $all_queue_files, 'wishcart_embeddings', 3600);
         }
         $job_id = false;
         foreach ($all_queue_files as $row) {
@@ -2859,7 +2859,7 @@ class AISK_External_Embeddings_Handler {
         if ($result === false) {
             return new WP_Error(
                 'delete_failed',
-                __('Failed to delete PDF embeddings', 'aisk-ai-chat-for-fluentcart'),
+                __('Failed to delete PDF embeddings', 'wish-cart'),
                 array('status' => 500)
             );
         }
@@ -2867,7 +2867,7 @@ class AISK_External_Embeddings_Handler {
         return new WP_REST_Response(
             array(
                 'success' => true,
-                'message' => __('PDF embeddings and job deleted successfully', 'aisk-ai-chat-for-fluentcart'),
+                'message' => __('PDF embeddings and job deleted successfully', 'wish-cart'),
                 'pdf_job_deleted' => $pdf_job_deleted
             ),
             200
@@ -2917,38 +2917,38 @@ class AISK_External_Embeddings_Handler {
      */
     public function get_upload_limit_instructions() {
         $instructions = '<div class="upload-limit-instructions">';
-        $instructions .= '<h3>' . __('How to Increase Upload Limit', 'aisk-ai-chat-for-fluentcart') . '</h3>';
-        $instructions .= '<p>' . __('Your server currently has a maximum upload size of', 'aisk-ai-chat-for-fluentcart') . ' <strong>' . $this->get_current_max_upload_size_formatted() . '</strong>. ';
-        $instructions .= __('To upload larger files, you need to increase this limit.', 'aisk-ai-chat-for-fluentcart') . '</p>';
+        $instructions .= '<h3>' . __('How to Increase Upload Limit', 'wish-cart') . '</h3>';
+        $instructions .= '<p>' . __('Your server currently has a maximum upload size of', 'wish-cart') . ' <strong>' . $this->get_current_max_upload_size_formatted() . '</strong>. ';
+        $instructions .= __('To upload larger files, you need to increase this limit.', 'wish-cart') . '</p>';
         
-        $instructions .= '<h4>' . __('Method 1: Edit php.ini', 'aisk-ai-chat-for-fluentcart') . '</h4>';
+        $instructions .= '<h4>' . __('Method 1: Edit php.ini', 'wish-cart') . '</h4>';
         $instructions .= '<ol>';
-        $instructions .= '<li>' . __('Locate your php.ini file', 'aisk-ai-chat-for-fluentcart') . '</li>';
-        $instructions .= '<li>' . __('Find and modify these lines:', 'aisk-ai-chat-for-fluentcart') . '</li>';
+        $instructions .= '<li>' . __('Locate your php.ini file', 'wish-cart') . '</li>';
+        $instructions .= '<li>' . __('Find and modify these lines:', 'wish-cart') . '</li>';
         $instructions .= '<pre>upload_max_filesize = 64M
 post_max_size = 64M
 memory_limit = 256M
 max_execution_time = 300
 max_input_time = 300</pre>';
-        $instructions .= '<li>' . __('Save the file and restart your web server', 'aisk-ai-chat-for-fluentcart') . '</li>';
+        $instructions .= '<li>' . __('Save the file and restart your web server', 'wish-cart') . '</li>';
         $instructions .= '</ol>';
         
-        $instructions .= '<h4>' . __('Method 2: Edit .htaccess', 'aisk-ai-chat-for-fluentcart') . '</h4>';
+        $instructions .= '<h4>' . __('Method 2: Edit .htaccess', 'wish-cart') . '</h4>';
         $instructions .= '<ol>';
-        $instructions .= '<li>' . __('Edit your .htaccess file in the WordPress root directory', 'aisk-ai-chat-for-fluentcart') . '</li>';
-        $instructions .= '<li>' . __('Add these lines:', 'aisk-ai-chat-for-fluentcart') . '</li>';
+        $instructions .= '<li>' . __('Edit your .htaccess file in the WordPress root directory', 'wish-cart') . '</li>';
+        $instructions .= '<li>' . __('Add these lines:', 'wish-cart') . '</li>';
         $instructions .= '<pre>php_value upload_max_filesize 64M
 php_value post_max_size 64M
 php_value memory_limit 256M
 php_value max_execution_time 300
 php_value max_input_time 300</pre>';
-        $instructions .= '<li>' . __('Save the file', 'aisk-ai-chat-for-fluentcart') . '</li>';
+        $instructions .= '<li>' . __('Save the file', 'wish-cart') . '</li>';
         $instructions .= '</ol>';
         
-        $instructions .= '<h4>' . __('Method 3: Contact Your Hosting Provider', 'aisk-ai-chat-for-fluentcart') . '</h4>';
-        $instructions .= '<p>' . __('If you don\'t have access to these files, contact your hosting provider to increase these limits for you.', 'aisk-ai-chat-for-fluentcart') . '</p>';
+        $instructions .= '<h4>' . __('Method 3: Contact Your Hosting Provider', 'wish-cart') . '</h4>';
+        $instructions .= '<p>' . __('If you don\'t have access to these files, contact your hosting provider to increase these limits for you.', 'wish-cart') . '</p>';
         
-        $instructions .= '<p><strong>' . __('Note:', 'aisk-ai-chat-for-fluentcart') . '</strong> ' . __('For optimal performance, we recommend keeping file sizes under', 'aisk-ai-chat-for-fluentcart') . ' <strong>' . $this->get_optimum_upload_size_formatted() . '</strong>.</p>';
+        $instructions .= '<p><strong>' . __('Note:', 'wish-cart') . '</strong> ' . __('For optimal performance, we recommend keeping file sizes under', 'wish-cart') . ' <strong>' . $this->get_optimum_upload_size_formatted() . '</strong>.</p>';
         
         $instructions .= '</div>';
         
@@ -2969,7 +2969,7 @@ php_value max_input_time 300</pre>';
             $class = 'notice notice-warning is-dismissible';
             $message = sprintf(
                 /* translators: 1: Server's maximum upload size 2: Recommended optimum size */
-            __('Your server\'s maximum upload size (%1$s) is below our recommended optimum size (%2$s). This may limit your ability to process larger PDF files. <a href="#" class="show-upload-instructions">Learn how to increase this limit</a>.', 'aisk-ai-chat-for-fluentcart'),
+            __('Your server\'s maximum upload size (%1$s) is below our recommended optimum size (%2$s). This may limit your ability to process larger PDF files. <a href="#" class="show-upload-instructions">Learn how to increase this limit</a>.', 'wish-cart'),
                 $this->get_current_max_upload_size_formatted(),
                 $this->get_optimum_upload_size_formatted()
             );
@@ -3213,7 +3213,7 @@ php_value max_input_time 300</pre>';
                     );
                     
                     global $wpdb;
-                    $table_name = $wpdb->prefix . 'aisk_embeddings';
+                    $table_name = $wpdb->prefix . 'wishcart_embeddings';
                     // @codingStandardsIgnoreStart
                     $wpdb->insert($table_name, $embedding_data);
                     // @codingStandardsIgnoreEnd
@@ -3222,8 +3222,8 @@ php_value max_input_time 300</pre>';
                 }
                 
                 // Update PDF processing status
-                update_post_meta($attachment_id, '_aisk_pdf_processed', true);
-                update_post_meta($attachment_id, '_aisk_pdf_chunks_count', count($chunks));
+                update_post_meta($attachment_id, '_wishcart_pdf_processed', true);
+                update_post_meta($attachment_id, '_wishcart_pdf_chunks_count', count($chunks));
                 
                 return array(
                     'success' => true,
@@ -3252,13 +3252,13 @@ php_value max_input_time 300</pre>';
      * @since 1.0.0
      */
     private function check_url_exists($url) {
-        $transient_key = 'aisk_url_exists_' . md5($url);
+        $transient_key = 'wishcart_url_exists_' . md5($url);
         $exists = get_transient($transient_key);
         
         if (false === $exists) {
             // Use WordPress's database functions with proper query structure
             global $wpdb;
-            $table_name = $wpdb->prefix . 'aisk_embeddings';
+            $table_name = $wpdb->prefix . 'wishcart_embeddings';
             
             // @codingStandardsIgnoreStart
             // Custom table query that cannot be handled by WordPress core functions
@@ -3280,13 +3280,13 @@ php_value max_input_time 300</pre>';
 
     public function handle_pdf_upload() {
         // Verify nonce
-        if (!isset($_POST['_wpnonce']) || !wp_verify_nonce(sanitize_text_field(wp_unslash($_POST['_wpnonce'])), 'aisk_pdf_upload')) {
-            wp_die(esc_html__('Security check failed', 'aisk-ai-chat-for-fluentcart'), 403);
+        if (!isset($_POST['_wpnonce']) || !wp_verify_nonce(sanitize_text_field(wp_unslash($_POST['_wpnonce'])), 'wishcart_pdf_upload')) {
+            wp_die(esc_html__('Security check failed', 'wish-cart'), 403);
         }
 
         // Validate file input
         if (!isset($_FILES['pdf_file']) || !is_array($_FILES['pdf_file'])) {
-            wp_die(esc_html__('No PDF file provided', 'aisk-ai-chat-for-fluentcart'), 400);
+            wp_die(esc_html__('No PDF file provided', 'wish-cart'), 400);
         }
 
         $file = array_map('sanitize_text_field', wp_unslash($_FILES['pdf_file']));
@@ -3315,7 +3315,7 @@ php_value max_input_time 300</pre>';
         }
 
         wp_send_json_success([
-            'message' => esc_html__('PDF processed successfully', 'aisk-ai-chat-for-fluentcart'),
+            'message' => esc_html__('PDF processed successfully', 'wish-cart'),
             'file_path' => esc_html($file_path)
         ]);
     }
@@ -3348,7 +3348,7 @@ php_value max_input_time 300</pre>';
                 // Generate embeddings for each chunk
                 $embeddings = array();
                 global $wpdb;
-                $table_name = $wpdb->prefix . 'aisk_embeddings';
+                $table_name = $wpdb->prefix . 'wishcart_embeddings';
                 
                 // Start transaction for better performance
                 // @codingStandardsIgnoreStart
@@ -3388,13 +3388,13 @@ php_value max_input_time 300</pre>';
                 // @codingStandardsIgnoreEnd
                 
                 // Cache the embedding count
-                $cache_key = 'aisk_pdf_embedding_count_' . ($attachment_id ?: basename($pdf_path));
-                wp_cache_set($cache_key, count($chunks), 'aisk_embeddings', 3600);
+                $cache_key = 'wishcart_pdf_embedding_count_' . ($attachment_id ?: basename($pdf_path));
+                wp_cache_set($cache_key, count($chunks), 'wishcart_embeddings', 3600);
                 
                 // Update PDF processing status if attachment_id is provided
                 if ($attachment_id) {
-                    update_post_meta($attachment_id, '_aisk_pdf_processed', true);
-                    update_post_meta($attachment_id, '_aisk_pdf_chunks_count', count($chunks));
+                    update_post_meta($attachment_id, '_wishcart_pdf_processed', true);
+                    update_post_meta($attachment_id, '_wishcart_pdf_chunks_count', count($chunks));
                 }
                 
                 return array(
@@ -3466,7 +3466,7 @@ php_value max_input_time 300</pre>';
                     );
                     
                     global $wpdb;
-                    $table_name = $wpdb->prefix . 'aisk_embeddings';
+                    $table_name = $wpdb->prefix . 'wishcart_embeddings';
                     // @codingStandardsIgnoreStart
                     $wpdb->insert($table_name, $embedding_data);
                     // @codingStandardsIgnoreEnd
@@ -3625,19 +3625,19 @@ php_value max_input_time 300</pre>';
      */
     public function get_unprocessed_count($request)
     {
-        $cache_key = 'aisk_unprocessed_embeddings_count';
-        $count = wp_cache_get($cache_key, 'aisk_embeddings');
+        $cache_key = 'wishcart_unprocessed_embeddings_count';
+        $count = wp_cache_get($cache_key, 'wishcart_embeddings');
         
         if (false === $count) {
             // @codingStandardsIgnoreStart
             global $wpdb;
-            $table_name = $wpdb->prefix . 'aisk_embeddings';
+            $table_name = $wpdb->prefix . 'wishcart_embeddings';
             // FIX: Remove status column check, count only unprocessed PDFs by content_type/content_id if needed
             $count = (int) $wpdb->get_var(
                 "SELECT COUNT(*) FROM {$table_name} WHERE content_type = 'pdf' AND content_id IS NOT NULL"
             );
             // @codingStandardsIgnoreEnd
-            wp_cache_set($cache_key, $count, 'aisk_embeddings', 300); // Cache for 5 minutes
+            wp_cache_set($cache_key, $count, 'wishcart_embeddings', 300); // Cache for 5 minutes
         }
         
         return $count;

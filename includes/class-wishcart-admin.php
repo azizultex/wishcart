@@ -4,9 +4,9 @@
  *
  * @category WordPress
  * @package  AISK
- * @author   Aisk Team <support@aisk.chat>
+ * @author   WishCart Team <support@wishcart.chat>
  * @license  GPL-2.0+ http://www.gnu.org/licenses/gpl-2.0.txt
- * @link     https://aisk.com
+ * @link     https://wishcart.com
  */
 
 if ( ! defined('ABSPATH') ) {
@@ -18,14 +18,14 @@ if ( ! defined('ABSPATH') ) {
  *
  * @category Class
  * @package  AISK
- * @author   Aisk Team <support@aisk.chat>
+ * @author   WishCart Team <support@wishcart.chat>
  * @license  GPL-2.0+ http://www.gnu.org/licenses/gpl-2.0.txt
- * @link     https://aisk.com
+ * @link     https://wishcart.com
  */
-class AISK_Admin {
+class WISHCART_Admin {
 
 
-    private $plugin_slug = 'aisk';
+    private $plugin_slug = 'wishcart';
     private static $instance = null;
 
     /**
@@ -33,7 +33,7 @@ class AISK_Admin {
      *
      * @since 1.0.0
      *
-     * @return AISK_Admin Instance of the class
+     * @return WISHCART_Admin Instance of the class
      */
     public static function get_instance() {
         if ( null === self::$instance ) {
@@ -50,7 +50,7 @@ class AISK_Admin {
         add_action('admin_enqueue_scripts', [ $this, 'enqueue_admin_scripts' ]);
         add_action('admin_enqueue_scripts', [ $this, 'enqueue_admin_styles' ]);
 
-        add_action('rest_api_init', [ $this, 'aisk_register_settings_endpoints' ]);
+        add_action('rest_api_init', [ $this, 'wishcart_register_settings_endpoints' ]);
     }
     
     /**
@@ -58,10 +58,10 @@ class AISK_Admin {
      */
     public function enqueue_admin_styles( $hook_suffix ) {
         wp_enqueue_style( 
-            'aisk-admin-style', 
+            'wishcart-admin-style', 
             plugin_dir_url( dirname( __FILE__ ) ) . 'assets/css/admin-style.css',
             [],
-            AISK_VERSION
+            WISHCART_VERSION
         );
     }
 
@@ -75,8 +75,8 @@ class AISK_Admin {
     public function register_admin_menu() {
 
         add_menu_page(
-            esc_html__( 'Aisk', 'aisk-ai-chat-for-fluentcart' ),
-            esc_html__( 'Aisk', 'aisk-ai-chat-for-fluentcart' ),
+            esc_html__( 'WishCart', 'wish-cart' ),
+            esc_html__( 'WishCart', 'wish-cart' ),
             'manage_options',
             $this->plugin_slug,
             [ $this, 'render_dashboard_page' ],
@@ -86,8 +86,8 @@ class AISK_Admin {
 
         add_submenu_page(
             $this->plugin_slug,
-            esc_html__( 'Inquiries', 'aisk-ai-chat-for-fluentcart' ),
-            esc_html__( 'Inquiries', 'aisk-ai-chat-for-fluentcart' ),
+            esc_html__( 'Inquiries', 'wish-cart' ),
+            esc_html__( 'Inquiries', 'wish-cart' ),
             'manage_options',
             $this->plugin_slug . '-inquiries',
             [ $this, 'render_inquiries_page' ]
@@ -96,8 +96,8 @@ class AISK_Admin {
         // Add Chat History submenu
         add_submenu_page(
             $this->plugin_slug,
-            esc_html__( 'Chat History', 'aisk-ai-chat-for-fluentcart' ),
-            esc_html__( 'Chat History', 'aisk-ai-chat-for-fluentcart' ),
+            esc_html__( 'Chat History', 'wish-cart' ),
+            esc_html__( 'Chat History', 'wish-cart' ),
             'manage_options',
             $this->plugin_slug . '-history',
             [ $this, 'render_history_page' ]
@@ -106,8 +106,8 @@ class AISK_Admin {
         // Add Uses Analytics submenu
         add_submenu_page(
             $this->plugin_slug,
-            esc_html__( 'API Usage', 'aisk-ai-chat-for-fluentcart' ),
-            esc_html__( 'API Usage', 'aisk-ai-chat-for-fluentcart' ),
+            esc_html__( 'API Usage', 'wish-cart' ),
+            esc_html__( 'API Usage', 'wish-cart' ),
             'manage_options',
             $this->plugin_slug . '-uses',
             [ $this, 'render_uses_page' ]
@@ -116,8 +116,8 @@ class AISK_Admin {
         // Add Settings submenu
         add_submenu_page(
             $this->plugin_slug,
-            esc_html__( 'Settings', 'aisk-ai-chat-for-fluentcart' ),
-            esc_html__( 'Settings', 'aisk-ai-chat-for-fluentcart' ),
+            esc_html__( 'Settings', 'wish-cart' ),
+            esc_html__( 'Settings', 'wish-cart' ),
             'manage_options',
             $this->plugin_slug . '-settings',
             [ $this, 'render_settings_page' ]
@@ -149,45 +149,45 @@ class AISK_Admin {
         }
 
         // First load the common chat widget assets
-        AISK_Scripts::load_chat_widget_assets();
+        WISHCART_Scripts::load_chat_widget_assets();
 
         // Then load admin-specific assets
         wp_enqueue_media();
 
         // Register and enqueue admin styles
         wp_register_style(
-            'aisk-admin',
-            AISK_PLUGIN_URL . 'build/chat-admin.css',
+            'wishcart-admin',
+            WISHCART_PLUGIN_URL . 'build/chat-admin.css',
             [],
-            AISK_VERSION
+            WISHCART_VERSION
         );
-        wp_enqueue_style('aisk-admin');
+        wp_enqueue_style('wishcart-admin');
 
         // Register and enqueue admin scripts
         wp_register_script(
-            'aisk-admin',
-            AISK_PLUGIN_URL . 'build/chat-admin.js',
+            'wishcart-admin',
+            WISHCART_PLUGIN_URL . 'build/chat-admin.js',
             ['wp-element', 'wp-components', 'wp-api-fetch', 'wp-i18n'],
-            AISK_VERSION,
+            WISHCART_VERSION,
             [
                 'in_footer' => true,
                 'strategy' => 'defer'
             ]
         );
-        wp_enqueue_script('aisk-admin');
+        wp_enqueue_script('wishcart-admin');
 
         wp_localize_script(
-            'aisk-admin',
-            'AiskSettings',
+            'wishcart-admin',
+            'WishCartSettings',
             [
-                'apiUrl' => rest_url('aisk/v1'),
+                'apiUrl' => rest_url('wishcart/v1'),
                 'nonce' => wp_create_nonce('wp_rest'),
-                'pluginUrl' => AISK_PLUGIN_URL,
-                'isFluentCartActive' => AISK_FluentCart_Helper::is_fluentcart_active(),
+                'pluginUrl' => WISHCART_PLUGIN_URL,
+                'isFluentCartActive' => WISHCART_FluentCart_Helper::is_fluentcart_active(),
                 'maxUploadSize' => wp_max_upload_size(),
             ]
         );
-        wp_set_script_translations('aisk-admin', 'aisk-ai-chat-for-fluentcart');
+        wp_set_script_translations('wishcart-admin', 'wish-cart');
     }
 
     /**
@@ -197,26 +197,26 @@ class AISK_Admin {
      *
      * @return void
      */
-    public function aisk_register_settings_endpoints() {
+    public function wishcart_register_settings_endpoints() {
         register_rest_route(
-            'aisk/v1', '/settings', [
+            'wishcart/v1', '/settings', [
 				[
 					'methods' => 'GET',
-					'callback' => [ $this, 'aisk_get_settings' ],
+					'callback' => [ $this, 'wishcart_get_settings' ],
 					'permission_callback' => function () {
 						return current_user_can('manage_options');
 					},
 				],
 				[
 					'methods' => 'POST',
-					'callback' => [ $this, 'aisk_update_settings' ],
+					'callback' => [ $this, 'wishcart_update_settings' ],
 					'permission_callback' => function () {
 						return current_user_can('manage_options');
 					},
 				],
             ]
         );
-        register_rest_route('aisk/v1', '/install-fluentcart', array(
+        register_rest_route('wishcart/v1', '/install-fluentcart', array(
             'methods' => 'POST',
             'callback' => array( $this, 'install_fluentcart' ),
             'permission_callback' => function () {
@@ -224,7 +224,7 @@ class AISK_Admin {
             },
         ));
 
-        register_rest_route('aisk/v1', '/check-fluentcart', array(
+        register_rest_route('wishcart/v1', '/check-fluentcart', array(
             'methods' => 'GET',
             'callback' => array( $this, 'check_fluentcart_status' ),
             'permission_callback' => function () {
@@ -232,7 +232,7 @@ class AISK_Admin {
             },
         ));
 
-        register_rest_route('aisk/v1', '/products', array(
+        register_rest_route('wishcart/v1', '/products', array(
             'methods' => 'GET',
             'callback' => array($this, 'get_products'),
             'permission_callback' => function () {
@@ -241,7 +241,7 @@ class AISK_Admin {
         ));
 
         // Analytics endpoints
-        register_rest_route('aisk/v1', '/analytics/overview', array(
+        register_rest_route('wishcart/v1', '/analytics/overview', array(
             'methods' => 'GET',
             'callback' => array( $this, 'get_analytics_overview' ),
             'permission_callback' => function () {
@@ -249,7 +249,7 @@ class AISK_Admin {
             },
         ));
 
-        register_rest_route('aisk/v1', '/analytics/usage', array(
+        register_rest_route('wishcart/v1', '/analytics/usage', array(
             'methods' => 'GET',
             'callback' => array( $this, 'get_analytics_usage' ),
             'permission_callback' => function () {
@@ -258,7 +258,7 @@ class AISK_Admin {
         ));
 
 
-        register_rest_route('aisk/v1', '/analytics/errors', array(
+        register_rest_route('wishcart/v1', '/analytics/errors', array(
             'methods' => 'GET',
             'callback' => array( $this, 'get_analytics_errors' ),
             'permission_callback' => function () {
@@ -266,7 +266,7 @@ class AISK_Admin {
             },
         ));
 
-        register_rest_route('aisk/v1', '/analytics/costs', array(
+        register_rest_route('wishcart/v1', '/analytics/costs', array(
             'methods' => 'GET',
             'callback' => array( $this, 'get_analytics_costs' ),
             'permission_callback' => function () {
@@ -276,7 +276,7 @@ class AISK_Admin {
     }
 
     public function install_fluentcart() {
-        if ( ! AISK_FluentCart_Helper::is_fluentcart_active() ) {
+        if ( ! WISHCART_FluentCart_Helper::is_fluentcart_active() ) {
             require_once ABSPATH . 'wp-admin/includes/plugin.php';
             require_once ABSPATH . 'wp-admin/includes/plugin-install.php';
             require_once ABSPATH . 'wp-admin/includes/class-wp-upgrader.php';
@@ -323,7 +323,7 @@ class AISK_Admin {
                             // translators: %s: URL to the FluentCart plugin page on WordPress.org
                             __(
                                 'FluentCart could not be automatically installed from the WordPress repository. Please install FluentCart manually: 1. Go to %s and download FluentCart. 2. Go to WordPress Admin > Plugins > Add New > Upload Plugin. 3. Upload the FluentCart zip file. 4. Activate the plugin. 5. Click the "Refresh" button here to detect it. Alternatively, if FluentCart is already installed but not detected, click "Refresh" to re-check.',
-                                'aisk-ai-chat-for-fluentcart'
+                                'wish-cart'
                             ),
                             'https://wordpress.org/plugins/fluent-cart/'
                         );
@@ -352,7 +352,7 @@ class AISK_Admin {
                             'installation_failed',
                             __(
                                 'FluentCart was installed but could not be found. Please check the plugins directory and activate it manually, then click "Refresh".',
-                                'aisk-ai-chat-for-fluentcart'
+                                'wish-cart'
                             )
                         );
                     }
@@ -367,13 +367,13 @@ class AISK_Admin {
                 }
 
                 // Clear detection cache after installation
-                AISK_FluentCart_Helper::clear_detection_cache();
+                WISHCART_FluentCart_Helper::clear_detection_cache();
                 
                 // Force reload of plugin cache if needed
                 wp_cache_flush();
                 
                 // Re-check status after activation
-                $is_active = AISK_FluentCart_Helper::is_fluentcart_active();
+                $is_active = WISHCART_FluentCart_Helper::is_fluentcart_active();
 
                 return array(
                     'success' => true,
@@ -387,12 +387,12 @@ class AISK_Admin {
         }
 
         // Clear cache and return current status
-        AISK_FluentCart_Helper::clear_detection_cache();
+        WISHCART_FluentCart_Helper::clear_detection_cache();
 
         return array(
             'success' => true,
             'message' => 'FluentCart is already installed and activated',
-            'isActive' => AISK_FluentCart_Helper::is_fluentcart_active(),
+            'isActive' => WISHCART_FluentCart_Helper::is_fluentcart_active(),
         );
     }
 
@@ -403,9 +403,9 @@ class AISK_Admin {
      */
     public function check_fluentcart_status() {
         // Clear cache before checking to ensure fresh status
-        AISK_FluentCart_Helper::clear_detection_cache();
+        WISHCART_FluentCart_Helper::clear_detection_cache();
         
-        $is_active = AISK_FluentCart_Helper::is_fluentcart_active();
+        $is_active = WISHCART_FluentCart_Helper::is_fluentcart_active();
         
         return rest_ensure_response(array(
             'success' => true,
@@ -422,7 +422,7 @@ class AISK_Admin {
      * @return void
      */
     public function render_inquiries_page() {
-        echo '<div id="aisk-inquiries"></div>';
+        echo '<div id="wishcart-inquiries"></div>';
     }
 
     /**
@@ -433,7 +433,7 @@ class AISK_Admin {
      * @return void
      */
     public function render_history_page() {
-        echo '<div id="aisk-history"></div>';
+        echo '<div id="wishcart-history"></div>';
     }
 
     /**
@@ -444,7 +444,7 @@ class AISK_Admin {
      * @return void
      */
     public function render_uses_page() {
-        echo '<div id="aisk-uses"></div>';
+        echo '<div id="wishcart-uses"></div>';
     }
 
     /**
@@ -455,7 +455,7 @@ class AISK_Admin {
      * @return void
      */
     public function render_settings_page() {
-        echo '<div id="aisk-settings-app"></div>';
+        echo '<div id="wishcart-settings-app"></div>';
     }
 
     /**
@@ -465,8 +465,8 @@ class AISK_Admin {
      *
      * @return WP_REST_Response
      */
-    public function aisk_get_settings() {
-        $settings = get_option('aisk_settings', []);
+    public function wishcart_get_settings() {
+        $settings = get_option('wishcart_settings', []);
         return rest_ensure_response($settings);
     }
 
@@ -479,7 +479,7 @@ class AISK_Admin {
      *
      * @return WP_REST_Response
      */
-    public function aisk_update_settings( $request ) {
+    public function wishcart_update_settings( $request ) {
         $settings = $request->get_json_params();
 
         // Basic sanitization for excluded FluentCart products
@@ -503,7 +503,7 @@ class AISK_Admin {
             $settings['ai_config']['excluded_products'] = $sanitized_products;
         }
 
-        update_option('aisk_settings', $settings);
+        update_option('wishcart_settings', $settings);
         return rest_ensure_response([ 'success' => true ]);
     }
 
@@ -520,7 +520,7 @@ class AISK_Admin {
         $time_filter = $request->get_param('time_filter') ?: '7days';
         
         global $wpdb;
-        $table_name = $wpdb->prefix . 'aisk_api_usage';
+        $table_name = $wpdb->prefix . 'wishcart_api_usage';
         
         // phpcs:disable WordPress.DB.PreparedSQL.InterpolatedNotPrepared,WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- Table names cannot be parameterized, analytics data needs real-time queries
         
@@ -665,7 +665,7 @@ class AISK_Admin {
         $feature = is_string($feature) ? sanitize_text_field($feature) : '';
         
         global $wpdb;
-        $table_name = $wpdb->prefix . 'aisk_api_usage';
+        $table_name = $wpdb->prefix . 'wishcart_api_usage';
         
         // phpcs:disable WordPress.DB.PreparedSQL.InterpolatedNotPrepared,WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- Table names cannot be parameterized, analytics data needs real-time queries
         
@@ -746,7 +746,7 @@ class AISK_Admin {
         $feature = is_string($feature) ? sanitize_text_field($feature) : '';
         
         global $wpdb;
-        $table_name = $wpdb->prefix . 'aisk_api_usage';
+        $table_name = $wpdb->prefix . 'wishcart_api_usage';
         
         // phpcs:disable WordPress.DB.PreparedSQL.InterpolatedNotPrepared,WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- Table names cannot be parameterized, analytics data needs real-time queries
         
@@ -828,7 +828,7 @@ class AISK_Admin {
         $time_filter = $request->get_param('time_filter') ?: '7days';
         
         global $wpdb;
-        $table_name = $wpdb->prefix . 'aisk_api_usage';
+        $table_name = $wpdb->prefix . 'wishcart_api_usage';
         
         // phpcs:disable WordPress.DB.PreparedSQL.InterpolatedNotPrepared,WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- Table names cannot be parameterized, analytics data needs real-time queries
         
@@ -895,7 +895,7 @@ class AISK_Admin {
      * @return WP_REST_Response
      */
     public function get_products( $request ) {
-        $product_post_type = AISK_FluentCart_Helper::get_product_post_type();
+        $product_post_type = WISHCART_FluentCart_Helper::get_product_post_type();
 
         $search = is_string( $request->get_param( 'search' ) ) ? sanitize_text_field( $request->get_param( 'search' ) ) : '';
         $per_page = intval( $request->get_param( 'per_page' ) );
@@ -953,4 +953,4 @@ class AISK_Admin {
     }
 }
 
-AISK_Admin::get_instance();
+WISHCART_Admin::get_instance();

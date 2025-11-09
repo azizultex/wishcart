@@ -5,25 +5,25 @@ if ( ! defined( 'ABSPATH' ) ) exit;
  *
  * @category Functionality
  * @package  AISK
- * @author   Aisk Team <support@aisk.chat>
+ * @author   WishCart Team <support@wishcart.chat>
  * @license  GPL-2.0+ https://www.gnu.org/licenses/gpl-2.0.html
- * @link     https://aisk.chat
+ * @link     https://wishcart.chat
  */
 
 use Opis\JsonSchema\Keywords\ConstKeyword;
 
 /**
- * AISK_Embeddings_Handler Class
+ * WISHCART_Embeddings_Handler Class
  *
  * Manages the generation, storage and retrieval of embeddings for various content types
  *
  * @category Class
  * @package  AISK
- * @author   Aisk Team <support@aisk.chat>
+ * @author   WishCart Team <support@wishcart.chat>
  * @license  GPL-2.0+ https://www.gnu.org/licenses/gpl-2.0.html
- * @link     https://aisk.chat
+ * @link     https://wishcart.chat
  */
-class AISK_Embeddings_Handler
+class WISHCART_Embeddings_Handler
 {
 
     private $db;
@@ -46,8 +46,8 @@ class AISK_Embeddings_Handler
      */
     public function __construct()
     {
-        $this->external_embeddings_handler = new AISK_External_Embeddings_Handler();
-        $this->settings = get_option('aisk_settings');
+        $this->external_embeddings_handler = new WISHCART_External_Embeddings_Handler();
+        $this->settings = get_option('wishcart_settings');
         $this->api_key = isset($this->settings['general']['openai_key']) ? $this->settings['general']['openai_key'] : '';
         $this->auth_key = isset($this->settings['general']['auth_key']) ? $this->settings['general']['auth_key'] : '';
 
@@ -56,7 +56,7 @@ class AISK_Embeddings_Handler
         //        add_action('admin_enqueue_scripts', [$this, 'enqueue_admin_scripts']);
 
         // Register hook to handle settings updates
-        add_action('update_option_aisk_settings', array($this, 'handle_settings_update'), 10, 3);
+        add_action('update_option_wishcart_settings', array($this, 'handle_settings_update'), 10, 3);
 
         // clean up embedding for deleted content
         add_action('before_delete_post', [$this, 'delete_content_embeddings']);
@@ -76,7 +76,7 @@ class AISK_Embeddings_Handler
     public function register_rest_routes()
     {
         register_rest_route(
-            'aisk/v1', '/process-content', [
+            'wishcart/v1', '/process-content', [
                 'methods' => 'POST',
                 'callback' => [$this, 'process_content'],
                 'permission_callback' => function () {
@@ -108,7 +108,7 @@ class AISK_Embeddings_Handler
         );
 
         register_rest_route(
-            'aisk/v1', '/get-unprocessed-count', [
+            'wishcart/v1', '/get-unprocessed-count', [
                 'methods' => 'GET',
                 'callback' => [$this, 'get_unprocessed_count'],
                 'permission_callback' => function () {
@@ -118,7 +118,7 @@ class AISK_Embeddings_Handler
         );
 
         register_rest_route(
-            'aisk/v1', '/cleanup-excluded-embeddings', [
+            'wishcart/v1', '/cleanup-excluded-embeddings', [
                 'methods' => 'POST',
                 'callback' => [$this, 'cleanup_excluded_embeddings_endpoint'],
                 'permission_callback' => function () {
@@ -136,7 +136,7 @@ class AISK_Embeddings_Handler
 
     public function cleanup_excluded_embeddings()
     {
-        $settings = get_option('aisk_settings');
+        $settings = get_option('wishcart_settings');
         $removed_count = 0;
 
         // Get all excluded content from settings
@@ -293,11 +293,11 @@ class AISK_Embeddings_Handler
         }
 
         $removed_count = 0;
-        $cache_key = 'aisk_embeddings_' . $content_type . '_' . md5(serialize($content_ids));
+        $cache_key = 'wishcart_embeddings_' . $content_type . '_' . md5(serialize($content_ids));
         
         // @codingStandardsIgnoreStart
         global $wpdb;
-        $table_name = $wpdb->prefix . 'aisk_embeddings';
+        $table_name = $wpdb->prefix . 'wishcart_embeddings';
         
         foreach ($content_ids as $content_id) {
             $result = $wpdb->delete(
@@ -312,7 +312,7 @@ class AISK_Embeddings_Handler
             if ($result !== false) {
                 $removed_count += $result;
                 // Clear related caches
-                wp_cache_delete('aisk_embedding_' . $content_type . '_' . $content_id, 'aisk_embeddings');
+                wp_cache_delete('wishcart_embedding_' . $content_type . '_' . $content_id, 'wishcart_embeddings');
             }
         }
         // @codingStandardsIgnoreEnd
@@ -335,7 +335,7 @@ class AISK_Embeddings_Handler
             'removed_count' => $result['removed_count'],
             'message' => sprintf(
             /* translators: %d: Number of embeddings removed */
-                __('Successfully removed %d embeddings for excluded content.', 'aisk-ai-chat-for-fluentcart'),
+                __('Successfully removed %d embeddings for excluded content.', 'wish-cart'),
                 $result['removed_count']
             ),
         ));
@@ -353,13 +353,13 @@ class AISK_Embeddings_Handler
      */
     private function get_unprocessed_items($offset, $batch_size)
     {
-        $cache_key = 'aisk_unprocessed_items_' . $offset . '_' . $batch_size;
-        $items = wp_cache_get($cache_key, 'aisk_embeddings');
+        $cache_key = 'wishcart_unprocessed_items_' . $offset . '_' . $batch_size;
+        $items = wp_cache_get($cache_key, 'wishcart_embeddings');
         
         if (false === $items) {
             // @codingStandardsIgnoreStart
             global $wpdb;
-            $embedding_table = $wpdb->prefix . 'aisk_embeddings';
+            $embedding_table = $wpdb->prefix . 'wishcart_embeddings';
 
             // Get included post types with defaults
             $included_types = isset($this->settings['ai_config']['included_post_types'])
@@ -370,7 +370,7 @@ class AISK_Embeddings_Handler
             if (!empty($this->settings['ai_config']['fluentcart_enabled'])) {
                 $included_types[] = 'product';
                 $included_types[] = 'product_variation';
-                $included_types[] = AISK_FluentCart_Helper::get_product_post_type();
+                $included_types[] = WISHCART_FluentCart_Helper::get_product_post_type();
             }
 
             // If no post types are included, return empty array
@@ -422,7 +422,7 @@ class AISK_Embeddings_Handler
             // @codingStandardsIgnoreEnd
 
             if ($items) {
-                wp_cache_set($cache_key, $items, 'aisk_embeddings', 300); // Cache for 5 minutes
+                wp_cache_set($cache_key, $items, 'wishcart_embeddings', 300); // Cache for 5 minutes
             }
         }
 
@@ -448,7 +448,7 @@ class AISK_Embeddings_Handler
             if (!empty($this->settings['ai_config']['fluentcart_enabled'])) {
                 $included_types[] = 'product';
                 $included_types[] = 'product_variation';
-                $included_types[] = AISK_FluentCart_Helper::get_product_post_type();
+                $included_types[] = WISHCART_FluentCart_Helper::get_product_post_type();
             }
 
             // If no post types are included, return 0
@@ -475,7 +475,7 @@ class AISK_Embeddings_Handler
 
             // @codingStandardsIgnoreStart
             global $wpdb;
-            $embedding_table = $wpdb->prefix . 'aisk_embeddings';
+            $embedding_table = $wpdb->prefix . 'wishcart_embeddings';
 
             // Build the query to count unprocessed items
             $embedding_table_sql = esc_sql( $embedding_table );
@@ -547,7 +547,7 @@ class AISK_Embeddings_Handler
      */
     private function get_settings_content_for_embedding()
     {
-        $settings = get_option('aisk_settings', []);
+        $settings = get_option('wishcart_settings', []);
         $content = '';
 
         // Add contact information with clear context
@@ -583,7 +583,7 @@ class AISK_Embeddings_Handler
             if (!$nonce || !wp_verify_nonce($nonce, 'wp_rest')) {
                 return new WP_Error(
                     'invalid_nonce',
-                    __('Invalid security token. Please refresh the page and try again.', 'aisk-ai-chat-for-fluentcart'),
+                    __('Invalid security token. Please refresh the page and try again.', 'wish-cart'),
                     array('status' => 403)
                 );
             }
@@ -592,7 +592,7 @@ class AISK_Embeddings_Handler
             if (!is_user_logged_in()) {
                 return new WP_Error(
                     'not_logged_in',
-                    __('You must be logged in to process content.', 'aisk-ai-chat-for-fluentcart'),
+                    __('You must be logged in to process content.', 'wish-cart'),
                     array('status' => 401)
                 );
             }
@@ -601,7 +601,7 @@ class AISK_Embeddings_Handler
             if (!current_user_can('manage_options')) {
                 return new WP_Error(
                     'insufficient_permissions',
-                    __('You do not have permission to process content.', 'aisk-ai-chat-for-fluentcart'),
+                    __('You do not have permission to process content.', 'wish-cart'),
                     array('status' => 403)
                 );
             }
@@ -609,7 +609,7 @@ class AISK_Embeddings_Handler
             if (empty($this->api_key)) {
                 return new WP_Error(
                     'missing_api_key',
-                    __('OpenAI API key is not configured', 'aisk-ai-chat-for-fluentcart'),
+                    __('OpenAI API key is not configured', 'wish-cart'),
                     array('status' => 400)
                 );
             }
@@ -642,7 +642,7 @@ class AISK_Embeddings_Handler
                         } catch (Exception $e) {
                             $errors[] = sprintf(
                             /* translators: 1: Content type 2: Content ID 3: Error message */
-                                __('Error processing %1$s ID: %2$d - %3$s', 'aisk-ai-chat-for-fluentcart'),
+                                __('Error processing %1$s ID: %2$d - %3$s', 'wish-cart'),
                                 $item->post_type,
                                 $item->ID,
                                 $e->getMessage()
@@ -654,7 +654,7 @@ class AISK_Embeddings_Handler
                     //     'processed' => 0,
                     //     'total' => 0,
                     //     'done' => true,
-                    //     'message' => __('No content available to process', 'aisk-ai-chat-for-fluentcart')
+                    //     'message' => __('No content available to process', 'wish-cart')
                     // ));
                 }
 
@@ -668,7 +668,7 @@ class AISK_Embeddings_Handler
                 } catch (Exception $e) {
                     $errors[] = sprintf(
                     /* translators: %s: Error message */
-                        __('Error processing settings content - %s', 'aisk-ai-chat-for-fluentcart'),
+                        __('Error processing settings content - %s', 'wish-cart'),
                         $e->getMessage()
                     );
                 }
@@ -705,7 +705,7 @@ class AISK_Embeddings_Handler
         } catch (Exception $e) {
             return new WP_Error(
                 'server_error',
-                __('An unexpected error occurred: ', 'aisk-ai-chat-for-fluentcart') . $e->getMessage(),
+                __('An unexpected error occurred: ', 'wish-cart') . $e->getMessage(),
                 array('status' => 500)
             );
         }
@@ -719,7 +719,7 @@ class AISK_Embeddings_Handler
      */
     private function is_excluded_content($item)
     {
-        $settings = get_option('aisk_settings');
+        $settings = get_option('wishcart_settings');
 
         // Check post type specific exclusions
         switch ($item->post_type) {
@@ -760,12 +760,12 @@ class AISK_Embeddings_Handler
             case 'product':
             case 'fc_product':
             case 'fluent-products':
-                $product = AISK_FluentCart_Helper::get_product($item->ID);
+                $product = WISHCART_FluentCart_Helper::get_product($item->ID);
                 return $product ? $this->get_product_content($product) : '';
 
             case 'product_variation':
-                $variation = AISK_FluentCart_Helper::get_product($item->ID);
-                $parent_product = $variation ? AISK_FluentCart_Helper::get_product($variation->get_parent_id()) : null;
+                $variation = WISHCART_FluentCart_Helper::get_product($item->ID);
+                $parent_product = $variation ? WISHCART_FluentCart_Helper::get_product($variation->get_parent_id()) : null;
                 return $variation && $parent_product ?
                     $this->get_variation_content($variation, $parent_product) : '';
 
@@ -796,7 +796,7 @@ class AISK_Embeddings_Handler
         $product_id = $product->get_id();
         $product_url = get_permalink($product_id);
         $image_id = $product->get_image_id();
-        $image_url = wp_get_attachment_image_url($image_id, 'medium') ?: AISK_FluentCart_Helper::placeholder_img_src('medium');
+        $image_url = wp_get_attachment_image_url($image_id, 'medium') ?: WISHCART_FluentCart_Helper::placeholder_img_src('medium');
 
         // Get plain numeric price
         $plain_price = $product->get_price();
@@ -892,7 +892,7 @@ class AISK_Embeddings_Handler
         /* translators: %s: Post title */
         $content = sprintf(
             // translators: %s: Post title
-            esc_html__('Title: %s', 'aisk-ai-chat-for-fluentcart') . "\n\n",
+            esc_html__('Title: %s', 'wish-cart') . "\n\n",
             esc_html($post->post_title)
         );
 
@@ -902,7 +902,7 @@ class AISK_Embeddings_Handler
             /* translators: %s: Comma-separated list of category names */
             $content .= sprintf(
                 // translators: %s: Post categories
-                esc_html__('Categories: %s', 'aisk-ai-chat-for-fluentcart') . "\n\n",
+                esc_html__('Categories: %s', 'wish-cart') . "\n\n",
                 esc_html(implode(', ', $categories))
             );
         }
@@ -913,17 +913,17 @@ class AISK_Embeddings_Handler
             /* translators: %s: Comma-separated list of tag names */
             $content .= sprintf(
                 // translators: %s: Post tags
-                esc_html__('Tags: %s', 'aisk-ai-chat-for-fluentcart') . "\n\n",
+                esc_html__('Tags: %s', 'wish-cart') . "\n\n",
                 esc_html(implode(', ', $tags))
             );
         }
 
         // Content
-        $content .= esc_html__('Content:', 'aisk-ai-chat-for-fluentcart') . "\n" . wp_strip_all_tags($post->post_content) . "\n\n";
+        $content .= esc_html__('Content:', 'wish-cart') . "\n" . wp_strip_all_tags($post->post_content) . "\n\n";
 
         // Excerpt
         if (!empty($post->post_excerpt)) {
-            $content .= esc_html__('Excerpt:', 'aisk-ai-chat-for-fluentcart') . "\n" . wp_strip_all_tags($post->post_excerpt) . "\n\n";
+            $content .= esc_html__('Excerpt:', 'wish-cart') . "\n" . wp_strip_all_tags($post->post_excerpt) . "\n\n";
         }
 
         return $content;
@@ -1081,7 +1081,7 @@ class AISK_Embeddings_Handler
         }
 
         $response = wp_remote_post(
-            AISK_OPENAI_API_URL . '/embeddings', [
+            WISHCART_OPENAI_API_URL . '/embeddings', [
                 'headers' => [
                     'Authorization' => 'Bearer ' . $this->api_key,
                     'Content-Type' => 'application/json',
@@ -1130,14 +1130,14 @@ class AISK_Embeddings_Handler
     {
         // If it's a product search and FluentCart is disabled, return empty
         if ($intent_type === 'product_search') {
-            $settings = get_option('aisk_settings');
+            $settings = get_option('wishcart_settings');
             if (empty($settings['ai_config']['fluentcart_enabled'])) {
                 return [];
             }
         }
 
-        $cache_key = 'aisk_similar_content_' . md5($query . $limit . $threshold . serialize($content_type) . $intent_type);
-        $cached_results = wp_cache_get($cache_key, 'aisk_embeddings');
+        $cache_key = 'wishcart_similar_content_' . md5($query . $limit . $threshold . serialize($content_type) . $intent_type);
+        $cached_results = wp_cache_get($cache_key, 'wishcart_embeddings');
         
         if (false !== $cached_results) {
             return $cached_results;
@@ -1165,20 +1165,20 @@ class AISK_Embeddings_Handler
                     }
                     $expanded_content_types = array_unique($expanded_content_types);
                     $placeholders = implode(',', array_fill(0, count($expanded_content_types), '%s'));
-                    $query_sql = "SELECT * FROM `{$wpdb->prefix}aisk_embeddings` WHERE content_type IN ($placeholders)";
+                    $query_sql = "SELECT * FROM `{$wpdb->prefix}wishcart_embeddings` WHERE content_type IN ($placeholders)";
                     $query_params = $expanded_content_types;
                 } else {
                     // If searching for product, also search FluentCart product types
                     if ($content_type === 'product') {
-                        $query_sql = "SELECT * FROM `{$wpdb->prefix}aisk_embeddings` WHERE content_type IN ('product', 'fc_product', 'fluent-products', 'fluent_product')";
+                        $query_sql = "SELECT * FROM `{$wpdb->prefix}wishcart_embeddings` WHERE content_type IN ('product', 'fc_product', 'fluent-products', 'fluent_product')";
                         $query_params = [];
                     } else {
-                        $query_sql = "SELECT * FROM `{$wpdb->prefix}aisk_embeddings` WHERE content_type = %s";
+                        $query_sql = "SELECT * FROM `{$wpdb->prefix}wishcart_embeddings` WHERE content_type = %s";
                         $query_params = [$content_type];
                     }
                 }
             } else {
-                $query_sql = "SELECT * FROM `{$wpdb->prefix}aisk_embeddings`";
+                $query_sql = "SELECT * FROM `{$wpdb->prefix}wishcart_embeddings`";
                 $query_params = [];
             }
 
@@ -1244,7 +1244,7 @@ class AISK_Embeddings_Handler
                     }, $product_results);
 
                     // Filter out excluded products
-                    $settings = get_option('aisk_settings');
+                    $settings = get_option('wishcart_settings');
                     $excluded_products = isset($settings['ai_config']['excluded_products'])
                         ? array_column($settings['ai_config']['excluded_products'], 'value')
                         : [];
@@ -1255,7 +1255,7 @@ class AISK_Embeddings_Handler
                         $product_ids = array_values($product_ids); // Re-index array
                     }
 
-                    wp_cache_set($cache_key, $product_ids, 'aisk_embeddings', 300); // Cache for 5 minutes
+                    wp_cache_set($cache_key, $product_ids, 'wishcart_embeddings', 300); // Cache for 5 minutes
                     return $product_ids;
                 }
 
@@ -1264,7 +1264,7 @@ class AISK_Embeddings_Handler
             }
 
             // **For other content types, return full similarity data**
-            wp_cache_set($cache_key, $limited_results, 'aisk_embeddings', 300); // Cache for 5 minutes
+            wp_cache_set($cache_key, $limited_results, 'wishcart_embeddings', 300); // Cache for 5 minutes
             return $limited_results;
 
         } catch (Exception $e) {
@@ -1454,11 +1454,11 @@ class AISK_Embeddings_Handler
         $post_type = get_post_type($post_id);
         $content_type = 'product_variation' === $post_type ? 'product_variation' : $post_type;
         
-        $cache_key = 'aisk_embedding_' . $content_type . '_' . $post_id;
+        $cache_key = 'wishcart_embedding_' . $content_type . '_' . $post_id;
         
         // @codingStandardsIgnoreStart
         global $wpdb;
-        $table_name = $wpdb->prefix . 'aisk_embeddings';
+        $table_name = $wpdb->prefix . 'wishcart_embeddings';
 
         // Delete all embeddings for this content
         $result = $wpdb->delete(
@@ -1473,8 +1473,8 @@ class AISK_Embeddings_Handler
 
         if ($result !== false) {
             // Clear related caches
-            wp_cache_delete($cache_key, 'aisk_embeddings');
-            wp_cache_delete('aisk_embeddings_type_' . $content_type, 'aisk_embeddings');
+            wp_cache_delete($cache_key, 'wishcart_embeddings');
+            wp_cache_delete('wishcart_embeddings_type_' . $content_type, 'wishcart_embeddings');
         }
     }
 
@@ -1484,7 +1484,7 @@ class AISK_Embeddings_Handler
      */
     public function store_embedding($content_type, $content_id, $content, $extra_data = [])
     {
-        $cache_key = 'aisk_embedding_' . $content_type . '_' . $content_id;
+        $cache_key = 'wishcart_embedding_' . $content_type . '_' . $content_id;
         $chunks = $this->split_content($content);
         $success = false;
 
@@ -1495,7 +1495,7 @@ class AISK_Embeddings_Handler
         if ('settings' === $content_type && 0 === $content_id) {
             $existing = $wpdb->get_row(
                 $wpdb->prepare(
-                    "SELECT id FROM {$wpdb->prefix}aisk_embeddings 
+                    "SELECT id FROM {$wpdb->prefix}wishcart_embeddings 
                     WHERE content_type = %s AND content_id = %d",
                     'settings',
                     0
@@ -1508,7 +1508,7 @@ class AISK_Embeddings_Handler
                     $embedding = $this->generate_embedding($chunk);
                     if ($embedding) {
                         $result = $wpdb->update(
-                            "{$wpdb->prefix}aisk_embeddings",
+                            "{$wpdb->prefix}wishcart_embeddings",
                             [
                                 'embedding' => $embedding,
                                 'content_chunk' => $chunk,
@@ -1523,7 +1523,7 @@ class AISK_Embeddings_Handler
 
                         if (false !== $result) {
                             $success = true;
-                            wp_cache_delete($cache_key, 'aisk_embeddings');
+                            wp_cache_delete($cache_key, 'wishcart_embeddings');
                         }
                     }
                 }
@@ -1555,11 +1555,11 @@ class AISK_Embeddings_Handler
                     }
                 }
 
-                $result = $wpdb->insert("{$wpdb->prefix}aisk_embeddings", $data, $format);
+                $result = $wpdb->insert("{$wpdb->prefix}wishcart_embeddings", $data, $format);
                 if (false !== $result) {
                     $success = true;
-                    wp_cache_delete($cache_key, 'aisk_embeddings');
-                    wp_cache_delete('aisk_embeddings_type_' . $content_type, 'aisk_embeddings');
+                    wp_cache_delete($cache_key, 'wishcart_embeddings');
+                    wp_cache_delete('wishcart_embeddings_type_' . $content_type, 'wishcart_embeddings');
                 }
             }
         }
@@ -1570,13 +1570,13 @@ class AISK_Embeddings_Handler
 
     public function get_embeddings($content_type, $content_id)
     {
-        $cache_key = 'aisk_embedding_' . $content_type . '_' . $content_id;
-        $embeddings = wp_cache_get($cache_key, 'aisk_embeddings');
+        $cache_key = 'wishcart_embedding_' . $content_type . '_' . $content_id;
+        $embeddings = wp_cache_get($cache_key, 'wishcart_embeddings');
         
         if (false === $embeddings) {
             // @codingStandardsIgnoreStart
             global $wpdb;
-            $table_name = $wpdb->prefix . 'aisk_embeddings';
+            $table_name = $wpdb->prefix . 'wishcart_embeddings';
             
             $embeddings = $wpdb->get_results(
                 $wpdb->prepare(
@@ -1589,7 +1589,7 @@ class AISK_Embeddings_Handler
             // @codingStandardsIgnoreEnd
             
             if ($embeddings) {
-                wp_cache_set($cache_key, $embeddings, 'aisk_embeddings', 3600); // Cache for 1 hour
+                wp_cache_set($cache_key, $embeddings, 'wishcart_embeddings', 3600); // Cache for 1 hour
             }
         }
         
@@ -1598,13 +1598,13 @@ class AISK_Embeddings_Handler
 
     public function get_embeddings_by_type($content_type)
     {
-        $cache_key = 'aisk_embeddings_type_' . $content_type;
-        $embeddings = wp_cache_get($cache_key, 'aisk_embeddings');
+        $cache_key = 'wishcart_embeddings_type_' . $content_type;
+        $embeddings = wp_cache_get($cache_key, 'wishcart_embeddings');
         
         if (false === $embeddings) {
             // @codingStandardsIgnoreStart
             global $wpdb;
-            $table_name = $wpdb->prefix . 'aisk_embeddings';
+            $table_name = $wpdb->prefix . 'wishcart_embeddings';
             
             $embeddings = $wpdb->get_results(
                 $wpdb->prepare(
@@ -1616,7 +1616,7 @@ class AISK_Embeddings_Handler
             // @codingStandardsIgnoreEnd
             
             if ($embeddings) {
-                wp_cache_set($cache_key, $embeddings, 'aisk_embeddings', 3600); // Cache for 1 hour
+                wp_cache_set($cache_key, $embeddings, 'wishcart_embeddings', 3600); // Cache for 1 hour
             }
         }
         
@@ -1629,13 +1629,13 @@ class AISK_Embeddings_Handler
             return array();
         }
 
-        $cache_key = 'aisk_embeddings_ids_' . md5(serialize($content_ids));
-        $embeddings = wp_cache_get($cache_key, 'aisk_embeddings');
+        $cache_key = 'wishcart_embeddings_ids_' . md5(serialize($content_ids));
+        $embeddings = wp_cache_get($cache_key, 'wishcart_embeddings');
         
         if (false === $embeddings) {
             // @codingStandardsIgnoreStart
             global $wpdb;
-            $table_name = $wpdb->prefix . 'aisk_embeddings';
+            $table_name = $wpdb->prefix . 'wishcart_embeddings';
             
             $placeholders = implode(',', array_fill(0, count($content_ids), '%d'));
             $embeddings = $wpdb->get_results(
@@ -1648,7 +1648,7 @@ class AISK_Embeddings_Handler
             // @codingStandardsIgnoreEnd
             
             if ($embeddings) {
-                wp_cache_set($cache_key, $embeddings, 'aisk_embeddings', 3600); // Cache for 1 hour
+                wp_cache_set($cache_key, $embeddings, 'wishcart_embeddings', 3600); // Cache for 1 hour
             }
         }
         
@@ -1657,13 +1657,13 @@ class AISK_Embeddings_Handler
 
     public function get_embeddings_by_status($status)
     {
-        $cache_key = 'aisk_embeddings_status_' . $status;
-        $embeddings = wp_cache_get($cache_key, 'aisk_embeddings');
+        $cache_key = 'wishcart_embeddings_status_' . $status;
+        $embeddings = wp_cache_get($cache_key, 'wishcart_embeddings');
         
         if (false === $embeddings) {
             // @codingStandardsIgnoreStart
             global $wpdb;
-            $table_name = $wpdb->prefix . 'aisk_embeddings';
+            $table_name = $wpdb->prefix . 'wishcart_embeddings';
             
             $embeddings = $wpdb->get_results(
                 $wpdb->prepare(
@@ -1675,7 +1675,7 @@ class AISK_Embeddings_Handler
             // @codingStandardsIgnoreEnd
             
             if ($embeddings) {
-                wp_cache_set($cache_key, $embeddings, 'aisk_embeddings', 3600); // Cache for 1 hour
+                wp_cache_set($cache_key, $embeddings, 'wishcart_embeddings', 3600); // Cache for 1 hour
             }
         }
         
@@ -1684,13 +1684,13 @@ class AISK_Embeddings_Handler
 
     public function get_embeddings_by_type_and_status($content_type, $status)
     {
-        $cache_key = 'aisk_embeddings_type_status_' . $content_type . '_' . $status;
-        $embeddings = wp_cache_get($cache_key, 'aisk_embeddings');
+        $cache_key = 'wishcart_embeddings_type_status_' . $content_type . '_' . $status;
+        $embeddings = wp_cache_get($cache_key, 'wishcart_embeddings');
         
         if (false === $embeddings) {
             // @codingStandardsIgnoreStart
             global $wpdb;
-            $table_name = $wpdb->prefix . 'aisk_embeddings';
+            $table_name = $wpdb->prefix . 'wishcart_embeddings';
             
             $embeddings = $wpdb->get_results(
                 $wpdb->prepare(
@@ -1703,7 +1703,7 @@ class AISK_Embeddings_Handler
             // @codingStandardsIgnoreEnd
             
             if ($embeddings) {
-                wp_cache_set($cache_key, $embeddings, 'aisk_embeddings', 3600); // Cache for 1 hour
+                wp_cache_set($cache_key, $embeddings, 'wishcart_embeddings', 3600); // Cache for 1 hour
             }
         }
         

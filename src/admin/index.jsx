@@ -9,21 +9,21 @@ import UsesAnalytics from './components/dashboard/UsesAnalytics';
 import './styles/main.scss';
 document.addEventListener('DOMContentLoaded', () => {
     // Mount admin dashboard
-    const dashboardContainer = document.getElementById('aisk-history');
+    const dashboardContainer = document.getElementById('wishcart-history');
     if (dashboardContainer) {
         const dashboardRoot = createRoot(dashboardContainer);
         dashboardRoot.render(<ChatAdminDashboard />);
     }
 
     // Mount settings page
-    const settingsContainer = document.getElementById('aisk-settings-app');
+    const settingsContainer = document.getElementById('wishcart-settings-app');
     if (settingsContainer) {
         const settingsRoot = createRoot(settingsContainer);
         settingsRoot.render(<SettingsApp />);
     }
 
     // Mount inquiries page
-    const inquiriesContainer = document.getElementById('aisk-inquiries');
+    const inquiriesContainer = document.getElementById('wishcart-inquiries');
     if (inquiriesContainer) {
         const urlParams = new URLSearchParams(window.location.search);
         const view = urlParams.get('view');
@@ -42,7 +42,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // Mount uses analytics page
-    const usesContainer = document.getElementById('aisk-uses');
+    const usesContainer = document.getElementById('wishcart-uses');
     if (usesContainer) {
         const usesRoot = createRoot(usesContainer);
         usesRoot.render(

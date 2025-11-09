@@ -98,7 +98,7 @@ const ChatBubbleRollingMessage = ({ onClick, settings }) => {
 
                 <div className="glass-bubble" style={{ backgroundColor: `${settings.widgetColor}dd` || '#1976d2dd' }}>
                     <img
-                        src={settings.chatIcon || `${window.AiskData.pluginUrl}assets/images/icons/message-square.svg`}
+                        src={settings.chatIcon || `${window.WishCartData.pluginUrl}assets/images/icons/message-square.svg`}
                         alt="Chat"
                         width="24"
                         height="24"

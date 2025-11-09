@@ -8,23 +8,23 @@ if ( ! defined('ABSPATH') ) {
  *
  * @category Functionality
  * @package  AISK
- * @author   Aisk Team <support@aisk.chat>
+ * @author   WishCart Team <support@wishcart.chat>
  * @license  GPL-2.0+ https://www.gnu.org/licenses/gpl-2.0.html
- * @link     https://aisk.chat
+ * @link     https://wishcart.chat
  */
 
 /**
- * AISK_Order_Handler Class
+ * WISHCART_Order_Handler Class
  *
  * Manages order verification, authentication and retrieval of order details
  *
  * @category Class
  * @package  AISK
- * @author   Aisk Team <support@aisk.chat>
+ * @author   WishCart Team <support@wishcart.chat>
  * @license  GPL-2.0+ https://www.gnu.org/licenses/gpl-2.0.html
- * @link     https://aisk.chat
+ * @link     https://wishcart.chat
  */
-class AISK_Order_Handler {
+class WISHCART_Order_Handler {
 
     /**
      * Constructor
@@ -38,7 +38,7 @@ class AISK_Order_Handler {
      * Singleton instance of the class
      *
      * @since 1.0.0
-     * @var   AISK_Order_Handler|null
+     * @var   WISHCART_Order_Handler|null
      */
     public static $instance = null;
 
@@ -46,7 +46,7 @@ class AISK_Order_Handler {
      * Get singleton instance of the class
      *
      * @since  1.0.0
-     * @return AISK_Order_Handler Instance of this class
+     * @return WISHCART_Order_Handler Instance of this class
      */
     public static function get_instance() {
         if ( null === self::$instance ) {
@@ -77,7 +77,7 @@ class AISK_Order_Handler {
         }
 
         // Get existing authentication state
-        $transient_key = $order_number ? 'aisk_order_auth_' . $order_number : null;
+        $transient_key = $order_number ? 'wishcart_order_auth_' . $order_number : null;
         $auth_state = $transient_key ? get_transient($transient_key) : null;
 
         // Handle based on current state and provided information
@@ -106,7 +106,7 @@ class AISK_Order_Handler {
         // Initialize new authentication process
         if ($order_number) {
             // Verify if order exists and is valid
-            $order = AISK_FluentCart_Helper::get_order($order_number);
+            $order = WISHCART_FluentCart_Helper::get_order($order_number);
 
             if (!$order) {
                 return [
@@ -157,7 +157,7 @@ class AISK_Order_Handler {
      * @return array  Response with verification status and next steps
      */
     private function initiate_email_verification($order_number, $email) {
-        $transient_key = 'aisk_order_auth_' . $order_number;
+        $transient_key = 'wishcart_order_auth_' . $order_number;
 
         $auth_result = $this->authenticate_user([
             'email' => $email,
@@ -199,7 +199,7 @@ class AISK_Order_Handler {
     public function handle_otp_verification($otp, $order_number = null) {
         // Find the order being verified
         // Get existing authentication state
-        $transient_key = $order_number ? 'aisk_order_auth_' . $order_number : null;
+        $transient_key = $order_number ? 'wishcart_order_auth_' . $order_number : null;
         $auth_state = $transient_key ? get_transient($transient_key) : null;
 
         if ('waiting_for_otp' === $auth_state['state']) {
@@ -210,7 +210,7 @@ class AISK_Order_Handler {
 
 
             if (!is_wp_error($verify_result)) {
-                delete_transient('aisk_order_auth_' . $auth_state['order_number']);
+                delete_transient('wishcart_order_auth_' . $auth_state['order_number']);
                 return [
                     'message' => 'Authentication successful! Here are your order details:',
                     'type' => 'order_verified',
@@ -239,7 +239,7 @@ class AISK_Order_Handler {
             return new WP_Error('missing_params', 'Email and order ID are required.');
         }
 
-        $order = AISK_FluentCart_Helper::get_order($params['order_id']);
+        $order = WISHCART_FluentCart_Helper::get_order($params['order_id']);
         if ( ! $order ) {
             return new WP_Error('invalid_order', 'Order not found.');
         }
@@ -275,13 +275,13 @@ class AISK_Order_Handler {
             return new WP_Error('missing_params', 'OTP and order ID are required.');
         }
 
-        $stored_otp = get_transient('aisk_otp_' . $params['order_id']);
+        $stored_otp = get_transient('wishcart_otp_' . $params['order_id']);
         if ( ! $stored_otp || $stored_otp !== $params['otp'] ) {
             return new WP_Error('invalid_otp', 'Invalid or expired authentication code.');
         }
 
         // Delete used OTP
-        delete_transient('aisk_otp_' . $params['order_id']);
+        delete_transient('wishcart_otp_' . $params['order_id']);
 
         return [
             'success' => true,
@@ -300,12 +300,12 @@ class AISK_Order_Handler {
     public function format_order_status_response($response) {
         if (empty($response['order_info'])) {
             /* translators: Error message shown when no order is found matching the provided information */
-            return esc_html__("I couldn't find any order matching your information. Please check the order number and try again.", 'aisk-ai-chat-for-fluentcart');
+            return esc_html__("I couldn't find any order matching your information. Please check the order number and try again.", 'wish-cart');
         }
 
         return sprintf(
             /* translators: 1: Order number, 2: Order status, 3: Status details */
-            esc_html__('Your order #%1$s is currently %2$s. %3$s', 'aisk-ai-chat-for-fluentcart'),
+            esc_html__('Your order #%1$s is currently %2$s. %3$s', 'wish-cart'),
             esc_html($response['order_info']['order_number']),
             esc_html($response['order_info']['status']),
             esc_html($response['order_info']['status_details'])
@@ -323,13 +323,13 @@ class AISK_Order_Handler {
      */
     private function get_status_details( $status ) {
         $details = [
-            'pending' => esc_html__('We are waiting for payment confirmation.', 'aisk-ai-chat-for-fluentcart'),
-            'processing' => esc_html__('We are preparing your order for shipment.', 'aisk-ai-chat-for-fluentcart'),
-            'on-hold' => esc_html__('Your order is currently on hold. Please check your email for more information.', 'aisk-ai-chat-for-fluentcart'),
-            'completed' => esc_html__('Your order has been delivered.', 'aisk-ai-chat-for-fluentcart'),
-            'cancelled' => esc_html__('This order has been cancelled.', 'aisk-ai-chat-for-fluentcart'),
-            'refunded' => esc_html__('This order has been refunded.', 'aisk-ai-chat-for-fluentcart'),
-            'failed' => esc_html__('There was an issue processing this order.', 'aisk-ai-chat-for-fluentcart'),
+            'pending' => esc_html__('We are waiting for payment confirmation.', 'wish-cart'),
+            'processing' => esc_html__('We are preparing your order for shipment.', 'wish-cart'),
+            'on-hold' => esc_html__('Your order is currently on hold. Please check your email for more information.', 'wish-cart'),
+            'completed' => esc_html__('Your order has been delivered.', 'wish-cart'),
+            'cancelled' => esc_html__('This order has been cancelled.', 'wish-cart'),
+            'refunded' => esc_html__('This order has been refunded.', 'wish-cart'),
+            'failed' => esc_html__('There was an issue processing this order.', 'wish-cart'),
         ];
 
         return isset( $details[ $status ] ) ? $details[ $status ] : '';
@@ -381,7 +381,7 @@ class AISK_Order_Handler {
             "SELECT ID FROM {$wpdb->posts} 
             WHERE post_type IN (%s, %s) AND (post_title = %s OR ID = %s) 
             LIMIT 1",
-            AISK_FluentCart_Helper::get_order_post_type(),
+            WISHCART_FluentCart_Helper::get_order_post_type(),
             'shop_order',
             $order_number,
             $order_number
@@ -400,7 +400,7 @@ class AISK_Order_Handler {
      * @return array|null Array of recent orders or null if none found
      */
     private function get_recent_orders( $user_id ) {
-        $orders = AISK_FluentCart_Helper::get_orders(
+        $orders = WISHCART_FluentCart_Helper::get_orders(
             [
 				'customer_id' => $user_id,
 				'limit' => 5,
@@ -468,7 +468,7 @@ class AISK_Order_Handler {
      * @return array|null Order details or null if not found
      */
     private function get_order_by_id( $order_id ) {
-        $order = AISK_FluentCart_Helper::get_order($order_id);
+        $order = WISHCART_FluentCart_Helper::get_order($order_id);
 
         if ( ! $order ) {
             return null;
@@ -542,7 +542,7 @@ class AISK_Order_Handler {
      */
     private function generate_otp( $order_id ) {
         $otp = wp_rand(100000, 999999);
-        set_transient('aisk_otp_' . $order_id, $otp, 15 * MINUTE_IN_SECONDS);
+        set_transient('wishcart_otp_' . $order_id, $otp, 15 * MINUTE_IN_SECONDS);
         return $otp;
     }
 

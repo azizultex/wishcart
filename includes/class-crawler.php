@@ -1,10 +1,10 @@
 <?php
 if ( ! defined( 'ABSPATH' ) ) exit;
 /**
- * Class AISK_Crawler
+ * Class WISHCART_Crawler
  * Main crawler class that coordinates URL crawling
  */
-class AISK_Crawler {
+class WISHCART_Crawler {
     private $content_fetcher;
     private $url_discoverer;
     private $content_processor;
@@ -14,7 +14,7 @@ class AISK_Crawler {
         $this->content_fetcher = $content_fetcher;
         $this->url_discoverer = $url_discoverer;
         $this->content_processor = $content_processor;
-        $this->embeddings_handler = new AISK_Embeddings_Handler();
+        $this->embeddings_handler = new WISHCART_Embeddings_Handler();
     }
 
     /**
@@ -48,10 +48,10 @@ class AISK_Crawler {
                     $results['main_url']['status'] = 'failed';
                     $results['main_url']['user_message'] = __(
                         'The provided URL content cannot be extracted or crawled due to bot protection or dynamic content.',
-                        'aisk-ai-chat-for-fluentcart'
+                        'wish-cart'
                     );
                     // Persist the user_message for polling
-                    update_option('aisk_url_user_message_' . md5($url), $results['main_url']['user_message']);
+                    update_option('wishcart_url_user_message_' . md5($url), $results['main_url']['user_message']);
                     $results['errors'][] = $results['main_url']['user_message'];
                     return $results;
                 }
@@ -123,7 +123,7 @@ class AISK_Crawler {
      */
     public function save_results($results) {
         global $wpdb;
-        $table_name = $wpdb->prefix . 'aisk_embeddings';
+        $table_name = $wpdb->prefix . 'wishcart_embeddings';
         
         try {
             // Save main URL content
@@ -139,7 +139,7 @@ class AISK_Crawler {
                 // Check for empty content (not bot protected)
                 if (empty($content_to_save)) {
                     $user_message = 'No content to embed for this URL.';
-                    update_option('aisk_url_user_message_' . md5($results['main_url']['url']), $user_message);
+                    update_option('wishcart_url_user_message_' . md5($results['main_url']['url']), $user_message);
                     return false; // Do not mark as completed
                 }
                 
@@ -157,7 +157,7 @@ class AISK_Crawler {
                 }
             } else if ($results['main_url']['status'] === 'success') {
                 $user_message = 'No content to embed for this URL.';
-                update_option('aisk_url_user_message_' . md5($results['main_url']['url']), $user_message);
+                update_option('wishcart_url_user_message_' . md5($results['main_url']['url']), $user_message);
                 return false;
             }
             

@@ -72,11 +72,11 @@ const UrlProcessing = ({ settings, updateSettings }) => {
 
             try {
                 // Make an API call to check status
-                const response = await fetch('/wp-json/aisk/v1/check-url-status', {
+                const response = await fetch('/wp-json/wishcart/v1/check-url-status', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
-                        'X-WP-Nonce': AiskData.nonce
+                        'X-WP-Nonce': WishCartData.nonce
                     },
                     body: JSON.stringify({ urls: urlsToCheck })
                 }).catch(() => null);
@@ -88,11 +88,11 @@ const UrlProcessing = ({ settings, updateSettings }) => {
                     for (const url of currentUrlsToCheck) {
                         if (!url) continue; // Skip invalid URLs
 
-                        const urlResponse = await fetch('/wp-json/aisk/v1/get-crawled-urls', {
+                        const urlResponse = await fetch('/wp-json/wishcart/v1/get-crawled-urls', {
                             method: 'POST',
                             headers: {
                                 'Content-Type': 'application/json',
-                                'X-WP-Nonce': AiskData.nonce
+                                'X-WP-Nonce': WishCartData.nonce
                             },
                             body: JSON.stringify({ parent_url: url })
                         }).catch(() => null);
@@ -149,7 +149,7 @@ const UrlProcessing = ({ settings, updateSettings }) => {
                                         errorDetails.toLowerCase().includes('captcha') ||
                                         errorDetails.toLowerCase().includes('automated access'))) {
                                     updateUrlStatus(url, 'blocked');
-                                    setUserNotice(__('Bot protection detected. This website is protected against automated access. Please try accessing the content manually.', 'aisk-ai-chat-for-fluentcart'));
+                                    setUserNotice(__('Bot protection detected. This website is protected against automated access. Please try accessing the content manually.', 'wish-cart'));
                                     setShowUserNotice(true);
                                     clearMessages();
                                 } else {
@@ -160,7 +160,7 @@ const UrlProcessing = ({ settings, updateSettings }) => {
                                         setShowUserNotice(true);
                                         clearMessages();
                                     } else if (errorDetails) {
-                                        setUserNotice(__('Error processing URL: ', 'aisk-ai-chat-for-fluentcart') + errorDetails);
+                                        setUserNotice(__('Error processing URL: ', 'wish-cart') + errorDetails);
                                         setShowUserNotice(true);
                                         clearMessages();
                                     }
@@ -225,11 +225,11 @@ const UrlProcessing = ({ settings, updateSettings }) => {
                 setUrlsToCheck(prev => prev.filter(u => u !== url));
 
                 // Persist to server
-                fetch('/wp-json/aisk/v1/settings', {
+                fetch('/wp-json/wishcart/v1/settings', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
-                        'X-WP-Nonce': AiskData.nonce
+                        'X-WP-Nonce': WishCartData.nonce
                     },
                     body: JSON.stringify(newSettings)
                 }).catch(error => {
@@ -265,11 +265,11 @@ const UrlProcessing = ({ settings, updateSettings }) => {
         try {
             setViewingUrls(prev => ({ ...prev, [index]: true }));
 
-            const response = await fetch('/wp-json/aisk/v1/get-crawled-urls', {
+            const response = await fetch('/wp-json/wishcart/v1/get-crawled-urls', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
-                    'X-WP-Nonce': AiskData.nonce
+                    'X-WP-Nonce': WishCartData.nonce
                 },
                 body: JSON.stringify({ parent_url: url })
             });
@@ -313,11 +313,11 @@ const UrlProcessing = ({ settings, updateSettings }) => {
                     }
                 }
             } else {
-                throw new Error(data.message || __('Failed to fetch URLs', 'aisk-ai-chat-for-fluentcart'));
+                throw new Error(data.message || __('Failed to fetch URLs', 'wish-cart'));
             }
         } catch (error) {
             console.error('Error fetching crawled URLs:', error);
-            setProcessMessage(__(`Error: ${error.message}`, 'aisk-ai-chat-for-fluentcart'));
+            setProcessMessage(__(`Error: ${error.message}`, 'wish-cart'));
         } finally {
             setViewingUrls(prev => ({ ...prev, [index]: false }));
         }
@@ -330,13 +330,13 @@ const UrlProcessing = ({ settings, updateSettings }) => {
 
         try {
             // Show processing state
-            setProcessMessage(__('Deleting URL...', 'aisk-ai-chat-for-fluentcart'));
+            setProcessMessage(__('Deleting URL...', 'wish-cart'));
 
-            const response = await fetch('/wp-json/aisk/v1/delete-url', {
+            const response = await fetch('/wp-json/wishcart/v1/delete-url', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
-                    'X-WP-Nonce': AiskData.nonce,
+                    'X-WP-Nonce': WishCartData.nonce,
                 },
                 body: JSON.stringify({
                     url: urlToDelete,
@@ -370,7 +370,7 @@ const UrlProcessing = ({ settings, updateSettings }) => {
                 });
 
                 // Set success message
-                setProcessMessage(__('URL deleted successfully.', 'aisk-ai-chat-for-fluentcart'));
+                setProcessMessage(__('URL deleted successfully.', 'wish-cart'));
 
                 // If this was the last URL, remove the parent URL from the list and close the modal
                 if (updatedUrls.length === 0) {
@@ -391,14 +391,14 @@ const UrlProcessing = ({ settings, updateSettings }) => {
                         setOpenDialog(false);
 
                         // Show success message in the main UI
-                        setProcessMessage(__('URL and all related items removed successfully.', 'aisk-ai-chat-for-fluentcart'));
+                        setProcessMessage(__('URL and all related items removed successfully.', 'wish-cart'));
 
                         // Also persist to server
-                        fetch('/wp-json/aisk/v1/settings', {
+                        fetch('/wp-json/wishcart/v1/settings', {
                             method: 'POST',
                             headers: {
                                 'Content-Type': 'application/json',
-                                'X-WP-Nonce': AiskData.nonce
+                                'X-WP-Nonce': WishCartData.nonce
                             },
                             body: JSON.stringify({
                                 ...settings,
@@ -418,11 +418,11 @@ const UrlProcessing = ({ settings, updateSettings }) => {
                     setProcessMessage('');
                 }, 3000);
             } else {
-                throw new Error(data.message || __('Failed to delete URL', 'aisk-ai-chat-for-fluentcart'));
+                throw new Error(data.message || __('Failed to delete URL', 'wish-cart'));
             }
         } catch (error) {
             console.error('Error deleting URL:', error);
-            setProcessMessage(__(`Error: ${error.message}`, 'aisk-ai-chat-for-fluentcart'));
+            setProcessMessage(__(`Error: ${error.message}`, 'wish-cart'));
         }
     };
 
@@ -432,7 +432,7 @@ const UrlProcessing = ({ settings, updateSettings }) => {
         try {
             const url = new URL(newUrlConfig.url);
             if (!url.protocol.startsWith('http')) {
-                setProcessMessage(__('URL must start with http:// or https://', 'aisk-ai-chat-for-fluentcart'));
+                setProcessMessage(__('URL must start with http:// or https://', 'wish-cart'));
                 setShowProcessMessage(true);
                 return;
             }
@@ -489,11 +489,11 @@ const UrlProcessing = ({ settings, updateSettings }) => {
 
             // Save to WordPress database
             try {
-                const saveResponse = await fetch('/wp-json/aisk/v1/settings', {
+                const saveResponse = await fetch('/wp-json/wishcart/v1/settings', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
-                        'X-WP-Nonce': AiskData.nonce
+                        'X-WP-Nonce': WishCartData.nonce
                     },
                     body: JSON.stringify(updatedSettings)
                 });
@@ -515,7 +515,7 @@ const UrlProcessing = ({ settings, updateSettings }) => {
                 const processingUrls = (settings.ai_config.website_urls || []).filter(url => url.status === 'processing');
                 const anyBotProtected = (settings.ai_config.website_urls || []).some(url => url.status === 'bot_protected');
                 if (processingUrls.length > 0 && !anyBotProtected) {
-                    setProcessMessage(__('Processing website in background...', 'aisk-ai-chat-for-fluentcart'));
+                    setProcessMessage(__('Processing website in background...', 'wish-cart'));
                     setShowProcessMessage(true);
                 } else if (anyBotProtected) {
                     setProcessMessage('');
@@ -526,11 +526,11 @@ const UrlProcessing = ({ settings, updateSettings }) => {
             // Process URLs in the background - wrap in try/catch to prevent cascading errors
             let processResponse;
             try {
-                processResponse = await fetch('/wp-json/aisk/v1/process-urls', {
+                processResponse = await fetch('/wp-json/wishcart/v1/process-urls', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
-                        'X-WP-Nonce': AiskData.nonce
+                        'X-WP-Nonce': WishCartData.nonce
                     },
                     body: JSON.stringify({
                         website_url: url.toString(),
@@ -552,7 +552,7 @@ const UrlProcessing = ({ settings, updateSettings }) => {
             // Handle different response scenarios
             if (!processResponse || processResponse.status === 504) {
                 console.log('Server timeout occurred, but URL already saved. Status will be updated via polling.');
-                setProcessMessage(__('Website is being processed in the background.', 'aisk-ai-chat-for-fluentcart'));
+                setProcessMessage(__('Website is being processed in the background.', 'wish-cart'));
             }
             else if (!processResponse.ok) {
                 const errorText = await processResponse.text().catch(() => 'Unknown error');
@@ -583,9 +583,9 @@ const UrlProcessing = ({ settings, updateSettings }) => {
                             setUserNotice(data.user_message);
                             setShowUserNotice(true);
                         }
-                        setProcessMessage(__(`Website processed successfully! ${data.processed || 0} pages indexed.`, 'aisk-ai-chat-for-fluentcart'));
+                        setProcessMessage(__(`Website processed successfully! ${data.processed || 0} pages indexed.`, 'wish-cart'));
                     } else {
-                        throw new Error(data.message || __('Failed to process website', 'aisk-ai-chat-for-fluentcart'));
+                        throw new Error(data.message || __('Failed to process website', 'wish-cart'));
                     }
                 } catch (parseError) {
                     console.error('Failed to parse response as JSON:', parseError);
@@ -610,7 +610,7 @@ const UrlProcessing = ({ settings, updateSettings }) => {
             setOpenUrlDialog(false);
 
             // Set error message
-            setProcessMessage(__(`Error: ${error.message}`, 'aisk-ai-chat-for-fluentcart'));
+            setProcessMessage(__(`Error: ${error.message}`, 'wish-cart'));
 
             // Reset states
             setTimeout(() => {
@@ -629,12 +629,12 @@ const UrlProcessing = ({ settings, updateSettings }) => {
         try {
             const url = new URL(urlConfig.url);
             if (!url.protocol.startsWith('http')) {
-                setProcessMessage(__('URL must start with http:// or https://', 'aisk-ai-chat-for-fluentcart'));
+                setProcessMessage(__('URL must start with http:// or https://', 'wish-cart'));
                 return;
             }
 
             setLoadingUrls(prev => ({ ...prev, [index]: true }));
-            setProcessMessage(__('Processing website...', 'aisk-ai-chat-for-fluentcart'));
+            setProcessMessage(__('Processing website...', 'wish-cart'));
 
             // First update the status to 'processing'
             const updatedUrls = [...settings.ai_config.website_urls];
@@ -649,11 +649,11 @@ const UrlProcessing = ({ settings, updateSettings }) => {
             setUrlsToCheck(prev => [...prev.filter(u => u !== urlConfig.url), urlConfig.url]);
             setPollingActive(true);
 
-            const response = await fetch('/wp-json/aisk/v1/process-urls', {
+            const response = await fetch('/wp-json/wishcart/v1/process-urls', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
-                    'X-WP-Nonce': AiskData.nonce
+                    'X-WP-Nonce': WishCartData.nonce
                 },
                 body: JSON.stringify({
                     website_url: url.toString(),
@@ -698,13 +698,13 @@ const UrlProcessing = ({ settings, updateSettings }) => {
             if (data.success) {
                 updateUrlStatus(url.toString(), 'processed');
 
-                setProcessMessage(__(`Website processed successfully! ${data.processed || 0} pages indexed.`, 'aisk-ai-chat-for-fluentcart'));
+                setProcessMessage(__(`Website processed successfully! ${data.processed || 0} pages indexed.`, 'wish-cart'));
             } else {
-                throw new Error(data.message || __('Failed to process website', 'aisk-ai-chat-for-fluentcart'));
+                throw new Error(data.message || __('Failed to process website', 'wish-cart'));
             }
         } catch (error) {
             console.error('Error processing website:', error);
-            setProcessMessage(__(`Error: ${error.message}`, 'aisk-ai-chat-for-fluentcart'));
+            setProcessMessage(__(`Error: ${error.message}`, 'wish-cart'));
 
             // Update URL status to error
             const newUrls = [...settings.ai_config.website_urls];
@@ -749,7 +749,7 @@ const UrlProcessing = ({ settings, updateSettings }) => {
     const handleDeleteParentUrl = async () => {
         try {
             // Show processing state
-            setProcessMessage(__('Deleting all related URLs...', 'aisk-ai-chat-for-fluentcart'));
+            setProcessMessage(__('Deleting all related URLs...', 'wish-cart'));
 
             // Find the index of the parent URL in the website_urls array
             const parentUrlIndex = settings.ai_config.website_urls.findIndex(
@@ -760,11 +760,11 @@ const UrlProcessing = ({ settings, updateSettings }) => {
                 throw new Error('Parent URL not found in settings');
             }
 
-            const response = await fetch('/wp-json/aisk/v1/delete-url', {
+            const response = await fetch('/wp-json/wishcart/v1/delete-url', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
-                    'X-WP-Nonce': AiskData.nonce,
+                    'X-WP-Nonce': WishCartData.nonce,
                 },
                 body: JSON.stringify({
                     parent_url: selectedUrlData.url,
@@ -797,14 +797,14 @@ const UrlProcessing = ({ settings, updateSettings }) => {
                 setOpenDialog(false);
 
                 // Show success message
-                setProcessMessage(__(`Successfully removed URL and ${data.count || 0} related items.`, 'aisk-ai-chat-for-fluentcart'));
+                setProcessMessage(__(`Successfully removed URL and ${data.count || 0} related items.`, 'wish-cart'));
 
                 // Also persist to server
-                fetch('/wp-json/aisk/v1/settings', {
+                fetch('/wp-json/wishcart/v1/settings', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
-                        'X-WP-Nonce': AiskData.nonce
+                        'X-WP-Nonce': WishCartData.nonce
                     },
                     body: JSON.stringify({
                         ...settings,
@@ -822,11 +822,11 @@ const UrlProcessing = ({ settings, updateSettings }) => {
                     setProcessMessage('');
                 }, 3000);
             } else {
-                throw new Error(data.message || __('Failed to delete URLs', 'aisk-ai-chat-for-fluentcart'));
+                throw new Error(data.message || __('Failed to delete URLs', 'wish-cart'));
             }
         } catch (error) {
             console.error('Error deleting URLs:', error);
-            setProcessMessage(__(`Error: ${error.message}`, 'aisk-ai-chat-for-fluentcart'));
+            setProcessMessage(__(`Error: ${error.message}`, 'wish-cart'));
         }
     };
 
@@ -834,7 +834,7 @@ const UrlProcessing = ({ settings, updateSettings }) => {
     const handleDeleteAllUrls = async () => {
         try {
             // Show processing state
-            setProcessMessage(__('Deleting all URLs for this source...', 'aisk-ai-chat-for-fluentcart'));
+            setProcessMessage(__('Deleting all URLs for this source...', 'wish-cart'));
 
             // Find the index of the parent URL in the website_urls array
             const parentUrlIndex = settings.ai_config.website_urls.findIndex(
@@ -846,11 +846,11 @@ const UrlProcessing = ({ settings, updateSettings }) => {
             }
 
             // Delete only URLs for this specific parent URL
-            const response = await fetch('/wp-json/aisk/v1/delete-url', {
+            const response = await fetch('/wp-json/wishcart/v1/delete-url', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
-                    'X-WP-Nonce': AiskData.nonce,
+                    'X-WP-Nonce': WishCartData.nonce,
                 },
                 body: JSON.stringify({
                     parent_url: selectedUrlData.url,
@@ -883,14 +883,14 @@ const UrlProcessing = ({ settings, updateSettings }) => {
                 setOpenDialog(false);
 
                 // Show success message
-                setProcessMessage(__(`Successfully removed URL and ${data.count || 0} related items.`, 'aisk-ai-chat-for-fluentcart'));
+                setProcessMessage(__(`Successfully removed URL and ${data.count || 0} related items.`, 'wish-cart'));
 
                 // Also persist to server
-                fetch('/wp-json/aisk/v1/settings', {
+                fetch('/wp-json/wishcart/v1/settings', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
-                        'X-WP-Nonce': AiskData.nonce
+                        'X-WP-Nonce': WishCartData.nonce
                     },
                     body: JSON.stringify({
                         ...settings,
@@ -908,11 +908,11 @@ const UrlProcessing = ({ settings, updateSettings }) => {
                     setProcessMessage('');
                 }, 3000);
             } else {
-                throw new Error(data.message || __('Failed to delete URLs', 'aisk-ai-chat-for-fluentcart'));
+                throw new Error(data.message || __('Failed to delete URLs', 'wish-cart'));
             }
         } catch (error) {
             console.error('Error deleting URLs:', error);
-            setProcessMessage(__(`Error: ${error.message}`, 'aisk-ai-chat-for-fluentcart'));
+            setProcessMessage(__(`Error: ${error.message}`, 'wish-cart'));
         }
     };
 
@@ -921,7 +921,7 @@ const UrlProcessing = ({ settings, updateSettings }) => {
             {/* User Notice for backend reasoning (e.g., JS-rendered site) */}
             {showUserNotice && userNotice && (
                 <div className="mb-4 p-4 rounded-md bg-yellow-50 border border-yellow-300 text-yellow-800 relative">
-                    <strong>{__('Notice:', 'aisk-ai-chat-for-fluentcart')}</strong> {userNotice}
+                    <strong>{__('Notice:', 'wish-cart')}</strong> {userNotice}
                     <button
                         onClick={() => setShowUserNotice(false)}
                         aria-label="Dismiss"
@@ -934,7 +934,7 @@ const UrlProcessing = ({ settings, updateSettings }) => {
             )}
 
             <div className="flex items-center justify-between mb-4">
-                <Label>{__('External Sources', 'aisk-ai-chat-for-fluentcart')}</Label>
+                <Label>{__('External Sources', 'wish-cart')}</Label>
                 <Button
                     variant="outline"
                     size="sm"
@@ -942,7 +942,7 @@ const UrlProcessing = ({ settings, updateSettings }) => {
                     className="flex items-center gap-2"
                 >
                     <PlusIcon className="h-4 w-4" />
-                    {__('Add URL', 'aisk-ai-chat-for-fluentcart')}
+                    {__('Add URL', 'wish-cart')}
                 </Button>
             </div>
 
@@ -960,14 +960,14 @@ const UrlProcessing = ({ settings, updateSettings }) => {
                         <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                         <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                     </svg>
-                    {__('Checking status of processing URLs...', 'aisk-ai-chat-for-fluentcart')}
+                    {__('Checking status of processing URLs...', 'wish-cart')}
                 </div>
             )}
 
             {(settings.ai_config.website_urls || []).length === 0 ? (
                 <div className="text-center py-4 border rounded-lg bg-gray-50">
                     <p className="text-sm text-gray-500">
-                        {__('No external sources added yet', 'aisk-ai-chat-for-fluentcart')}
+                        {__('No external sources added yet', 'wish-cart')}
                     </p>
                 </div>
             ) : (
@@ -981,12 +981,12 @@ const UrlProcessing = ({ settings, updateSettings }) => {
                                 <span className="font-medium truncate max-w-md">
                                     {urlConfig.url ?
                                         urlConfig.url :
-                                        __('Unnamed Source', 'aisk-ai-chat-for-fluentcart')
+                                        __('Unnamed Source', 'wish-cart')
                                     }
                                 </span>
                                 {urlConfig.status === 'processed' && (
                                     <span className="text-xs text-green-500 bg-green-50 px-2 py-0.5 rounded-full">
-                                        {__('Processed', 'aisk-ai-chat-for-fluentcart')}
+                                        {__('Processed', 'wish-cart')}
                                     </span>
                                 )}
                                 {urlConfig.status === 'processing' && (
@@ -995,17 +995,17 @@ const UrlProcessing = ({ settings, updateSettings }) => {
                                             <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                                             <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                                         </svg>
-                                        {__('Processing in background', 'aisk-ai-chat-for-fluentcart')}
+                                        {__('Processing in background', 'wish-cart')}
                                     </span>
                                 )}
                                 {urlConfig.status === 'error' && (
                                     <span className="text-xs text-red-500 bg-red-50 px-2 py-0.5 rounded-full">
-                                        {__('Error', 'aisk-ai-chat-for-fluentcart')}
+                                        {__('Error', 'wish-cart')}
                                     </span>
                                 )}
                                 {urlConfig.status === 'bot_protected' && (
                                     <span className="text-xs text-yellow-600 bg-yellow-50 px-2 py-0.5 rounded-full">
-                                        {__('Bot Protected', 'aisk-ai-chat-for-fluentcart')}
+                                        {__('Bot Protected', 'wish-cart')}
                                     </span>
                                 )}
                             </div>
@@ -1059,23 +1059,23 @@ const UrlProcessing = ({ settings, updateSettings }) => {
                     <DialogHeader>
                         <DialogTitle>
                             {isEditing
-                                ? __('Edit External URL', 'aisk-ai-chat-for-fluentcart')
-                                : __('Add External URL', 'aisk-ai-chat-for-fluentcart')
+                                ? __('Edit External URL', 'wish-cart')
+                                : __('Add External URL', 'wish-cart')
                             }
                         </DialogTitle>
                         <DialogDescription>
                             {isEditing
-                                ? __('Edit website URL settings', 'aisk-ai-chat-for-fluentcart')
-                                : __('Add a website URL to process and include in the knowledge base', 'aisk-ai-chat-for-fluentcart')
+                                ? __('Edit website URL settings', 'wish-cart')
+                                : __('Add a website URL to process and include in the knowledge base', 'wish-cart')
                             }
                         </DialogDescription>
                     </DialogHeader>
                     <div className="space-y-4 py-2">
                         <div className="space-y-2">
-                            <Label htmlFor="url-input">{__('Website URL', 'aisk-ai-chat-for-fluentcart')}</Label>
+                            <Label htmlFor="url-input">{__('Website URL', 'wish-cart')}</Label>
                             <Input
                                 id="url-input"
-                                placeholder={__('Enter website URL (e.g., https://example.com)', 'aisk-ai-chat-for-fluentcart')}
+                                placeholder={__('Enter website URL (e.g., https://example.com)', 'wish-cart')}
                                 value={newUrlConfig.url || ''}
                                 onChange={(e) => {
                                     setNewUrlConfig(prev => ({
@@ -1098,7 +1098,7 @@ const UrlProcessing = ({ settings, updateSettings }) => {
                                 }}
                             />
                             <Label htmlFor="follow_links">
-                                {__('Follow Links', 'aisk-ai-chat-for-fluentcart')}
+                                {__('Follow Links', 'wish-cart')}
                             </Label>
                         </div>
 
@@ -1107,11 +1107,11 @@ const UrlProcessing = ({ settings, updateSettings }) => {
                             <div className="space-y-4 pl-6">
                                 <div className="space-y-2">
                                     <Label htmlFor="include_paths">
-                                        {__('Include Paths', 'aisk-ai-chat-for-fluentcart')}
+                                        {__('Include Paths', 'wish-cart')}
                                     </Label>
                                     <Input
                                         id="include_paths"
-                                        placeholder={__('e.g., /blog/*, /docs/*, /products/*', 'aisk-ai-chat-for-fluentcart')}
+                                        placeholder={__('e.g., /blog/*, /docs/*, /products/*', 'wish-cart')}
                                         value={newUrlConfig.include_paths || ''}
                                         onChange={(e) => {
                                             setNewUrlConfig(prev => ({
@@ -1121,16 +1121,16 @@ const UrlProcessing = ({ settings, updateSettings }) => {
                                         }}
                                     />
                                     <p className="text-xs text-gray-500">
-                                        {__('Comma-separated list of paths to include', 'aisk-ai-chat-for-fluentcart')}
+                                        {__('Comma-separated list of paths to include', 'wish-cart')}
                                     </p>
                                 </div>
                                 <div className="space-y-2">
                                     <Label htmlFor="exclude_paths">
-                                        {__('Exclude Paths', 'aisk-ai-chat-for-fluentcart')}
+                                        {__('Exclude Paths', 'wish-cart')}
                                     </Label>
                                     <Input
                                         id="exclude_paths"
-                                        placeholder={__('e.g., /wp-*, /cart/*, /checkout/*', 'aisk-ai-chat-for-fluentcart')}
+                                        placeholder={__('e.g., /wp-*, /cart/*, /checkout/*', 'wish-cart')}
                                         value={newUrlConfig.exclude_paths || ''}
                                         onChange={(e) => {
                                             setNewUrlConfig(prev => ({
@@ -1140,7 +1140,7 @@ const UrlProcessing = ({ settings, updateSettings }) => {
                                         }}
                                     />
                                     <p className="text-xs text-gray-500">
-                                        {__('Comma-separated list of paths to exclude', 'aisk-ai-chat-for-fluentcart')}
+                                        {__('Comma-separated list of paths to exclude', 'wish-cart')}
                                     </p>
                                 </div>
                             </div>
@@ -1154,7 +1154,7 @@ const UrlProcessing = ({ settings, updateSettings }) => {
                                 onCheckedChange={setShowAdvancedOptions}
                             />
                             <Label htmlFor="show_advanced_options">
-                                {__('Advanced Options', 'aisk-ai-chat-for-fluentcart')}
+                                {__('Advanced Options', 'wish-cart')}
                             </Label>
                         </div>
 
@@ -1163,11 +1163,11 @@ const UrlProcessing = ({ settings, updateSettings }) => {
                             <div className="space-y-4 pl-6 pt-2">
                                 <div className="space-y-2">
                                     <Label htmlFor="include_selectors">
-                                        {__('Include Elements', 'aisk-ai-chat-for-fluentcart')}
+                                        {__('Include Elements', 'wish-cart')}
                                     </Label>
                                     <Input
                                         id="include_selectors"
-                                        placeholder={__('e.g., article, .content, #main-content', 'aisk-ai-chat-for-fluentcart')}
+                                        placeholder={__('e.g., article, .content, #main-content', 'wish-cart')}
                                         value={newUrlConfig.include_selectors || ''}
                                         onChange={(e) => {
                                             setNewUrlConfig(prev => ({
@@ -1177,16 +1177,16 @@ const UrlProcessing = ({ settings, updateSettings }) => {
                                         }}
                                     />
                                     <p className="text-xs text-gray-500">
-                                        {__('Comma-separated list of CSS selectors to include (tags, classes, IDs)', 'aisk-ai-chat-for-fluentcart')}
+                                        {__('Comma-separated list of CSS selectors to include (tags, classes, IDs)', 'wish-cart')}
                                     </p>
                                 </div>
                                 <div className="space-y-2">
                                     <Label htmlFor="exclude_selectors">
-                                        {__('Exclude Elements', 'aisk-ai-chat-for-fluentcart')}
+                                        {__('Exclude Elements', 'wish-cart')}
                                     </Label>
                                     <Input
                                         id="exclude_selectors"
-                                        placeholder={__('e.g., header, footer, nav, .sidebar, #comments', 'aisk-ai-chat-for-fluentcart')}
+                                        placeholder={__('e.g., header, footer, nav, .sidebar, #comments', 'wish-cart')}
                                         value={newUrlConfig.exclude_selectors || ''}
                                         onChange={(e) => {
                                             setNewUrlConfig(prev => ({
@@ -1196,7 +1196,7 @@ const UrlProcessing = ({ settings, updateSettings }) => {
                                         }}
                                     />
                                     <p className="text-xs text-gray-500">
-                                        {__('Comma-separated list of CSS selectors to exclude (tags, classes, IDs)', 'aisk-ai-chat-for-fluentcart')}
+                                        {__('Comma-separated list of CSS selectors to exclude (tags, classes, IDs)', 'wish-cart')}
                                     </p>
                                 </div>
                             </div>
@@ -1206,7 +1206,7 @@ const UrlProcessing = ({ settings, updateSettings }) => {
                             <div className="space-y-2">
                                 <Progress value={urlProgress} className="w-full" />
                                 <p className="text-sm text-center text-gray-500">
-                                    {__('Processing...', 'aisk-ai-chat-for-fluentcart')}
+                                    {__('Processing...', 'wish-cart')}
                                 </p>
                             </div>
                         )}
@@ -1221,7 +1221,7 @@ const UrlProcessing = ({ settings, updateSettings }) => {
                             }}
                             disabled={urlProcessing}
                         >
-                            {__('Cancel', 'aisk-ai-chat-for-fluentcart')}
+                            {__('Cancel', 'wish-cart')}
                         </Button>
                         <Button
                             variant="default"
@@ -1229,7 +1229,7 @@ const UrlProcessing = ({ settings, updateSettings }) => {
                             onClick={processUrl}
                             disabled={!newUrlConfig.url || urlProcessing}
                         >
-                            {__('Process Now', 'aisk-ai-chat-for-fluentcart')}
+                            {__('Process Now', 'wish-cart')}
                         </Button>
                     </DialogFooter>
                 </DialogContent>
@@ -1239,10 +1239,10 @@ const UrlProcessing = ({ settings, updateSettings }) => {
                 <DialogContent className="sm:max-w-4xl max-h-[80vh] overflow-y-auto">
                     <DialogHeader>
                         <DialogTitle>
-                            {__('Processed URLs for', 'aisk-ai-chat-for-fluentcart')} {selectedUrlData.url}
+                            {__('Processed URLs for', 'wish-cart')} {selectedUrlData.url}
                         </DialogTitle>
                         <DialogDescription>
-                            {__('List of all URLs crawled from the specified source', 'aisk-ai-chat-for-fluentcart')}
+                            {__('List of all URLs crawled from the specified source', 'wish-cart')}
                         </DialogDescription>
                     </DialogHeader>
 
@@ -1257,12 +1257,12 @@ const UrlProcessing = ({ settings, updateSettings }) => {
                         {!selectedUrlData.urls || selectedUrlData.urls.length === 0 ? (
                             <div>
                                 <div className="text-center py-4 text-gray-500">
-                                    {__('No crawled URLs found in database. The site may have been processed but URLs not stored correctly.', 'aisk-ai-chat-for-fluentcart')}
+                                    {__('No crawled URLs found in database. The site may have been processed but URLs not stored correctly.', 'wish-cart')}
                                 </div>
 
                                 {/* Fallback - at least show the main URL */}
                                 <div className="mt-4 p-4 border rounded-lg bg-blue-50">
-                                    <h3 className="font-medium mb-2">{__('Main URL', 'aisk-ai-chat-for-fluentcart')}</h3>
+                                    <h3 className="font-medium mb-2">{__('Main URL', 'wish-cart')}</h3>
                                     <div className="flex items-center justify-between p-3 border bg-white rounded-lg">
                                         <a
                                             href={selectedUrlData.url}
@@ -1284,11 +1284,11 @@ const UrlProcessing = ({ settings, updateSettings }) => {
                                 </div>
 
                                 <div className="mt-4 text-sm text-gray-600">
-                                    <p>{__('If the site was recently processed, try the following:', 'aisk-ai-chat-for-fluentcart')}</p>
+                                    <p>{__('If the site was recently processed, try the following:', 'wish-cart')}</p>
                                     <ul className="list-disc ml-5 mt-2">
-                                        <li>{__('Check if "Follow Links" was enabled during processing', 'aisk-ai-chat-for-fluentcart')}</li>
-                                        <li>{__('Try reprocessing the URL', 'aisk-ai-chat-for-fluentcart')}</li>
-                                        <li>{__('Check server logs for any crawling errors', 'aisk-ai-chat-for-fluentcart')}</li>
+                                        <li>{__('Check if "Follow Links" was enabled during processing', 'wish-cart')}</li>
+                                        <li>{__('Try reprocessing the URL', 'wish-cart')}</li>
+                                        <li>{__('Check server logs for any crawling errors', 'wish-cart')}</li>
                                     </ul>
                                 </div>
                             </div>
@@ -1325,11 +1325,11 @@ const UrlProcessing = ({ settings, updateSettings }) => {
                                 onClick={() => handleDeleteAllUrls()}
                                 className="mr-auto"
                             >
-                                {__('Delete All', 'aisk-ai-chat-for-fluentcart')}
+                                {__('Delete All', 'wish-cart')}
                             </Button>
                         )}
                         <Button onClick={() => setOpenDialog(false)}>
-                            {__('Close', 'aisk-ai-chat-for-fluentcart')}
+                            {__('Close', 'wish-cart')}
                         </Button>
                     </DialogFooter>
                 </DialogContent>

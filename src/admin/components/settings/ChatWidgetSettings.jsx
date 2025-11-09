@@ -14,9 +14,9 @@ const ChatWidgetSettings = ({ settings, updateSettings }) => {
     const handleMediaUpload = (field) => {
         // Create WordPress media uploader
         const mediaUploader = wp.media({
-            title: __('Select Image', 'aisk-ai-chat-for-fluentcart'),
+            title: __('Select Image', 'wish-cart'),
             button: {
-                text: __('Use this image', 'aisk-ai-chat-for-fluentcart')
+                text: __('Use this image', 'wish-cart')
             },
             multiple: false
         });
@@ -40,15 +40,15 @@ const ChatWidgetSettings = ({ settings, updateSettings }) => {
     return (
         <Card>
             <CardHeader>
-                <CardTitle>{__('Chat Widget Settings', 'aisk-ai-chat-for-fluentcart')}</CardTitle>
+                <CardTitle>{__('Chat Widget Settings', 'wish-cart')}</CardTitle>
                 <CardDescription>
-                    {__('Customize the appearance and behavior of your chat widget', 'aisk-ai-chat-for-fluentcart')}
+                    {__('Customize the appearance and behavior of your chat widget', 'wish-cart')}
                 </CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">
 
                 <div className="space-y-4">
-                    <Label>{__('Chat Bubble Style', 'aisk-ai-chat-for-fluentcart')}</Label>
+                    <Label>{__('Chat Bubble Style', 'wish-cart')}</Label>
                     <RadioGroup
                         value={settings.chatwidget.bubble_type || 'default'}
                         onValueChange={(value) => updateSettings('chatwidget', 'bubble_type', value)}
@@ -58,9 +58,9 @@ const ChatWidgetSettings = ({ settings, updateSettings }) => {
                             <RadioGroupItem value="default" id="default" />
                             <Label htmlFor="default" className="cursor-pointer">
                                 <div className="space-y-2">
-                                    <div className="font-medium">{__('Default Bubble', 'aisk-ai-chat-for-fluentcart')}</div>
+                                    <div className="font-medium">{__('Default Bubble', 'wish-cart')}</div>
                                     <div className="text-sm text-gray-500">
-                                        {__('Single message with animated emoji', 'aisk-ai-chat-for-fluentcart')}
+                                        {__('Single message with animated emoji', 'wish-cart')}
                                     </div>
                                 </div>
                             </Label>
@@ -70,9 +70,9 @@ const ChatWidgetSettings = ({ settings, updateSettings }) => {
                             <RadioGroupItem value="rolling" id="rolling" />
                             <Label htmlFor="rolling" className="cursor-pointer">
                                 <div className="space-y-2">
-                                    <div className="font-medium">{__('Rolling Messages', 'aisk-ai-chat-for-fluentcart')}</div>
+                                    <div className="font-medium">{__('Rolling Messages', 'wish-cart')}</div>
                                     <div className="text-sm text-gray-500">
-                                        {__('Multiple rotating messages', 'aisk-ai-chat-for-fluentcart')}
+                                        {__('Multiple rotating messages', 'wish-cart')}
                                     </div>
                                 </div>
                             </Label>
@@ -83,42 +83,42 @@ const ChatWidgetSettings = ({ settings, updateSettings }) => {
                 {/* Message Settings based on type */}
                 {settings.chatwidget.bubble_type === 'rolling' ? (
                     <div className="space-y-2">
-                        <Label htmlFor="rolling_messages">{__('Rolling Messages', 'aisk-ai-chat-for-fluentcart')}</Label>
+                        <Label htmlFor="rolling_messages">{__('Rolling Messages', 'wish-cart')}</Label>
                         <Textarea
                             id="rolling_messages"
                             value={rollingMessagesInput}
                             onChange={(e) => setRollingMessagesInput(e.target.value)}
                             onBlur={() => updateSettings('chatwidget', 'rolling_messages', rollingMessagesInput.split('\n').filter(msg => msg.trim()))}
-                            placeholder={__('👋 Need help?\n💬 Chat with us!\n🛍️ Find products', 'aisk-ai-chat-for-fluentcart')}
+                            placeholder={__('👋 Need help?\n💬 Chat with us!\n🛍️ Find products', 'wish-cart')}
                             rows={4}
                         />
                         <p className="text-sm text-gray-500">
-                            {__('Enter one message per line. Each message will be shown in rotation.', 'aisk-ai-chat-for-fluentcart')}
+                            {__('Enter one message per line. Each message will be shown in rotation.', 'wish-cart')}
                         </p>
                     </div>
                 ) : (
                     <div className="space-y-2">
-                        <Label htmlFor="default_message">{__('Bubble Message', 'aisk-ai-chat-for-fluentcart')}</Label>
+                        <Label htmlFor="default_message">{__('Bubble Message', 'wish-cart')}</Label>
                         <Input
                             id="default_message"
                             value={settings.chatwidget.default_message || ''}
                             onChange={(e) => updateSettings('chatwidget', 'default_message', e.target.value)}
-                            placeholder={__('Hey, need help? 👋', 'aisk-ai-chat-for-fluentcart')}
+                            placeholder={__('Hey, need help? 👋', 'wish-cart')}
                         />
                         <p className="text-sm text-gray-500">
-                            {__('Add an emoji to make your message more engaging!', 'aisk-ai-chat-for-fluentcart')}
+                            {__('Add an emoji to make your message more engaging!', 'wish-cart')}
                         </p>
                     </div>
                 )}
 
                 {/* Chat Icon */}
                 <div className="space-y-2">
-                    <Label>{__('Chat Bubble Icon', 'aisk-ai-chat-for-fluentcart')}</Label>
+                    <Label>{__('Chat Bubble Icon', 'wish-cart')}</Label>
                     <div className="flex items-center gap-4">
                         {settings.chatwidget.chat_icon && (
                             <img
                                 src={settings.chatwidget.chat_icon}
-                                alt={__('Chat Icon', 'aisk-ai-chat-for-fluentcart')}
+                                alt={__('Chat Icon', 'wish-cart')}
                                 className="w-12 h-12 rounded"
                             />
                         )}
@@ -127,7 +127,7 @@ const ChatWidgetSettings = ({ settings, updateSettings }) => {
                                 variant="outline"
                                 onClick={() => handleMediaUpload('chat_icon')}
                             >
-                                {settings.chatwidget.chat_icon ? __('Change Icon', 'aisk-ai-chat-for-fluentcart') : __('Upload Icon', 'aisk-ai-chat-for-fluentcart')}
+                                {settings.chatwidget.chat_icon ? __('Change Icon', 'wish-cart') : __('Upload Icon', 'wish-cart')}
                             </Button>
                             {settings.chatwidget.chat_icon && (
                                 <Button
@@ -135,7 +135,7 @@ const ChatWidgetSettings = ({ settings, updateSettings }) => {
                                     onClick={() => updateSettings('chatwidget', 'chat_icon', '')}
                                     className="text-red-600 hover:text-red-700 hover:bg-red-50"
                                 >
-                                    {__('Remove Icon', 'aisk-ai-chat-for-fluentcart')}
+                                    {__('Remove Icon', 'wish-cart')}
                                 </Button>
                             )}
                         </div>
@@ -144,13 +144,13 @@ const ChatWidgetSettings = ({ settings, updateSettings }) => {
 
                 {/* Widget Logo */}
                 <div className="space-y-2">
-                    <Label>{__('Widget Header Logo', 'aisk-ai-chat-for-fluentcart')}</Label>
+                    <Label>{__('Widget Header Logo', 'wish-cart')}</Label>
                     <div className="flex items-center gap-4">
                         {settings.chatwidget.widget_logo && (
                             <div className="max-w-[150px] rounded overflow-hidden flex items-center justify-center">
                                 <img
                                     src={settings.chatwidget.widget_logo}
-                                    alt={__('Widget Logo', 'aisk-ai-chat-for-fluentcart')}
+                                    alt={__('Widget Logo', 'wish-cart')}
                                     className="w-full h-auto object-contain"
                                 />
                             </div>
@@ -160,7 +160,7 @@ const ChatWidgetSettings = ({ settings, updateSettings }) => {
                                 variant="outline"
                                 onClick={() => handleMediaUpload('widget_logo')}
                             >
-                                {settings.chatwidget.widget_logo ? __('Change Logo', 'aisk-ai-chat-for-fluentcart') : __('Upload Logo', 'aisk-ai-chat-for-fluentcart')}
+                                {settings.chatwidget.widget_logo ? __('Change Logo', 'wish-cart') : __('Upload Logo', 'wish-cart')}
                             </Button>
                             {settings.chatwidget.widget_logo && (
                                 <Button
@@ -168,7 +168,7 @@ const ChatWidgetSettings = ({ settings, updateSettings }) => {
                                     onClick={() => updateSettings('chatwidget', 'widget_logo', '')}
                                     className="text-red-600 hover:text-red-700 hover:bg-red-50"
                                 >
-                                    {__('Remove Logo', 'aisk-ai-chat-for-fluentcart')}
+                                    {__('Remove Logo', 'wish-cart')}
                                 </Button>
                             )}
                         </div>
@@ -177,18 +177,18 @@ const ChatWidgetSettings = ({ settings, updateSettings }) => {
 
                 {/* Widget Text */}
                 <div className="space-y-2">
-                    <Label htmlFor="widget_text">{__('Widget Header Text', 'aisk-ai-chat-for-fluentcart')}</Label>
+                    <Label htmlFor="widget_text">{__('Widget Header Text', 'wish-cart')}</Label>
                     <Input
                         id="widget_text"
                         value={settings.chatwidget.widget_text}
                         onChange={(e) => updateSettings('chatwidget', 'widget_text', e.target.value)}
-                        placeholder={__('Enter header text', 'aisk-ai-chat-for-fluentcart')}
+                        placeholder={__('Enter header text', 'wish-cart')}
                     />
                 </div>
 
                 {/* Widget Color */}
                 {/* <div className="space-y-2">
-                    <Label htmlFor="widget_color">{__('Widget Theme Color', 'aisk-ai-chat-for-fluentcart')}</Label>
+                    <Label htmlFor="widget_color">{__('Widget Theme Color', 'wish-cart')}</Label>
                     <div className="flex items-center gap-4">
                         <Input
                             id="widget_color"
@@ -208,7 +208,7 @@ const ChatWidgetSettings = ({ settings, updateSettings }) => {
                 </div> */}
 
                 {/* <div className="space-y-2">
-                    <Label htmlFor="widget_color">{__('Widget Theme Color', 'aisk-ai-chat-for-fluentcart')}</Label>
+                    <Label htmlFor="widget_color">{__('Widget Theme Color', 'wish-cart')}</Label>
                     <div className="flex items-start gap-4">
                         <div className="relative">
                             <HexColorPicker 
@@ -233,7 +233,7 @@ const ChatWidgetSettings = ({ settings, updateSettings }) => {
                     </div>
                 </div> */}
                 <div className="space-y-2">
-                    <Label htmlFor="widget_color">{__('Widget Theme Color', 'aisk-ai-chat-for-fluentcart')}</Label>
+                    <Label htmlFor="widget_color">{__('Widget Theme Color', 'wish-cart')}</Label>
                     <div className="flex items-start gap-4">
                         <Sketch
                             style={{ maxWidth: '250px' }}
@@ -262,54 +262,54 @@ const ChatWidgetSettings = ({ settings, updateSettings }) => {
                 </div>
                 {/* Greeting Message */}
                 <div className="space-y-2">
-                    <Label htmlFor="widget_greeting">{__('Greeting Message', 'aisk-ai-chat-for-fluentcart')}</Label>
+                    <Label htmlFor="widget_greeting">{__('Greeting Message', 'wish-cart')}</Label>
                     <Textarea
                         id="widget_greeting"
                         value={settings.chatwidget.widget_greeting}
                         onChange={(e) => updateSettings('chatwidget', 'widget_greeting', e.target.value)}
-                        placeholder={__('Enter greeting message', 'aisk-ai-chat-for-fluentcart')}
+                        placeholder={__('Enter greeting message', 'wish-cart')}
                         rows={3}
                     />
                 </div>
 
                 {/* Suggested Questions */}
                 <div className="space-y-2">
-                    <Label htmlFor="suggested_questions">{__('Suggested Questions', 'aisk-ai-chat-for-fluentcart')}</Label>
+                    <Label htmlFor="suggested_questions">{__('Suggested Questions', 'wish-cart')}</Label>
                     <Textarea
                         id="suggested_questions"
                         value={settings.chatwidget.suggested_questions.join('\n')}
                         onChange={(e) => updateSettings('chatwidget', 'suggested_questions', e.target.value.split('\n'))}
-                        placeholder={__('Enter one question per line', 'aisk-ai-chat-for-fluentcart')}
+                        placeholder={__('Enter one question per line', 'wish-cart')}
                         rows={4}
                     />
                 </div>
 
                 {/* Input Placeholder */}
                 <div className="space-y-2">
-                    <Label htmlFor="widget_placeholder">{__('Input Placeholder', 'aisk-ai-chat-for-fluentcart')}</Label>
+                    <Label htmlFor="widget_placeholder">{__('Input Placeholder', 'wish-cart')}</Label>
                     <Input
                         id="widget_placeholder"
                         value={settings.chatwidget.widget_placeholder}
                         onChange={(e) => updateSettings('chatwidget', 'widget_placeholder', e.target.value)}
-                        placeholder={__('Type your message...', 'aisk-ai-chat-for-fluentcart')}
+                        placeholder={__('Type your message...', 'wish-cart')}
                     />
                 </div>
 
                 {/* Widget Position */}
                 <div className="space-y-2">
-                    <Label htmlFor="widget_position">{__('Widget Position', 'aisk-ai-chat-for-fluentcart')}</Label>
+                    <Label htmlFor="widget_position">{__('Widget Position', 'wish-cart')}</Label>
                     <Select
                         value={settings.chatwidget.widget_position}
                         onValueChange={(value) => updateSettings('chatwidget', 'widget_position', value)}
                     >
                         <SelectTrigger>
-                            <SelectValue placeholder={__('Select position', 'aisk-ai-chat-for-fluentcart')} />
+                            <SelectValue placeholder={__('Select position', 'wish-cart')} />
                         </SelectTrigger>
                         <SelectContent>
-                            <SelectItem value="bottom-right">{__('Bottom Right', 'aisk-ai-chat-for-fluentcart')}</SelectItem>
-                            <SelectItem value="bottom-left">{__('Bottom Left', 'aisk-ai-chat-for-fluentcart')}</SelectItem>
-                            <SelectItem value="top-right">{__('Top Right', 'aisk-ai-chat-for-fluentcart')}</SelectItem>
-                            <SelectItem value="top-left">{__('Top Left', 'aisk-ai-chat-for-fluentcart')}</SelectItem>
+                            <SelectItem value="bottom-right">{__('Bottom Right', 'wish-cart')}</SelectItem>
+                            <SelectItem value="bottom-left">{__('Bottom Left', 'wish-cart')}</SelectItem>
+                            <SelectItem value="top-right">{__('Top Right', 'wish-cart')}</SelectItem>
+                            <SelectItem value="top-left">{__('Top Left', 'wish-cart')}</SelectItem>
                         </SelectContent>
                     </Select>
                 </div>

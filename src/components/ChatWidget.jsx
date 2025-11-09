@@ -64,7 +64,7 @@ const ChatWidget = React.forwardRef((props, ref) => {
             text: '#FFFFFF'
         },
         pluginUrl
-    } = window.AiskData || {};
+    } = window.WishCartData || {};
 
     const defaultIcon = `${pluginUrl}assets/images/icons/message-square.svg`;
     const finalChatIcon = chatIcon || defaultIcon;
@@ -184,10 +184,10 @@ const ChatWidget = React.forwardRef((props, ref) => {
         if (!convId) return [];
 
         try {
-            const response = await fetch(`${AiskData.apiUrl}/messages/${convId}`, {
+            const response = await fetch(`${WishCartData.apiUrl}/messages/${convId}`, {
                 headers: {
                     'Content-Type': 'application/json',
-                    'X-WP-Nonce': AiskData.nonce
+                    'X-WP-Nonce': WishCartData.nonce
                 }
             });
 
@@ -275,11 +275,11 @@ const ChatWidget = React.forwardRef((props, ref) => {
                 country_code: locationData.country_code
             };
 
-            const response = await fetch(`${AiskData.apiUrl}/conversations`, {
+            const response = await fetch(`${WishCartData.apiUrl}/conversations`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
-                    'X-WP-Nonce': AiskData.nonce
+                    'X-WP-Nonce': WishCartData.nonce
                 },
                 body: JSON.stringify(requestData)
             });
@@ -335,9 +335,9 @@ const ChatWidget = React.forwardRef((props, ref) => {
 		if (!isOpen) return;
         try {
 			setIsLoadingConversationsList(true);
-            const response = await fetch(`${AiskData.apiUrl}/conversations`, {
+            const response = await fetch(`${WishCartData.apiUrl}/conversations`, {
                 headers: {
-                    'X-WP-Nonce': AiskData.nonce
+                    'X-WP-Nonce': WishCartData.nonce
                 }
             });
 
@@ -445,11 +445,11 @@ const ChatWidget = React.forwardRef((props, ref) => {
                 initial_message: initialMessage
             };
 
-            const response = await fetch(`${AiskData.apiUrl}/conversations`, {
+            const response = await fetch(`${WishCartData.apiUrl}/conversations`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
-                    'X-WP-Nonce': AiskData.nonce
+                    'X-WP-Nonce': WishCartData.nonce
                 },
                 body: JSON.stringify(requestData)
             });
@@ -465,11 +465,11 @@ const ChatWidget = React.forwardRef((props, ref) => {
             localStorage.setItem('wooai_conversation_id', data.conversation_id);
 
             // Save initial message to database
-            await fetch(`${AiskData.apiUrl}/messages/${data.conversation_id}`, {
+            await fetch(`${WishCartData.apiUrl}/messages/${data.conversation_id}`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
-                    'X-WP-Nonce': AiskData.nonce
+                    'X-WP-Nonce': WishCartData.nonce
                 },
                 body: JSON.stringify({
                     message: '',
@@ -571,11 +571,11 @@ const ChatWidget = React.forwardRef((props, ref) => {
             const controller = new AbortController();
             const timeoutId = setTimeout(() => controller.abort(), 120000); // 120 second timeout
 
-            const response = await fetch(`${AiskData.apiUrl}/chat`, {
+            const response = await fetch(`${WishCartData.apiUrl}/chat`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
-                    'X-WP-Nonce': AiskData.nonce
+                    'X-WP-Nonce': WishCartData.nonce
                 },
                 body: JSON.stringify({
                     message: userMessage,
@@ -650,11 +650,11 @@ const ChatWidget = React.forwardRef((props, ref) => {
 
     const handleContactFormSubmit = async (formData) => {
         try {
-            const response = await fetch(`${AiskData.apiUrl}/submit-contact`, {
+            const response = await fetch(`${WishCartData.apiUrl}/submit-contact`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
-                    'X-WP-Nonce': AiskData.nonce
+                    'X-WP-Nonce': WishCartData.nonce
                 },
                 body: JSON.stringify({
                     ...formData,
@@ -683,13 +683,13 @@ const ChatWidget = React.forwardRef((props, ref) => {
     };
 
     useEffect(() => {
-        setWidgetPosition(window.AiskData?.chatwidget?.widget_position);
-    }, [window.AiskData?.chatwidget?.widget_position]);
+        setWidgetPosition(window.WishCartData?.chatwidget?.widget_position);
+    }, [window.WishCartData?.chatwidget?.widget_position]);
 
 
     useEffect(() => {
-        setWidgetPlaceholder(window.AiskData?.chatwidget?.widget_placeholder);
-    }, [window.AiskData?.chatwidget?.widget_placeholder]);
+        setWidgetPlaceholder(window.WishCartData?.chatwidget?.widget_placeholder);
+    }, [window.WishCartData?.chatwidget?.widget_placeholder]);
 
     return (
         <div className={`support-buddy-widget ${widgetPosition}`}>
@@ -843,7 +843,7 @@ const ChatWidget = React.forwardRef((props, ref) => {
                                 telegramEnabled={telegramEnabled}
                             />
                         </div>
-                        <span className="support-buddy-footer-text">Powered by <a href="https://aisk.chat" target="_blank" rel="noopener noreferrer">Aisk.chat</a></span>
+                        <span className="support-buddy-footer-text">Powered by <a href="https://wishcart.chat" target="_blank" rel="noopener noreferrer">WishCart.chat</a></span>
                     </div>
                 </div>
             )}
@@ -855,9 +855,9 @@ const ChatWidget = React.forwardRef((props, ref) => {
                         settings={{
                             widgetColor: color,
                             chatIcon: chatIcon,
-                            soundEnabled: window.AiskData?.chatwidget?.soundEnabled,
-                            soundUrl: window.AiskData?.chatwidget?.soundUrl,
-                            widgetPosition: window.AiskData?.chatwidget?.widget_position,
+                            soundEnabled: window.WishCartData?.chatwidget?.soundEnabled,
+                            soundUrl: window.WishCartData?.chatwidget?.soundUrl,
+                            widgetPosition: window.WishCartData?.chatwidget?.widget_position,
                             messages: rollingMessages
                         }}
                     />
@@ -867,9 +867,9 @@ const ChatWidget = React.forwardRef((props, ref) => {
                         settings={{
                             widgetColor: color,
                             chatIcon: chatIcon,
-                            soundEnabled: window.AiskData?.chatwidget?.soundEnabled,
-                            soundUrl: window.AiskData?.chatwidget?.soundUrl,
-                            widgetPosition: window.AiskData?.chatwidget?.widget_position,
+                            soundEnabled: window.WishCartData?.chatwidget?.soundEnabled,
+                            soundUrl: window.WishCartData?.chatwidget?.soundUrl,
+                            widgetPosition: window.WishCartData?.chatwidget?.widget_position,
                             captionText: defaultMessage
                         }}
                     />

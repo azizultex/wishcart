@@ -8,16 +8,16 @@
  * @category   Messenger
  * @package    AISK
  * @subpackage Messenger
- * @author     Aisk Team <support@aisk.chat>
+ * @author     WishCart Team <support@wishcart.chat>
  * @license    GPL-2.0+ https://www.gnu.org/licenses/gpl-2.0.html
- * @link       https://aisk.chat
+ * @link       https://wishcart.chat
  */
 
 if ( ! defined('ABSPATH') ) {
 	exit;
 }
 /**
- * Class AISK_WhatsApp_Handler
+ * Class WISHCART_WhatsApp_Handler
  *
  * Manages all WhatsApp interactions including:
  * - Webhook registration and processing
@@ -28,11 +28,11 @@ if ( ! defined('ABSPATH') ) {
  *
  * @category Class
  * @package  AISK
- * @author   Aisk Team <support@aisk.chat>
+ * @author   WishCart Team <support@wishcart.chat>
  * @license  GPL-2.0+ https://www.gnu.org/licenses/gpl-2.0.html
- * @link     https://aisk.chat
+ * @link     https://wishcart.chat
  */
-class AISK_WhatsApp_Handler {
+class WISHCART_WhatsApp_Handler {
 
     private $chat_handler;
     private $chat_storage;
@@ -51,15 +51,15 @@ class AISK_WhatsApp_Handler {
      * @return void
      */
     public function __construct() {
-        $this->chat_handler = new AISK_Chat_Handler();
-        $this->chat_storage = AISK_Chat_Storage::get_instance();
+        $this->chat_handler = new WISHCART_Chat_Handler();
+        $this->chat_storage = WISHCART_Chat_Storage::get_instance();
         
         // Get webhook URL from settings or use default
-        $settings = get_option('aisk_settings', []);
+        $settings = get_option('wishcart_settings', []);
         $this->webhook_url = isset($settings['integrations']['whatsapp']['webhook_url']) && !empty($settings['integrations']['whatsapp']['webhook_url'])
             ? $settings['integrations']['whatsapp']['webhook_url']
-            : get_site_url(null, '/wp-json/aisk/v1/whatsapp-webhook');
-        // $this->webhook_url = 'https://275f-103-25-248-196.ngrok-free.app/wp-json/aisk/v1/whatsapp-webhook';
+            : get_site_url(null, '/wp-json/wishcart/v1/whatsapp-webhook');
+        // $this->webhook_url = 'https://275f-103-25-248-196.ngrok-free.app/wp-json/wishcart/v1/whatsapp-webhook';
         $this->account_sid = isset($settings['integrations']['whatsapp']['account_sid']) ? $settings['integrations']['whatsapp']['account_sid'] : '';
         $this->auth_token = isset($settings['integrations']['whatsapp']['auth_token']) ? $settings['integrations']['whatsapp']['auth_token'] : '';
         $this->from_number = isset($settings['integrations']['whatsapp']['phone_number']) ? $settings['integrations']['whatsapp']['phone_number'] : '';
@@ -76,7 +76,7 @@ class AISK_WhatsApp_Handler {
      */
     public function register_webhook_endpoint() {
         register_rest_route(
-            'aisk/v1', '/whatsapp-webhook', [
+            'wishcart/v1', '/whatsapp-webhook', [
 				'methods' => 'POST',
 				'callback' => [ $this, 'handle_webhook' ],
 				'permission_callback' => [ $this, 'verify_twilio_request' ],
@@ -378,43 +378,43 @@ class AISK_WhatsApp_Handler {
      */
     private function format_order_message( $order ) {
         $order_info = $order['order_info'];
-        $message = esc_html__('*Order Details*', 'aisk-ai-chat-for-fluentcart') . "\n\n";
+        $message = esc_html__('*Order Details*', 'wish-cart') . "\n\n";
         
         /* translators: %s: Order number */
         $message .= sprintf(
             // translators: %s: Order number
-            esc_html__('Order #%s', 'aisk-ai-chat-for-fluentcart') . "\n",
+            esc_html__('Order #%s', 'wish-cart') . "\n",
             esc_html($order_info['order_number'])
         );
         
         /* translators: %s: Order status */
         $message .= sprintf(
             // translators: %s: Order status
-            esc_html__('Status: %s', 'aisk-ai-chat-for-fluentcart') . "\n",
+            esc_html__('Status: %s', 'wish-cart') . "\n",
             esc_html($order_info['status'])
         );
         
         /* translators: %s: Order date */
         $message .= sprintf(
             // translators: %s: Order date
-            esc_html__('Date: %s', 'aisk-ai-chat-for-fluentcart') . "\n",
+            esc_html__('Date: %s', 'wish-cart') . "\n",
             esc_html($order_info['date_created'])
         );
         
         /* translators: %s: Order total amount */
         $message .= sprintf(
             // translators: %s: Order total
-            esc_html__('Total: %s', 'aisk-ai-chat-for-fluentcart') . "\n\n",
+            esc_html__('Total: %s', 'wish-cart') . "\n\n",
             esc_html($order_info['total'])
         );
 
         if ( ! empty($order_info['items']) ) {
-            $message .= esc_html__('*Items:*', 'aisk-ai-chat-for-fluentcart') . "\n";
+            $message .= esc_html__('*Items:*', 'wish-cart') . "\n";
             foreach ( $order_info['items'] as $item ) {
                 /* translators: 1: Item quantity, 2: Item name, 3: Item total */
                 $message .= sprintf(
                     // translators: %s: Item quantity
-                    esc_html__('• %1$dx %2$s (%3$s)', 'aisk-ai-chat-for-fluentcart') . "\n",
+                    esc_html__('• %1$dx %2$s (%3$s)', 'wish-cart') . "\n",
                     esc_html($item['quantity']),
                     esc_html($item['name']),
                     esc_html($item['total'])
@@ -528,4 +528,4 @@ class AISK_WhatsApp_Handler {
     }
 }
 
-new AISK_WhatsApp_Handler();
+new WISHCART_WhatsApp_Handler();

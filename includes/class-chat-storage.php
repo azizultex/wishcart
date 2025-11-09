@@ -5,23 +5,23 @@ if ( ! defined( 'ABSPATH' ) ) exit;
  *
  * @category WordPress_Plugin
  * @package  AISK
- * @author   AISK Team <support@aisk.chat>
+ * @author   AISK Team <support@wishcart.chat>
  * @license  GPL-2.0+ https://www.gnu.org/licenses/gpl-2.0.html
- * @link     https://aisk.chat
+ * @link     https://wishcart.chat
  */
 
 /**
- * AISK_Chat_Storage Class
+ * WISHCART_Chat_Storage Class
  *
  * Handles all database operations for chat conversations and messages
  *
  * @category Class
  * @package  AISK
- * @author   AISK Team <support@aisk.chat>
+ * @author   AISK Team <support@wishcart.chat>
  * @license  GPL-2.0+ https://www.gnu.org/licenses/gpl-2.0.html
- * @link     https://aisk.chat
+ * @link     https://wishcart.chat
  */
-class AISK_Chat_Storage {
+class WISHCART_Chat_Storage {
 
     private static $instance = null;
     private $wpdb;
@@ -30,7 +30,7 @@ class AISK_Chat_Storage {
     /**
      * Get singleton instance of the class
      *
-     * @return AISK_Chat_Storage Instance of the class
+     * @return WISHCART_Chat_Storage Instance of the class
      */
     public static function get_instance() {
         if ( null === self::$instance ) {
@@ -45,7 +45,7 @@ class AISK_Chat_Storage {
     private function __construct() {
         global $wpdb;
         $this->wpdb = $wpdb;
-        $this->state_table = $this->wpdb->prefix . 'aisk_user_states';
+        $this->state_table = $this->wpdb->prefix . 'wishcart_user_states';
     }
 
     /**
@@ -71,7 +71,7 @@ class AISK_Chat_Storage {
         
         try {
             $result = $this->wpdb->insert(
-                $this->wpdb->prefix . 'aisk_conversations',
+                $this->wpdb->prefix . 'wishcart_conversations',
                 $insert_data
             );
             
@@ -80,8 +80,8 @@ class AISK_Chat_Storage {
             }
             
             // Cache the new conversation
-            $cache_key = 'aisk_conversation_' . $conversation_id;
-            wp_cache_set($cache_key, $insert_data, 'aisk_chat_storage', 300);
+            $cache_key = 'wishcart_conversation_' . $conversation_id;
+            wp_cache_set($cache_key, $insert_data, 'wishcart_chat_storage', 300);
             
             return $conversation_id;
         } catch (Exception $e) {
@@ -90,7 +90,7 @@ class AISK_Chat_Storage {
     }
 
     private function invalidate_conversation_cache($conversation_id) {
-        wp_cache_delete('aisk_messages_' . $conversation_id, 'aisk_chat');
+        wp_cache_delete('wishcart_messages_' . $conversation_id, 'wishcart_chat');
     }
 
 
@@ -129,22 +129,22 @@ class AISK_Chat_Storage {
         }
 
         // Check cache for last message
-        $cache_key = 'aisk_last_message_' . $conversation_id;
-        $last_message = wp_cache_get($cache_key, 'aisk_chat_storage');
+        $cache_key = 'wishcart_last_message_' . $conversation_id;
+        $last_message = wp_cache_get($cache_key, 'wishcart_chat_storage');
 
         if (false === $last_message) {
             // @codingStandardsIgnoreStart
             global $wpdb;
             $last_message = $wpdb->get_row(
                 $wpdb->prepare(
-                    "SELECT * FROM {$wpdb->prefix}aisk_messages 
+                    "SELECT * FROM {$wpdb->prefix}wishcart_messages 
                     WHERE conversation_id = %s 
                     ORDER BY created_at DESC 
                     LIMIT 1",
                     $conversation_id
                 )
             );
-            wp_cache_set($cache_key, $last_message, 'aisk_chat_storage', 300);
+            wp_cache_set($cache_key, $last_message, 'wishcart_chat_storage', 300);
         }
 
         // If the last message is identical, don't insert
@@ -163,7 +163,7 @@ class AISK_Chat_Storage {
         ];
 
         $result = $this->wpdb->insert(
-            $this->wpdb->prefix . 'aisk_messages',
+            $this->wpdb->prefix . 'wishcart_messages',
             $message_data
         );
 
@@ -175,16 +175,16 @@ class AISK_Chat_Storage {
 
         // Update conversation's updated_at timestamp
         $this->wpdb->update(
-            $this->wpdb->prefix . 'aisk_conversations',
+            $this->wpdb->prefix . 'wishcart_conversations',
             ['updated_at' => gmdate('c')],
             ['conversation_id' => $conversation_id]
         );
 
         // Clear related caches
-        wp_cache_delete('aisk_messages_' . $conversation_id, 'aisk_chat_storage');
-        wp_cache_delete('aisk_messages_' . $conversation_id . '_15', 'aisk_chat_storage');
-        wp_cache_delete('aisk_last_message_' . $conversation_id, 'aisk_chat_storage');
-        wp_cache_delete('aisk_conversation_' . $conversation_id, 'aisk_chat_storage');
+        wp_cache_delete('wishcart_messages_' . $conversation_id, 'wishcart_chat_storage');
+        wp_cache_delete('wishcart_messages_' . $conversation_id . '_15', 'wishcart_chat_storage');
+        wp_cache_delete('wishcart_last_message_' . $conversation_id, 'wishcart_chat_storage');
+        wp_cache_delete('wishcart_conversation_' . $conversation_id, 'wishcart_chat_storage');
 
         return $message_id;
     }
@@ -199,15 +199,15 @@ class AISK_Chat_Storage {
      * @return object|null Conversation data or null if not found
      */
     public function get_conversation( $conversation_id ) {
-        $cache_key = 'aisk_conversation_'. $conversation_id;
-        $conversation = wp_cache_get($cache_key, 'aisk_chat_storage');
+        $cache_key = 'wishcart_conversation_'. $conversation_id;
+        $conversation = wp_cache_get($cache_key, 'wishcart_chat_storage');
 
         if (false === $conversation) {
             // @codingStandardsIgnoreStart
             global $wpdb;
             $conversation = $wpdb->get_row(
                 $wpdb->prepare(
-                    "SELECT * FROM {$wpdb->prefix}aisk_conversations WHERE conversation_id = %s",
+                    "SELECT * FROM {$wpdb->prefix}wishcart_conversations WHERE conversation_id = %s",
                     $conversation_id
                 )
             );
@@ -215,10 +215,10 @@ class AISK_Chat_Storage {
 
             // Cache the results for 5 minutes
             if ($conversation) {
-                wp_cache_set($cache_key, $conversation, 'aisk_chat_storage', 300);
+                wp_cache_set($cache_key, $conversation, 'wishcart_chat_storage', 300);
             } else {
                 // Cache null result for 1 minute to prevent repeated DB queries for non-existent records
-                wp_cache_set($cache_key, null, 'aisk_chat_storage', 60);
+                wp_cache_set($cache_key, null, 'wishcart_chat_storage', 60);
             }
         }
 
@@ -236,15 +236,15 @@ class AISK_Chat_Storage {
      */
     public function get_messages( $conversation_id ) {
         // Try to get from cache first
-        $cache_key = 'aisk_messages_' . $conversation_id;
-        $messages = wp_cache_get($cache_key, 'aisk_chat_storage');
+        $cache_key = 'wishcart_messages_' . $conversation_id;
+        $messages = wp_cache_get($cache_key, 'wishcart_chat_storage');
         
         if (false === $messages) {
             global $wpdb;
             // @codingStandardsIgnoreStart
             $messages = $wpdb->get_results(
                 $wpdb->prepare(
-                    "SELECT * FROM {$wpdb->prefix}aisk_messages WHERE conversation_id = %s ORDER BY created_at ASC",
+                    "SELECT * FROM {$wpdb->prefix}wishcart_messages WHERE conversation_id = %s ORDER BY created_at ASC",
                     $conversation_id
                 )
             );
@@ -252,10 +252,10 @@ class AISK_Chat_Storage {
             
             if ($messages) {
                 // Cache the results for 5 minutes
-                wp_cache_set($cache_key, $messages, 'aisk_chat_storage', 300);
+                wp_cache_set($cache_key, $messages, 'wishcart_chat_storage', 300);
             } else {
                 // Cache empty result for 1 minute
-                wp_cache_set($cache_key, array(), 'aisk_chat_storage', 60);
+                wp_cache_set($cache_key, array(), 'wishcart_chat_storage', 60);
             }
         }
         
@@ -274,13 +274,13 @@ class AISK_Chat_Storage {
      * @return array Array of conversation objects
      */
     public function get_user_conversations( $user_id = null, $ip_address = null, $limit = 10 ) {
-        $cache_key = 'aisk_user_conversations_'. $user_id . '_' . $ip_address . '_' . $limit;
-        $conversations = wp_cache_get($cache_key, 'aisk_chat_storage');
+        $cache_key = 'wishcart_user_conversations_'. $user_id . '_' . $ip_address . '_' . $limit;
+        $conversations = wp_cache_get($cache_key, 'wishcart_chat_storage');
         
         if (false === $conversations) {
             // @codingStandardsIgnoreStart
             global $wpdb;
-            $query = "SELECT * FROM {$wpdb->prefix}aisk_conversations WHERE 1=1";
+            $query = "SELECT * FROM {$wpdb->prefix}wishcart_conversations WHERE 1=1";
             $query_args = array();
 
             if ($user_id && $ip_address) {
@@ -304,9 +304,9 @@ class AISK_Chat_Storage {
             // @codingStandardsIgnoreEnd
 
             if ($conversations) {
-                wp_cache_set($cache_key, $conversations, 'aisk_chat_storage', 300);
+                wp_cache_set($cache_key, $conversations, 'wishcart_chat_storage', 300);
             } else {
-                wp_cache_set($cache_key, array(), 'aisk_chat_storage', 60);
+                wp_cache_set($cache_key, array(), 'wishcart_chat_storage', 60);
             }
         }
 
@@ -324,15 +324,15 @@ class AISK_Chat_Storage {
      * @return array Array containing conversations, total count and page count
      */
     public function get_all_conversations( $page = 1, $per_page = 20, $filters = [] ) {
-        $cache_key = 'aisk_all_conversations_'. $page. '_'. $per_page. '_'. md5(serialize($filters));
-        $result = wp_cache_get($cache_key, 'aisk_chat_storage');
+        $cache_key = 'wishcart_all_conversations_'. $page. '_'. $per_page. '_'. md5(serialize($filters));
+        $result = wp_cache_get($cache_key, 'wishcart_chat_storage');
         
         if (false === $result) {
             // @codingStandardsIgnoreStart
             global $wpdb;
             $offset = ($page - 1) * $per_page;
-            $query = "SELECT * FROM {$wpdb->prefix}aisk_conversations WHERE 1=1";
-            $count_query = "SELECT COUNT(*) FROM {$wpdb->prefix}aisk_conversations WHERE 1=1";
+            $query = "SELECT * FROM {$wpdb->prefix}wishcart_conversations WHERE 1=1";
+            $count_query = "SELECT COUNT(*) FROM {$wpdb->prefix}wishcart_conversations WHERE 1=1";
             $query_args = array();
 
             // Apply location filter
@@ -381,7 +381,7 @@ class AISK_Chat_Storage {
                 'pages' => ceil($total / $per_page),
             ];
 
-            wp_cache_set($cache_key, $result, 'aisk_chat_storage', 300);
+            wp_cache_set($cache_key, $result, 'wishcart_chat_storage', 300);
         }
 
         return $result;
@@ -400,7 +400,7 @@ class AISK_Chat_Storage {
         // @codingStandardsIgnoreStart
         global $wpdb;
         $result = $wpdb->update(
-            $wpdb->prefix . 'aisk_conversations',
+            $wpdb->prefix . 'wishcart_conversations',
             [ 'status' => 'closed' ],
             [ 'conversation_id' => $conversation_id ]
         );
@@ -408,9 +408,9 @@ class AISK_Chat_Storage {
 
         if ($result !== false) {
             // Clear related caches
-            wp_cache_delete('aisk_conversation_' . $conversation_id, 'aisk_chat_storage');
-            wp_cache_delete('aisk_messages_' . $conversation_id, 'aisk_chat_storage');
-            wp_cache_delete('aisk_messages_' . $conversation_id . '_15', 'aisk_chat_storage');
+            wp_cache_delete('wishcart_conversation_' . $conversation_id, 'wishcart_chat_storage');
+            wp_cache_delete('wishcart_messages_' . $conversation_id, 'wishcart_chat_storage');
+            wp_cache_delete('wishcart_messages_' . $conversation_id . '_15', 'wishcart_chat_storage');
         }
 
         return $result;
@@ -427,8 +427,8 @@ class AISK_Chat_Storage {
      * @return array Array of formatted messages
      */
     public function get_recent_message_history($conversation_id, $limit = 15) {
-        $cache_key = 'aisk_messages_' . $conversation_id . '_' . $limit;
-        $messages = wp_cache_get($cache_key, 'aisk_chat_storage');
+        $cache_key = 'wishcart_messages_' . $conversation_id . '_' . $limit;
+        $messages = wp_cache_get($cache_key, 'wishcart_chat_storage');
         
         if (false === $messages) {
             // @codingStandardsIgnoreStart
@@ -436,7 +436,7 @@ class AISK_Chat_Storage {
             $messages = $wpdb->get_results(
                 $wpdb->prepare(
                     "SELECT message_type, message, metadata 
-                    FROM {$wpdb->prefix}aisk_messages 
+                    FROM {$wpdb->prefix}wishcart_messages 
                     WHERE conversation_id = %s 
                     ORDER BY created_at DESC 
                     LIMIT %d",
@@ -447,9 +447,9 @@ class AISK_Chat_Storage {
             // @codingStandardsIgnoreEnd
 
             if ($messages) {
-                wp_cache_set($cache_key, $messages, 'aisk_chat_storage', 300);
+                wp_cache_set($cache_key, $messages, 'wishcart_chat_storage', 300);
             } else {
-                wp_cache_set($cache_key, array(), 'aisk_chat_storage', 60);
+                wp_cache_set($cache_key, array(), 'wishcart_chat_storage', 60);
             }
         }
 
@@ -478,15 +478,15 @@ class AISK_Chat_Storage {
      * @return object|null Conversation data or null if not found
      */
     public function get_whatsapp_conversation($wa_id) {
-        $cache_key = 'aisk_wa_conv_' . $wa_id;
-        $conversation = wp_cache_get($cache_key, 'aisk_chat_storage');
+        $cache_key = 'wishcart_wa_conv_' . $wa_id;
+        $conversation = wp_cache_get($cache_key, 'wishcart_chat_storage');
         
         if (false === $conversation) {
             // @codingStandardsIgnoreStart
             global $wpdb;
             $conversation = $wpdb->get_row(
                 $wpdb->prepare(
-                    "SELECT * FROM {$wpdb->prefix}aisk_conversations 
+                    "SELECT * FROM {$wpdb->prefix}wishcart_conversations 
                     WHERE user_phone = %s 
                     AND platform = 'whatsapp'
                     ORDER BY created_at DESC 
@@ -497,9 +497,9 @@ class AISK_Chat_Storage {
             // @codingStandardsIgnoreEnd
 
             if ($conversation) {
-                wp_cache_set($cache_key, $conversation, 'aisk_chat_storage', 300);
+                wp_cache_set($cache_key, $conversation, 'wishcart_chat_storage', 300);
             } else {
-                wp_cache_set($cache_key, null, 'aisk_chat_storage', 60);
+                wp_cache_set($cache_key, null, 'wishcart_chat_storage', 60);
             }
         }
 
@@ -516,15 +516,15 @@ class AISK_Chat_Storage {
      * @return object|null Conversation data or null if not found
      */
     public function get_telegram_conversation( $user_phone ) {
-        $cache_key = 'aisk_telegram_conv_' . $user_phone;
-        $conversation = wp_cache_get($cache_key, 'aisk_chat_storage');
+        $cache_key = 'wishcart_telegram_conv_' . $user_phone;
+        $conversation = wp_cache_get($cache_key, 'wishcart_chat_storage');
         
         if (false === $conversation) {
             // @codingStandardsIgnoreStart
             global $wpdb;
             $conversation = $wpdb->get_row(
                 $wpdb->prepare(
-                    "SELECT * FROM {$wpdb->prefix}aisk_conversations 
+                    "SELECT * FROM {$wpdb->prefix}wishcart_conversations 
                     WHERE user_phone = %s 
                     AND platform = 'telegram'
                     ORDER BY created_at DESC 
@@ -535,9 +535,9 @@ class AISK_Chat_Storage {
             // @codingStandardsIgnoreEnd
             
             if ($conversation) {
-                wp_cache_set($cache_key, $conversation, 'aisk_chat_storage', 300);
+                wp_cache_set($cache_key, $conversation, 'wishcart_chat_storage', 300);
             } else {
-                wp_cache_set($cache_key, null, 'aisk_chat_storage', 60);
+                wp_cache_set($cache_key, null, 'wishcart_chat_storage', 60);
             }
         }
         
@@ -571,8 +571,8 @@ class AISK_Chat_Storage {
 
         if ($result !== false) {
             // Cache the state data
-            $cache_key = 'aisk_user_state_' . $platform . '_' . $platform_user_id;
-            wp_cache_set($cache_key, $state_data, 'aisk_chat_storage', 300);
+            $cache_key = 'wishcart_user_state_' . $platform . '_' . $platform_user_id;
+            wp_cache_set($cache_key, $state_data, 'wishcart_chat_storage', 300);
         }
 
         return $result;
@@ -589,15 +589,15 @@ class AISK_Chat_Storage {
      * @return array|null State data or null if not found
      */
     public function get_user_state( $platform_user_id, $platform ) {
-        $cache_key = 'aisk_user_state_' . $platform . '_' . $platform_user_id;
-        $state = wp_cache_get($cache_key, 'aisk_chat_storage');
+        $cache_key = 'wishcart_user_state_' . $platform . '_' . $platform_user_id;
+        $state = wp_cache_get($cache_key, 'wishcart_chat_storage');
         
         if (false === $state) {
             // @codingStandardsIgnoreStart
             global $wpdb;
             $result = $wpdb->get_var(
                 $wpdb->prepare(
-                    "SELECT state_data FROM {$wpdb->prefix}aisk_user_states 
+                    "SELECT state_data FROM {$wpdb->prefix}wishcart_user_states 
                     WHERE platform_user_id = %s AND platform = %s",
                     $platform_user_id,
                     $platform
@@ -607,9 +607,9 @@ class AISK_Chat_Storage {
             
             if ($result) {
                 $state = json_decode($result, true);
-                wp_cache_set($cache_key, $state, 'aisk_chat_storage', 300);
+                wp_cache_set($cache_key, $state, 'wishcart_chat_storage', 300);
             } else {
-                wp_cache_set($cache_key, null, 'aisk_chat_storage', 60);
+                wp_cache_set($cache_key, null, 'wishcart_chat_storage', 60);
             }
         }
         
@@ -641,8 +641,8 @@ class AISK_Chat_Storage {
 
         if ($result !== false) {
             // Clear the cached state data
-            $cache_key = 'aisk_user_state_' . $platform . '_' . $platform_user_id;
-            wp_cache_delete($cache_key, 'aisk_chat_storage');
+            $cache_key = 'wishcart_user_state_' . $platform . '_' . $platform_user_id;
+            wp_cache_delete($cache_key, 'wishcart_chat_storage');
         }
 
         return $result;

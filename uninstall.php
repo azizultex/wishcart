@@ -4,7 +4,7 @@ if ( ! defined( 'WP_UNINSTALL_PLUGIN' ) ) {
     exit;
 }
 
-class AISK_Uninstaller {
+class WISHCART_Uninstaller {
 
     /**
      * Array of table names
@@ -25,19 +25,19 @@ class AISK_Uninstaller {
      */
     public function __construct() {
         $this->tables = [
-            'aisk_conversations',
-            'aisk_messages',
-            'aisk_user_states',
-            'aisk_inquiries',
-            'aisk_inquiry_notes',
-            'aisk_embeddings',
-            'aisk_pdf_queue',
-            'aisk_api_usage',
+            'wishcart_conversations',
+            'wishcart_messages',
+            'wishcart_user_states',
+            'wishcart_inquiries',
+            'wishcart_inquiry_notes',
+            'wishcart_embeddings',
+            'wishcart_pdf_queue',
+            'wishcart_api_usage',
         ];
 
         $this->options = [
-            'aisk_settings',
-            'aisk_last_pdf_processing',
+            'wishcart_settings',
+            'wishcart_last_pdf_processing',
         ];
     }
 
@@ -85,5 +85,5 @@ class AISK_Uninstaller {
 }
 
 // Execute the uninstallation
-$uninstaller = new AISK_Uninstaller();
+$uninstaller = new WISHCART_Uninstaller();
 $uninstaller->uninstall();

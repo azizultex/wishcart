@@ -1,10 +1,10 @@
 <?php
 if ( ! defined( 'ABSPATH' ) ) exit;
 /**
- * Class AISK_URLContentFetcher
+ * Class WISHCART_URLContentFetcher
  * Handles fetching content from URLs
  */
-class AISK_URLContentFetcher {
+class WISHCART_URLContentFetcher {
     /**
      * Fetch content from a URL
      *
@@ -17,7 +17,7 @@ class AISK_URLContentFetcher {
     public function fetch($url, $include_selectors = [], $exclude_selectors = []) {
         $response = wp_remote_get($url, [
             'timeout' => 30,
-            'user-agent' => 'Mozilla/5.0 (compatible; AiskBot/1.0; +https://aisk.chat)',
+            'user-agent' => 'Mozilla/5.0 (compatible; WishCartBot/1.0; +https://wishcart.chat)',
             'sslverify' => false,
             'headers' => [
                 'Accept' => 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',

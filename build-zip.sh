@@ -2,7 +2,7 @@
 
 set -e
 
-PLUGIN_SLUG="aisk-ai-chat-for-fluentcart"
+PLUGIN_SLUG="wish-cart"
 TMP_DIR="../${PLUGIN_SLUG}-release"
 ZIP_PATH="../${PLUGIN_SLUG}.zip"
 

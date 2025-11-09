@@ -7,9 +7,9 @@
  *
  * @category WordPress
  * @package  AISK
- * @author   AISK Team <support@aisk.chat>
+ * @author   AISK Team <support@wishcart.chat>
  * @license  GPL-2.0+ https://www.gnu.org/licenses/gpl-2.0.html
- * @link     https://aisk.chat
+ * @link     https://wishcart.chat
  */
 
 if ( ! defined('ABSPATH') ) {
@@ -23,11 +23,11 @@ if ( ! defined('ABSPATH') ) {
  *
  * @category Class
  * @package  AISK
- * @author   AISK Team <support@aisk.chat>
+ * @author   AISK Team <support@wishcart.chat>
  * @license  GPL-2.0+ https://www.gnu.org/licenses/gpl-2.0.html
- * @link     https://aisk.chat
+ * @link     https://wishcart.chat
  */
-class AISK_Response_Formatter {
+class WISHCART_Response_Formatter {
 
     /**
      * Format the AI response for better display

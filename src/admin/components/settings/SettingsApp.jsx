@@ -95,9 +95,9 @@ const SettingsApp = () => {
 
     const loadSettings = async () => {
         try {
-            const response = await fetch('/wp-json/aisk/v1/settings', {
+            const response = await fetch('/wp-json/wishcart/v1/settings', {
                 headers: {
-                    'X-WP-Nonce': AiskSettings.nonce
+                    'X-WP-Nonce': WishCartSettings.nonce
                 }
             });
             const data = await response.json();
@@ -123,10 +123,10 @@ const SettingsApp = () => {
                 title: (
                     <div className="flex items-center gap-2">
                         <XCircle className="h-4 w-4 text-red-500" />
-                        <span>{__('Invalid WhatsApp number', 'aisk-ai-chat-for-fluentcart')}</span>
+                        <span>{__('Invalid WhatsApp number', 'wish-cart')}</span>
                     </div>
                 ),
-                description: __('Use format "whatsapp:+1234567890" including country code.', 'aisk-ai-chat-for-fluentcart'),
+                description: __('Use format "whatsapp:+1234567890" including country code.', 'wish-cart'),
                 className: "bg-red-50 border-red-200"
             });
             return false;
@@ -138,11 +138,11 @@ const SettingsApp = () => {
         if (!validateBeforeSave()) return;
         setIsSaving(true);
         try {
-            const response = await fetch('/wp-json/aisk/v1/settings', {
+            const response = await fetch('/wp-json/wishcart/v1/settings', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
-                    'X-WP-Nonce': AiskSettings.nonce
+                    'X-WP-Nonce': WishCartSettings.nonce
                 },
                 body: JSON.stringify(settings)
             });
@@ -152,10 +152,10 @@ const SettingsApp = () => {
                     title: (
                         <div className="flex items-center gap-2">
                             <CheckCircle2 className="h-4 w-4 text-green-500" />
-                            <span>{__('Settings saved successfully!', 'aisk-ai-chat-for-fluentcart')}</span>
+                            <span>{__('Settings saved successfully!', 'wish-cart')}</span>
                         </div>
                     ),
-                    description: __('Your changes have been applied.', 'aisk-ai-chat-for-fluentcart'),
+                    description: __('Your changes have been applied.', 'wish-cart'),
                     className: "bg-green-50 border-green-200"
                 });
             } else {
@@ -166,10 +166,10 @@ const SettingsApp = () => {
                 title: (
                     <div className="flex items-center gap-2">
                         <XCircle className="h-4 w-4 text-red-500" />
-                        <span>{__('Failed to save settings', 'aisk-ai-chat-for-fluentcart')}</span>
+                        <span>{__('Failed to save settings', 'wish-cart')}</span>
                     </div>
                 ),
-                description: __('Please try again or contact support if the problem persists.', 'aisk-ai-chat-for-fluentcart'),
+                description: __('Please try again or contact support if the problem persists.', 'wish-cart'),
                 className: "bg-red-50 border-red-200"
             });
         } finally {
@@ -194,28 +194,28 @@ const SettingsApp = () => {
                     <CardHeader>
                         <div className="flex justify-between items-start">
                             <div>
-                                <CardTitle className="text-2xl">{__('Aisk Settings', 'aisk-ai-chat-for-fluentcart')}</CardTitle>
+                                <CardTitle className="text-2xl">{__('WishCart Settings', 'wish-cart')}</CardTitle>
                                 <CardDescription>
-                                    {__('Configure your chatbot and integration settings', 'aisk-ai-chat-for-fluentcart')}
+                                    {__('Configure your chatbot and integration settings', 'wish-cart')}
                                 </CardDescription>
                             </div>
                             <div className="space-x-3">
-                                <a href="https://aisk.chat/support"
+                                <a href="https://wishcart.chat/support"
                                    target="_blank"
                                    rel="noopener noreferrer"
                                    className={buttonVariants({ variant: "default" })}
                                 >
                                     <HelpCircle className="w-4 h-4 mr-2" />
-                                    {__('Need Help?', 'aisk-ai-chat-for-fluentcart')}
+                                    {__('Need Help?', 'wish-cart')}
                                 </a>
 
-                                <a href="https://aisk.chat/docs"
+                                <a href="https://wishcart.chat/docs"
                                    target="_blank"
                                    rel="noopener noreferrer"
                                    className={buttonVariants({ variant: "outline" })}
                                 >
                                     <ExternalLink className="w-4 h-4 mr-2" />
-                                    {__('Documentation', 'aisk-ai-chat-for-fluentcart')}
+                                    {__('Documentation', 'wish-cart')}
                                 </a>
                             </div>
                         </div>
@@ -231,39 +231,39 @@ const SettingsApp = () => {
                     <TabsList className="mb-4">
                         <TabsTrigger value="general" className="flex items-center gap-2">
                             <Settings className="w-4 h-4" />
-                            {__('General', 'aisk-ai-chat-for-fluentcart')}
+                            {__('General', 'wish-cart')}
                         </TabsTrigger>
                         <TabsTrigger value="chatwidget" className="flex items-center gap-2">
                             <MessageSquare className="w-4 h-4" />
-                            {__('Chat Widget', 'aisk-ai-chat-for-fluentcart')}
+                            {__('Chat Widget', 'wish-cart')}
                         </TabsTrigger>
                         <TabsTrigger value="ai_config" className="flex items-center gap-2">
                             <Wand2 className="w-4 h-4" />
-                            {__('AI Config', 'aisk-ai-chat-for-fluentcart')}
+                            {__('AI Config', 'wish-cart')}
                         </TabsTrigger>
                         <TabsTrigger value="integrations" className="flex items-center gap-2">
                             <Share2 className="w-4 h-4" />
-                            {__('Integrations', 'aisk-ai-chat-for-fluentcart')}
+                            {__('Integrations', 'wish-cart')}
                         </TabsTrigger>
                         <TabsTrigger value="misc" className="flex items-center gap-2">
                             <MoreHorizontal className="w-4 h-4" />
-                            {__('Misc', 'aisk-ai-chat-for-fluentcart')}
+                            {__('Misc', 'wish-cart')}
                         </TabsTrigger>
                     </TabsList>
 
                     <TabsContent value="general">
                         <Card>
                             <CardHeader>
-                                <CardTitle>{__('General Settings', 'aisk-ai-chat-for-fluentcart')}</CardTitle>
+                                <CardTitle>{__('General Settings', 'wish-cart')}</CardTitle>
                                 <CardDescription>
-                                    {__('Configure your API keys and general settings', 'aisk-ai-chat-for-fluentcart')}
+                                    {__('Configure your API keys and general settings', 'wish-cart')}
                                 </CardDescription>
                             </CardHeader>
                             <CardContent className="space-y-4 max-w-2xl">
                                 
 
                                 <div className="space-y-2">
-                                    <Label htmlFor="openai_key">{__('OpenAI API Key', 'aisk-ai-chat-for-fluentcart')}</Label>
+                                    <Label htmlFor="openai_key">{__('OpenAI API Key', 'wish-cart')}</Label>
                                     <Input
                                         id="openai_key"
                                         value={settings.general.openai_key}
@@ -272,7 +272,7 @@ const SettingsApp = () => {
                                         className="max-w-xl"
                                     />
                                     <p className="text-xs text-muted-foreground">
-                                        {__('Generate your API key at', 'aisk-ai-chat-for-fluentcart')}{" "}
+                                        {__('Generate your API key at', 'wish-cart')}{" "}
                                         <a
                                             href="https://platform.openai.com/api-keys"
                                             target="_blank"
@@ -354,7 +354,7 @@ const SettingsApp = () => {
                         onClick={saveSettings}
                         disabled={isSaving}
                     >
-                        {isSaving ? __('Saving...', 'aisk-ai-chat-for-fluentcart') : __('Save Settings', 'aisk-ai-chat-for-fluentcart')}
+                        {isSaving ? __('Saving...', 'wish-cart') : __('Save Settings', 'wish-cart')}
                     </Button>
                 </div>
             </div>

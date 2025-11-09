@@ -1,9 +1,9 @@
-# Copyright (C) 2025 Aisk Team <support@aisk.chat>
+# Copyright (C) 2025 WishCart Team <support@wishcart.chat>
 # This file is distributed under the GPL-2.0+.
 msgid ""
 msgstr ""
-"Project-Id-Version: Aisk — AI Sales Chatbot for FluentCart | Knowledgebase & Support bot 1.0.0\n"
-"Report-Msgid-Bugs-To: https://wordpress.org/support/plugin/aisk-ai-chat-for-fluentcart\n"
+"Project-Id-Version: WishCart - Wishlist for FluentCart 1.0.0\n"
+"Report-Msgid-Bugs-To: https://wordpress.org/support/plugin/wish-cart\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
 "MIME-Version: 1.0\n"
@@ -12,50 +12,50 @@ msgstr ""
 "POT-Creation-Date: 2025-02-16T10:45:02+00:00\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "X-Generator: WP-CLI 2.11.0\n"
-"X-Domain: aisk-ai-chat-for-fluentcart\n"
+"X-Domain: wish-cart\n"
 
 #. Plugin Name of the plugin
-#: aisk-ai-chat-for-fluentcart.php
-msgid "Aisk — AI Sales Chatbot for FluentCart | Knowledgebase & Support bot"
+#: wish-cart.php
+msgid "WishCart - Wishlist for FluentCart"
 msgstr ""
 
 #. Plugin URI of the plugin
-#: aisk-ai-chat-for-fluentcart.php
-msgid "https://aisk.chat"
+#: wish-cart.php
+msgid "https://wishcart.chat"
 msgstr ""
 
 #. Description of the plugin
-#: aisk-ai-chat-for-fluentcart.php
+#: wish-cart.php
 msgid "AISK is a revolutionary AI-powered chatbot designed specifically for FluentCart stores and WordPress websites. Say goodbye to repetitive support tickets and hello to automated, intelligent customer service that works around the clock."
 msgstr ""
 
 #. Author of the plugin
-#: aisk-ai-chat-for-fluentcart.php
-msgid "Aisk Team <support@aisk.chat>"
+#: wish-cart.php
+msgid "WishCart Team <support@wishcart.chat>"
 msgstr ""
 
 #. Author URI of the plugin
-#: aisk-ai-chat-for-fluentcart.php
-msgid "https://aisk.chat/"
+#: wish-cart.php
+msgid "https://wishcart.chat/"
 msgstr ""
 
-#: includes/class-aisk-admin.php:65
-#: includes/class-aisk-admin.php:66
-msgid "Aisk"
+#: includes/class-wishcart-admin.php:65
+#: includes/class-wishcart-admin.php:66
+msgid "WishCart"
 msgstr ""
 
-#: includes/class-aisk-admin.php:76
-#: includes/class-aisk-admin.php:77
+#: includes/class-wishcart-admin.php:76
+#: includes/class-wishcart-admin.php:77
 msgid "Inquiries"
 msgstr ""
 
-#: includes/class-aisk-admin.php:86
-#: includes/class-aisk-admin.php:87
+#: includes/class-wishcart-admin.php:86
+#: includes/class-wishcart-admin.php:87
 msgid "Chat History"
 msgstr ""
 
-#: includes/class-aisk-admin.php:96
-#: includes/class-aisk-admin.php:97
+#: includes/class-wishcart-admin.php:96
+#: includes/class-wishcart-admin.php:97
 msgid "Settings"
 msgstr ""
 
@@ -815,7 +815,7 @@ msgstr ""
 
 #: build/chat-admin.js:673
 #: src/admin/components/settings/SettingsApp.jsx:172
-msgid "Aisk Settings"
+msgid "WishCart Settings"
 msgstr ""
 
 #: build/chat-admin.js:673
@@ -870,7 +870,7 @@ msgstr ""
 
 #: build/chat-admin.js:673
 #: src/admin/components/settings/SettingsApp.jsx:239
-msgid "Aisk Auth Key"
+msgid "WishCart Auth Key"
 msgstr ""
 
 #: build/chat-admin.js:673

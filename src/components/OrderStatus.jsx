@@ -94,11 +94,11 @@ const OrderStatus = ({ order, onAction, conversationId }) => {
 
         setIsSubmitting(true);
         try {
-            const response = await fetch(`${AiskData.apiUrl}/submit-inquiry`, {
+            const response = await fetch(`${WishCartData.apiUrl}/submit-inquiry`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
-                    'X-WP-Nonce': AiskData.nonce
+                    'X-WP-Nonce': WishCartData.nonce
                 },
                 body: JSON.stringify({
                     order_number: order_number,

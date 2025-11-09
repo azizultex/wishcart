@@ -7,9 +7,9 @@
  *
  * @category WordPress
  * @package  AISK
- * @author   AISK Team <support@aisk.chat>
+ * @author   AISK Team <support@wishcart.chat>
  * @license  GPL-2.0+ https://www.gnu.org/licenses/gpl-2.0.html
- * @link     https://aisk.chat
+ * @link     https://wishcart.chat
  */
 
 if ( ! defined('ABSPATH') ) {
@@ -24,11 +24,11 @@ if ( ! defined('ABSPATH') ) {
  *
  * @category Class
  * @package  AISK
- * @author   AISK Team <support@aisk.chat>
+ * @author   AISK Team <support@wishcart.chat>
  * @license  GPL-2.0+ https://www.gnu.org/licenses/gpl-2.0.html
- * @link     https://aisk.chat
+ * @link     https://wishcart.chat
  */
-class AISK_Chat_Handler {
+class WISHCART_Chat_Handler {
 
     private $embeddings_handler;
     private $product_handler;
@@ -48,12 +48,12 @@ class AISK_Chat_Handler {
      * @return void
      */
     public function __construct() {
-        $this->embeddings_handler = new AISK_Embeddings_Handler();
-        $this->product_handler = new AISK_Product_Handler();
-        $this->order_handler = new AISK_Order_Handler();
-        $this->chat_storage = AISK_Chat_Storage::get_instance();
-        $this->usage_tracker = class_exists('AISK_API_Usage_Tracker') ? AISK_API_Usage_Tracker::get_instance() : null;
-        $settings = get_option('aisk_settings');
+        $this->embeddings_handler = new WISHCART_Embeddings_Handler();
+        $this->product_handler = new WISHCART_Product_Handler();
+        $this->order_handler = new WISHCART_Order_Handler();
+        $this->chat_storage = WISHCART_Chat_Storage::get_instance();
+        $this->usage_tracker = class_exists('WISHCART_API_Usage_Tracker') ? WISHCART_API_Usage_Tracker::get_instance() : null;
+        $settings = get_option('wishcart_settings');
         // auth_key deprecated and no longer required
         $this->openai_key = isset($settings['general']['openai_key']) ? $settings['general']['openai_key'] : '';
 
@@ -73,7 +73,7 @@ class AISK_Chat_Handler {
     public function register_routes() {
         // Chat endpoint - Public access with nonce verification
         register_rest_route(
-            'aisk/v1', '/chat', [
+            'wishcart/v1', '/chat', [
                 'methods' => 'POST',
                 'callback' => [ $this, 'handle_chat_request' ],
                 'permission_callback' => [ $this, 'verify_chat_request_authenticated' ],
@@ -82,7 +82,7 @@ class AISK_Chat_Handler {
 
         // Auth endpoint - Public access with nonce verification
         register_rest_route(
-            'aisk/v1', '/auth', [
+            'wishcart/v1', '/auth', [
                 'methods' => 'POST',
                 'callback' => [ $this, 'handle_auth_request' ],
                 'permission_callback' => [ $this, 'verify_auth_request' ],
@@ -91,7 +91,7 @@ class AISK_Chat_Handler {
 
         // Conversations endpoints - Authenticated access required
         register_rest_route(
-            'aisk/v1', '/conversations', [
+            'wishcart/v1', '/conversations', [
                 [
                     'methods' => 'GET',
                     'callback' => [ $this, 'get_conversations' ],
@@ -107,7 +107,7 @@ class AISK_Chat_Handler {
 
         // Single conversation endpoint - Authenticated access required
         register_rest_route(
-            'aisk/v1', '/conversations/(?P<id>[a-zA-Z0-9-]+)', [
+            'wishcart/v1', '/conversations/(?P<id>[a-zA-Z0-9-]+)', [
                 'methods' => 'GET',
                 'callback' => [ $this, 'get_conversation' ],
                 'permission_callback' => [ $this, 'verify_chat_request_authenticated' ],
@@ -124,7 +124,7 @@ class AISK_Chat_Handler {
 
         // Messages endpoint - Authenticated access required
         register_rest_route(
-            'aisk/v1', '/messages/(?P<conversation_id>[a-zA-Z0-9-]+)', [
+            'wishcart/v1', '/messages/(?P<conversation_id>[a-zA-Z0-9-]+)', [
                 'methods' => 'GET',
                 'callback' => [ $this, 'get_messages' ],
                 'permission_callback' => [ $this, 'verify_conversation_access' ],
@@ -141,7 +141,7 @@ class AISK_Chat_Handler {
 
         // Submit inquiry endpoint - Public access with nonce verification
         register_rest_route(
-            'aisk/v1', '/submit-inquiry', [
+            'wishcart/v1', '/submit-inquiry', [
                 'methods' => 'POST',
                 'callback' => [ $this, 'handle_inquiry_submission' ],
                 'permission_callback' => [ $this, 'verify_chat_request_authenticated' ],
@@ -150,7 +150,7 @@ class AISK_Chat_Handler {
 
         // Classify Intent endpoint - Public access with nonce verification
         register_rest_route(
-            'aisk/v1', '/classify-intent', [
+            'wishcart/v1', '/classify-intent', [
                 'methods' => 'POST',
                 'callback' => [ $this, 'classify_intent' ],
                 'permission_callback' => [ $this, 'verify_chat_request_authenticated' ],
@@ -169,11 +169,11 @@ class AISK_Chat_Handler {
 
         // Admin-only endpoints
         register_rest_route(
-            'aisk/v1', '/inquiries', [
+            'wishcart/v1', '/inquiries', [
                 'methods' => 'GET',
                 'callback' => [ $this, 'get_inquiries' ],
                 'permission_callback' => function () {
-                    return current_user_can(AISK_FluentCart_Helper::get_manage_capability());
+                    return current_user_can(WISHCART_FluentCart_Helper::get_manage_capability());
                 },
                 'args' => [
                     'page' => [
@@ -204,11 +204,11 @@ class AISK_Chat_Handler {
 
         // Get single inquiry details
         register_rest_route(
-            'aisk/v1', '/inquiries/(?P<id>\d+)', [
+            'wishcart/v1', '/inquiries/(?P<id>\d+)', [
 				'methods' => 'GET',
 				'callback' => [ $this, 'get_inquiry_details' ],
 				'permission_callback' => function () {
-					return current_user_can(AISK_FluentCart_Helper::get_manage_capability());
+					return current_user_can(WISHCART_FluentCart_Helper::get_manage_capability());
 				},
 				'args' => [
 					'id' => [
@@ -222,19 +222,19 @@ class AISK_Chat_Handler {
 
         // Get inquiry notes
         register_rest_route(
-            'aisk/v1', '/inquiries/(?P<id>\d+)/notes', [
+            'wishcart/v1', '/inquiries/(?P<id>\d+)/notes', [
 				[
 					'methods' => 'GET',
 					'callback' => [ $this, 'get_inquiry_notes' ],
 					'permission_callback' => function () {
-						return current_user_can(AISK_FluentCart_Helper::get_manage_capability());
+						return current_user_can(WISHCART_FluentCart_Helper::get_manage_capability());
 					},
 				],
 				[
 					'methods' => 'POST',
 					'callback' => [ $this, 'add_inquiry_note' ],
 					'permission_callback' => function () {
-						return current_user_can(AISK_FluentCart_Helper::get_manage_capability());
+						return current_user_can(WISHCART_FluentCart_Helper::get_manage_capability());
 					},
 				],
             ]
@@ -242,11 +242,11 @@ class AISK_Chat_Handler {
 
         // Update inquiry status
         register_rest_route(
-            'aisk/v1', '/inquiries/(?P<id>\d+)/status', [
+            'wishcart/v1', '/inquiries/(?P<id>\d+)/status', [
 				'methods' => 'POST',
 				'callback' => [ $this, 'update_inquiry_status' ],
 				'permission_callback' => function () {
-					return current_user_can(AISK_FluentCart_Helper::get_manage_capability());
+					return current_user_can(WISHCART_FluentCart_Helper::get_manage_capability());
 				},
 				'args' => [
 					'id' => [
@@ -278,7 +278,7 @@ class AISK_Chat_Handler {
         }
 
         // Allow if user is logged in or has a valid chat session
-        if (is_user_logged_in() || ! empty( $_COOKIE[ AISK_CHAT_SESSION_COOKIE ])) {
+        if (is_user_logged_in() || ! empty( $_COOKIE[ WISHCART_CHAT_SESSION_COOKIE ])) {
             return true;
         }
 
@@ -406,12 +406,12 @@ class AISK_Chat_Handler {
             }
 
             // Check FluentCart state for product-related intents
-            $settings = get_option('aisk_settings');
+            $settings = get_option('wishcart_settings');
             $is_fluentcart_enabled = !empty($settings['ai_config']['fluentcart_enabled']);
             
             if (!$is_fluentcart_enabled && in_array($intent['intent_type'], ['product_search', 'product_info_search'])) {
                 return [
-                    'message' => __("Product search is currently disabled. Please enable FluentCart integration in the settings.", 'aisk-ai-chat-for-fluentcart'),
+                    'message' => __("Product search is currently disabled. Please enable FluentCart integration in the settings.", 'wish-cart'),
                     'products' => []
                 ];
             }
@@ -437,7 +437,7 @@ class AISK_Chat_Handler {
                     $contact_details = $this->handle_general_query($message, $conversation_id, $content_type, $platform);
                     
                     // Check if contact form is enabled from settings
-                    $settings = get_option('aisk_settings');
+                    $settings = get_option('wishcart_settings');
                     $is_contact_form_enabled = !empty($settings['integrations']['contact_form']['enabled']);
                     
                     // Get the response type from the intent
@@ -516,7 +516,7 @@ class AISK_Chat_Handler {
      * @return array Contact information
      */
     private function get_contact_info() {
-        $settings = get_option('aisk_settings');
+        $settings = get_option('wishcart_settings');
         return [
             'email' => isset($settings['contact']['email']) ? $settings['contact']['email'] : '',
             'phone' => isset($settings['contact']['phone']) ? $settings['contact']['phone'] : '',
@@ -605,7 +605,7 @@ class AISK_Chat_Handler {
         }
 
         // Get customer details from order
-        $order = AISK_FluentCart_Helper::get_order($params['order_number']);
+        $order = WISHCART_FluentCart_Helper::get_order($params['order_number']);
         if (!$order) {
             return new WP_Error('invalid_order', 'Order not found', ['status' => 404]);
         }
@@ -613,7 +613,7 @@ class AISK_Chat_Handler {
         // @codingStandardsIgnoreStart
         global $wpdb;
         $result = $wpdb->insert(
-            $wpdb->prefix . 'aisk_inquiries',
+            $wpdb->prefix . 'wishcart_inquiries',
             [
                 'conversation_id' => $params['conversation_id'],
                 'order_number' => $params['order_number'],
@@ -632,8 +632,8 @@ class AISK_Chat_Handler {
         }
 
         // Clear any related caches
-        wp_cache_delete('aisk_inquiries_' . md5(serialize(['conversation_id' => $params['conversation_id']])), 'aisk_inquiries');
-        wp_cache_delete('aisk_inquiries_total_' . md5(serialize([])), 'aisk_inquiries');
+        wp_cache_delete('wishcart_inquiries_' . md5(serialize(['conversation_id' => $params['conversation_id']])), 'wishcart_inquiries');
+        wp_cache_delete('wishcart_inquiries_total_' . md5(serialize([])), 'wishcart_inquiries');
 
         return [
             'success' => true,
@@ -708,35 +708,35 @@ class AISK_Chat_Handler {
         }
 
         // Generate a unique cache key based on query parameters
-        $cache_key = 'aisk_inquiries_' . md5(serialize([$where_sql, $where_values, $per_page, $offset]));
+        $cache_key = 'wishcart_inquiries_' . md5(serialize([$where_sql, $where_values, $per_page, $offset]));
 
         // Try to get cached results
-        $inquiries = wp_cache_get($cache_key, 'aisk_inquiries');
+        $inquiries = wp_cache_get($cache_key, 'wishcart_inquiries');
         if (false === $inquiries) {
             // @codingStandardsIgnoreStart
             $inquiries = $wpdb->get_results($wpdb->prepare(
-                "SELECT * FROM {$wpdb->prefix}aisk_inquiries
+                "SELECT * FROM {$wpdb->prefix}wishcart_inquiries
                 $where_sql
                 ORDER BY created_at DESC
                 LIMIT %d OFFSET %d",
                 array_merge($where_values, [$per_page, $offset])
             ));
             // @codingStandardsIgnoreEnd
-            wp_cache_set($cache_key, $inquiries, 'aisk_inquiries', 300); // Cache for 5 minutes
+            wp_cache_set($cache_key, $inquiries, 'wishcart_inquiries', 300); // Cache for 5 minutes
         }
 
         // Get total count for pagination
-        $total_cache_key = 'aisk_inquiries_total_' . md5(serialize([$where_sql, $where_values]));
-        $total = wp_cache_get($total_cache_key, 'aisk_inquiries');
+        $total_cache_key = 'wishcart_inquiries_total_' . md5(serialize([$where_sql, $where_values]));
+        $total = wp_cache_get($total_cache_key, 'wishcart_inquiries');
         if (false === $total) {
             // @codingStandardsIgnoreStart
             if (empty($where_values)) {
-                $total = $wpdb->get_var($wpdb->prepare("SELECT COUNT(*) FROM {$wpdb->prefix}aisk_inquiries"));
+                $total = $wpdb->get_var($wpdb->prepare("SELECT COUNT(*) FROM {$wpdb->prefix}wishcart_inquiries"));
             } else {
-                $total = $wpdb->get_var($wpdb->prepare("SELECT COUNT(*) FROM {$wpdb->prefix}aisk_inquiries %s", $where_sql));
+                $total = $wpdb->get_var($wpdb->prepare("SELECT COUNT(*) FROM {$wpdb->prefix}wishcart_inquiries %s", $where_sql));
             }
             // @codingStandardsIgnoreEnd
-            wp_cache_set($total_cache_key, $total, 'aisk_inquiries', 300); // Cache for 5 minutes
+            wp_cache_set($total_cache_key, $total, 'wishcart_inquiries', 300); // Cache for 5 minutes
         }
 
         // Convert created_at and updated_at to ISO 8601 with Z (UTC) for each inquiry
@@ -770,23 +770,23 @@ class AISK_Chat_Handler {
         $inquiry_id = $request->get_param('id');
 
         // Generate cache key
-        $cache_key = 'aisk_inquiry_details_' . $inquiry_id;
+        $cache_key = 'wishcart_inquiry_details_' . $inquiry_id;
         
         // Try to get cached inquiry
-        $inquiry = wp_cache_get($cache_key, 'aisk_inquiries');
+        $inquiry = wp_cache_get($cache_key, 'wishcart_inquiries');
         
         if (false === $inquiry) {
             // @codingStandardsIgnoreStart
             $inquiry = $wpdb->get_row(
                 $wpdb->prepare(
-                    "SELECT * FROM {$wpdb->prefix}aisk_inquiries WHERE id = %d",
+                    "SELECT * FROM {$wpdb->prefix}wishcart_inquiries WHERE id = %d",
                     $inquiry_id
                 )
             );
             // @codingStandardsIgnoreEnd
             
             if ($inquiry) {
-                wp_cache_set($cache_key, $inquiry, 'aisk_inquiries', 300); // Cache for 5 minutes
+                wp_cache_set($cache_key, $inquiry, 'wishcart_inquiries', 300); // Cache for 5 minutes
             }
         }
 
@@ -834,16 +834,16 @@ class AISK_Chat_Handler {
         $inquiry_id = $request->get_param('id');
 
         // Generate cache key
-        $cache_key = 'aisk_inquiry_notes_' . $inquiry_id;
+        $cache_key = 'wishcart_inquiry_notes_' . $inquiry_id;
         
         // Try to get cached notes
-        $notes = wp_cache_get($cache_key, 'aisk_inquiries');
+        $notes = wp_cache_get($cache_key, 'wishcart_inquiries');
         
         if (false === $notes) {
             // @codingStandardsIgnoreStart
             $notes = $wpdb->get_results(
                 $wpdb->prepare(
-                    "SELECT * FROM {$wpdb->prefix}aisk_inquiry_notes 
+                    "SELECT * FROM {$wpdb->prefix}wishcart_inquiry_notes 
                     WHERE inquiry_id = %d 
                     ORDER BY created_at DESC",
                     $inquiry_id
@@ -852,7 +852,7 @@ class AISK_Chat_Handler {
             // @codingStandardsIgnoreEnd
             
             if ($notes) {
-                wp_cache_set($cache_key, $notes, 'aisk_inquiries', 300); // Cache for 5 minutes
+                wp_cache_set($cache_key, $notes, 'wishcart_inquiries', 300); // Cache for 5 minutes
             }
         }
 
@@ -882,7 +882,7 @@ class AISK_Chat_Handler {
 
         // @codingStandardsIgnoreStart
         $result = $wpdb->insert(
-            $wpdb->prefix . 'aisk_inquiry_notes',
+            $wpdb->prefix . 'wishcart_inquiry_notes',
             [
                 'inquiry_id' => $inquiry_id,
                 'note' => $note,
@@ -903,8 +903,8 @@ class AISK_Chat_Handler {
         }
 
         // Clear related caches
-        wp_cache_delete('aisk_inquiry_notes_' . $inquiry_id, 'aisk_inquiries');
-        wp_cache_delete('aisk_inquiry_details_' . $inquiry_id, 'aisk_inquiries');
+        wp_cache_delete('wishcart_inquiry_notes_' . $inquiry_id, 'wishcart_inquiries');
+        wp_cache_delete('wishcart_inquiry_details_' . $inquiry_id, 'wishcart_inquiries');
 
         // Send email notification to customer
         $this->send_note_notification($inquiry_id, $note);
@@ -926,21 +926,21 @@ class AISK_Chat_Handler {
         global $wpdb;
 
         // Get inquiry details from cache or database
-        $cache_key = 'aisk_inquiry_details_' . $inquiry_id;
-        $inquiry = wp_cache_get($cache_key, 'aisk_inquiries');
+        $cache_key = 'wishcart_inquiry_details_' . $inquiry_id;
+        $inquiry = wp_cache_get($cache_key, 'wishcart_inquiries');
         
         if (false === $inquiry) {
             // @codingStandardsIgnoreStart
             $inquiry = $wpdb->get_row(
                 $wpdb->prepare(
-                    "SELECT * FROM {$wpdb->prefix}aisk_inquiries WHERE id = %d",
+                    "SELECT * FROM {$wpdb->prefix}wishcart_inquiries WHERE id = %d",
                     $inquiry_id
                 )
             );
             // @codingStandardsIgnoreEnd
             
             if ($inquiry) {
-                wp_cache_set($cache_key, $inquiry, 'aisk_inquiries', 300);
+                wp_cache_set($cache_key, $inquiry, 'wishcart_inquiries', 300);
             }
         }
 
@@ -973,14 +973,14 @@ class AISK_Chat_Handler {
         $new_status = $request->get_param('status');
 
         // Get current inquiry data from cache or database
-        $cache_key = 'aisk_inquiry_details_' . $inquiry_id;
-        $inquiry = wp_cache_get($cache_key, 'aisk_inquiries');
+        $cache_key = 'wishcart_inquiry_details_' . $inquiry_id;
+        $inquiry = wp_cache_get($cache_key, 'wishcart_inquiries');
         
         if (false === $inquiry) {
             // @codingStandardsIgnoreStart
             $inquiry = $wpdb->get_row(
                 $wpdb->prepare(
-                    "SELECT * FROM {$wpdb->prefix}aisk_inquiries WHERE id = %d",
+                    "SELECT * FROM {$wpdb->prefix}wishcart_inquiries WHERE id = %d",
                     $inquiry_id
                 )
             );
@@ -994,7 +994,7 @@ class AISK_Chat_Handler {
         // Update status
         // @codingStandardsIgnoreStart
         $result = $wpdb->update(
-            $wpdb->prefix . 'aisk_inquiries',
+            $wpdb->prefix . 'wishcart_inquiries',
             [
                 'status' => $new_status,
                 'updated_at' => gmdate('Y-m-d H:i:s'),
@@ -1010,8 +1010,8 @@ class AISK_Chat_Handler {
         }
 
         // Clear related caches
-        wp_cache_delete($cache_key, 'aisk_inquiries');
-        wp_cache_delete('aisk_inquiry_notes_' . $inquiry_id, 'aisk_inquiries');
+        wp_cache_delete($cache_key, 'wishcart_inquiries');
+        wp_cache_delete('wishcart_inquiry_notes_' . $inquiry_id, 'wishcart_inquiries');
 
         // Send email notification
         $this->send_status_notification($inquiry, $new_status);
@@ -1090,7 +1090,7 @@ class AISK_Chat_Handler {
             }
 
             // Add welcome message
-            // $settings = get_option('aisk_settings');
+            // $settings = get_option('wishcart_settings');
             // $welcome_message = isset($settings['general']['welcome_message']) 
             //     ? $settings['general']['welcome_message'] 
             //     : 'Hello! How can I assist you today?';
@@ -1115,12 +1115,12 @@ class AISK_Chat_Handler {
      */
     public function update_conversation_intents($conversation_id, $intents) {
         // Generate cache key
-        $cache_key = 'aisk_conversation_intents_' . $conversation_id;
+        $cache_key = 'wishcart_conversation_intents_' . $conversation_id;
         
         // @codingStandardsIgnoreStart
         global $wpdb;
         $result = $wpdb->update(
-            $wpdb->prefix . 'aisk_conversations',
+            $wpdb->prefix . 'wishcart_conversations',
             [
                 'intents' => json_encode($intents),
                 'updated_at' => gmdate('c'),
@@ -1131,8 +1131,8 @@ class AISK_Chat_Handler {
 
         if ($result !== false) {
             // Clear the cache after successful update
-            wp_cache_delete($cache_key, 'aisk_conversations');
-            wp_cache_delete('aisk_conversations_' . md5(serialize(['conversation_id' => $conversation_id])), 'aisk_conversations');
+            wp_cache_delete($cache_key, 'wishcart_conversations');
+            wp_cache_delete('wishcart_conversations_' . md5(serialize(['conversation_id' => $conversation_id])), 'wishcart_conversations');
         }
 
         return $result;
@@ -1153,7 +1153,7 @@ class AISK_Chat_Handler {
         $time_filter = sanitize_text_field($request->get_param('time_filter'));
 
         // Generate cache key based on request parameters
-        $cache_key = 'aisk_conversations_' . md5(serialize([
+        $cache_key = 'wishcart_conversations_' . md5(serialize([
             'page' => $page,
             'per_page' => $per_page,
             'location' => $location_filter,
@@ -1163,14 +1163,14 @@ class AISK_Chat_Handler {
         ]));
 
         // Try to get cached results
-        $cached_data = wp_cache_get($cache_key, 'aisk_conversations');
+        $cached_data = wp_cache_get($cache_key, 'wishcart_conversations');
         if (false !== $cached_data) {
             return $cached_data;
         }
 
         if (current_user_can('manage_options')) {
             // Admin query
-            $query = "SELECT * FROM {$wpdb->prefix}aisk_conversations WHERE 1=1";
+            $query = "SELECT * FROM {$wpdb->prefix}wishcart_conversations WHERE 1=1";
             $params = [];
 
             if ($location_filter !== 'all' && !empty($location_filter)) {
@@ -1192,7 +1192,7 @@ class AISK_Chat_Handler {
 
             $conversations = !empty($params) ? $wpdb->get_results($wpdb->prepare($query, ...$params)) : $wpdb->get_results($query);
 
-            $locations_query = "SELECT DISTINCT city FROM {$wpdb->prefix}aisk_conversations WHERE city IS NOT NULL AND city != '' ORDER BY city ASC";
+            $locations_query = "SELECT DISTINCT city FROM {$wpdb->prefix}wishcart_conversations WHERE city IS NOT NULL AND city != '' ORDER BY city ASC";
             $locations = $wpdb->get_col($locations_query);
             // @codingStandardsIgnoreEnd
 
@@ -1209,7 +1209,7 @@ class AISK_Chat_Handler {
             $ip_address = isset($_SERVER['REMOTE_ADDR']) ? sanitize_text_field(wp_unslash($_SERVER['REMOTE_ADDR'])) : '';
             $user_agent = isset($_SERVER['HTTP_USER_AGENT']) ? sanitize_text_field(wp_unslash($_SERVER['HTTP_USER_AGENT'])) : '';
             
-            $query = "SELECT * FROM {$wpdb->prefix}aisk_conversations WHERE ";
+            $query = "SELECT * FROM {$wpdb->prefix}wishcart_conversations WHERE ";
             $params = [];
             
             if ($user_id) {
@@ -1251,7 +1251,7 @@ class AISK_Chat_Handler {
         }
 
         // Cache the results for 5 minutes
-        wp_cache_set($cache_key, $result, 'aisk_conversations', 300);
+        wp_cache_set($cache_key, $result, 'wishcart_conversations', 300);
 
         return $result;
     }
@@ -1362,10 +1362,10 @@ class AISK_Chat_Handler {
 
     private function handle_product_search( $intent, $message, $content_type = '' ) {
         // Check if FluentCart is enabled
-        $settings = get_option('aisk_settings');
+        $settings = get_option('wishcart_settings');
         if (empty($settings['ai_config']['fluentcart_enabled'])) {
             return [
-                'message' => __("Product search is currently disabled. Please enable FluentCart integration in the settings.", 'aisk-ai-chat-for-fluentcart'),
+                'message' => __("Product search is currently disabled. Please enable FluentCart integration in the settings.", 'wish-cart'),
                 'products' => []
             ];
         }
@@ -1378,12 +1378,12 @@ class AISK_Chat_Handler {
             $default_message = sprintf(
                 /* translators: %s: product category or 'products' */
                 /* translators: %s: Content type (e.g., products, articles) */
-            __("I couldn't find any %s matching your request. Could you please try describing what you're looking for in a different way?", 'aisk-ai-chat-for-fluentcart'),
-                isset($intent['category']) ? $intent['category'] : __('products', 'aisk-ai-chat-for-fluentcart')
+            __("I couldn't find any %s matching your request. Could you please try describing what you're looking for in a different way?", 'wish-cart'),
+                isset($intent['category']) ? $intent['category'] : __('products', 'wish-cart')
             );
 
                     $message = isset($intent['responses']['not_found']) ? $intent['responses']['not_found'] : $default_message;
-        $formatted_message = AISK_Response_Formatter::format_response($message);
+        $formatted_message = WISHCART_Response_Formatter::format_response($message);
         
         return [
             'message' => $message,
@@ -1391,8 +1391,8 @@ class AISK_Chat_Handler {
         ];
         }
 
-        $message = isset($intent['responses']['found']) ? $intent['responses']['found'] : __('Awesome! Here are some products you might like:', 'aisk-ai-chat-for-fluentcart');
-        $formatted_message = AISK_Response_Formatter::format_response($message);
+        $message = isset($intent['responses']['found']) ? $intent['responses']['found'] : __('Awesome! Here are some products you might like:', 'wish-cart');
+        $formatted_message = WISHCART_Response_Formatter::format_response($message);
         
         return [
             'message' => $message,
@@ -1442,7 +1442,7 @@ class AISK_Chat_Handler {
         ];
 
         $order_message = $this->order_handler->format_order_status_response($response);
-        $formatted_order_message = AISK_Response_Formatter::format_response($order_message);
+        $formatted_order_message = WISHCART_Response_Formatter::format_response($order_message);
         
         return [
             'message' => $formatted_order_message,
@@ -1537,8 +1537,8 @@ class AISK_Chat_Handler {
     private function get_ai_response( $message, $conversation_id, $content_type = '', $platform = 'web' ) {
         try {
             // Check for cached response for simple queries (no conversation history needed)
-            $cache_key = 'aisk_ai_response_' . md5($message . $platform);
-            $cached_response = wp_cache_get($cache_key, 'aisk_ai_responses');
+            $cache_key = 'wishcart_ai_response_' . md5($message . $platform);
+            $cached_response = wp_cache_get($cache_key, 'wishcart_ai_responses');
             
             // Only use cache for simple queries without conversation context
             $history = $this->chat_storage->get_recent_message_history($conversation_id, 5);
@@ -1625,7 +1625,7 @@ class AISK_Chat_Handler {
             // Call OpenAI API with adjusted parameters
             $request_id = uniqid('chat_', true);
             $start_time = microtime(true);
-            $response = wp_remote_post(AISK_OPENAI_API_URL . '/chat/completions', [
+            $response = wp_remote_post(WISHCART_OPENAI_API_URL . '/chat/completions', [
                 'headers' => [
                     'Authorization' => 'Bearer ' . $this->openai_key,
                     'Content-Type' => 'application/json',
@@ -1707,7 +1707,7 @@ class AISK_Chat_Handler {
             }
 
             // Format the response using the Response Formatter
-            $formatted_response = AISK_Response_Formatter::format_response($ai_response);
+            $formatted_response = WISHCART_Response_Formatter::format_response($ai_response);
 
             // Prepare response based on platform
             $response_data = [];
@@ -1725,7 +1725,7 @@ class AISK_Chat_Handler {
 
             // Cache simple responses (without conversation history) for faster future responses
             if (empty($history)) {
-                wp_cache_set($cache_key, $response_data, 'aisk_ai_responses', 300); // Cache for 5 minutes
+                wp_cache_set($cache_key, $response_data, 'wishcart_ai_responses', 300); // Cache for 5 minutes
             }
 
             return $response_data;
@@ -1763,49 +1763,49 @@ class AISK_Chat_Handler {
         foreach ($grouped_content as $type => $contents) {
             switch ($type) {
                 case 'product':
-                    $context .= esc_html__('Product Information:', 'aisk-ai-chat-for-fluentcart') . "\n";
+                    $context .= esc_html__('Product Information:', 'wish-cart') . "\n";
                     foreach ($contents as $content) {
                         $context .= "- " . esc_html($content['content_chunk']) . "\n";
                     }
                     break;
                 case 'order':
-                    $context .= esc_html__('Order Information:', 'aisk-ai-chat-for-fluentcart') . "\n";
+                    $context .= esc_html__('Order Information:', 'wish-cart') . "\n";
                     foreach ($contents as $content) {
                         $context .= "- " . esc_html($content['content_chunk']) . "\n";
                     }
                     break;
                 case 'pdf':
-                    $context .= esc_html__('Document Information:', 'aisk-ai-chat-for-fluentcart') . "\n";
+                    $context .= esc_html__('Document Information:', 'wish-cart') . "\n";
                     foreach ($contents as $content) {
                         $context .= "- " . esc_html($content['content_chunk']) . "\n";
                     }
                     break;
                 case 'external_url':
-                    $context .= esc_html__('External Resource Information:', 'aisk-ai-chat-for-fluentcart') . "\n";
+                    $context .= esc_html__('External Resource Information:', 'wish-cart') . "\n";
                     foreach ($contents as $content) {
                         $context .= "- " . esc_html($content['content_chunk']) . "\n";
                     }
                     break;
                 case 'post':
-                    $context .= esc_html__('Blog Post Information:', 'aisk-ai-chat-for-fluentcart') . "\n";
+                    $context .= esc_html__('Blog Post Information:', 'wish-cart') . "\n";
                     foreach ($contents as $content) {
                         $context .= "- " . esc_html($content['content_chunk']) . "\n";
                     }
                     break;
                 case 'page':
-                    $context .= esc_html__('Page Information:', 'aisk-ai-chat-for-fluentcart') . "\n";
+                    $context .= esc_html__('Page Information:', 'wish-cart') . "\n";
                     foreach ($contents as $content) {
                         $context .= "- " . esc_html($content['content_chunk']) . "\n";
                     }
                     break;
                 case 'settings':
-                    $context .= esc_html__('Store Information:', 'aisk-ai-chat-for-fluentcart') . "\n";
+                    $context .= esc_html__('Store Information:', 'wish-cart') . "\n";
                     foreach ($contents as $content) {
                         $context .= "- " . esc_html($content['content_chunk']) . "\n";
                     }
                     break;
                 default:
-                    $context .= esc_html__('Additional Information:', 'aisk-ai-chat-for-fluentcart') . "\n";
+                    $context .= esc_html__('Additional Information:', 'wish-cart') . "\n";
                     foreach ($contents as $content) {
                         $context .= "- " . esc_html($content['content_chunk']) . "\n";
                     }
@@ -1828,7 +1828,7 @@ class AISK_Chat_Handler {
         $message_history = $this->chat_storage->get_recent_message_history($conversation_id);
         
         // Create a mock request object
-        $request = new WP_REST_Request('POST', '/aisk/v1/classify-intent');
+        $request = new WP_REST_Request('POST', '/wishcart/v1/classify-intent');
         $request->set_param('message', $message);
         $request->set_param('conversation_history', $message_history);
         
@@ -1953,7 +1953,7 @@ class AISK_Chat_Handler {
     
             $clf_request_id = uniqid('clf_', true);
             $clf_start = microtime(true);
-            $response = wp_remote_post(AISK_OPENAI_API_URL . '/chat/completions', [
+            $response = wp_remote_post(WISHCART_OPENAI_API_URL . '/chat/completions', [
                 'headers' => [
                     'Authorization' => 'Bearer ' . $this->openai_key,
                     'Content-Type' => 'application/json'
@@ -2318,4 +2318,4 @@ IMPORTANT: Always include response_type in your JSON response. This field is cru
     }
 }
 
-new AISK_Chat_Handler();
+new WISHCART_Chat_Handler();

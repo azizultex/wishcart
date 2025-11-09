@@ -1,12 +1,12 @@
 {
-    "name": "aisk/aisk-ai-chat-for-fluentcart",
+    "name": "wishcart/wish-cart",
     "description": "AI chatbot for WordPress with messaging platform integration",
     "type": "wordpress-plugin",
     "license": "GPL-2.0-or-later",
     "authors": [
         {
-            "name": "Aisk Team",
-            "email": "support@aisk.chat"
+            "name": "WishCart Team",
+            "email": "support@wishcart.chat"
         }
     ],
     "require": {

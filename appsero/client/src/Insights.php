@@ -1,6 +1,6 @@
 <?php
 
-namespace Aisk_Ai_Chat\Appsero;
+namespace WishCart_Ai_Chat\Appsero;
 
 /**
  * Appsero Insights
@@ -34,7 +34,7 @@ class Insights {
     protected $extra_data = [];
 
     /**
-     * Aisk_Ai_Chat\AppSero\Client
+     * WishCart_Ai_Chat\AppSero\Client
      *
      * @var object
      */
@@ -58,7 +58,7 @@ class Insights {
             $client = new Client($client, $name, $file);
         }
 
-        if ( is_object($client) && is_a($client, 'Aisk_Ai_Chat\Appsero\Client') ) {
+        if ( is_object($client) && is_a($client, 'WishCart_Ai_Chat\Appsero\Client') ) {
             $this->client = $client;
         }
     }
@@ -815,7 +815,7 @@ class Insights {
         }
 
         if ( ! current_user_can('manage_options') ) {
-            wp_send_json_error('You are not allowed for this aisk');
+            wp_send_json_error('You are not allowed for this wishcart');
         }
 
         $data                = $this->get_tracking_data();

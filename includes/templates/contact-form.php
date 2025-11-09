@@ -4,13 +4,13 @@ if ( ! defined('ABSPATH') ) {
 }
 
 /**
- * Template Name: Aisk Contact Form
+ * Template Name: WishCart Contact Form
  *
  * @category Template
- * @package  Aisk
- * @author   Aisk Team <support@aisk.chat>
+ * @package  WishCart
+ * @author   WishCart Team <support@wishcart.chat>
  * @license  GPL-2.0+ https://www.gnu.org/licenses/gpl-2.0.html
- * @link     https://aisk.chat
+ * @link     https://wishcart.chat
  *
  * @since    1.0.0
  * @requires PHP 7.4
@@ -21,13 +21,13 @@ add_filter('show_admin_bar', '__return_false');
 remove_action('wp_head', '_admin_bar_bump_cb');
 
 // Enqueue contact form styles and scripts
-function aisk_contact_form_enqueue_assets() {
+function wishcart_contact_form_enqueue_assets() {
     // Register and enqueue styles
     wp_register_style(
-        'aisk-contact-form-styles',
+        'wishcart-contact-form-styles',
         false,
         array(),
-        defined('AISK_VERSION') ? AISK_VERSION : '1.0.0'
+        defined('WISHCART_VERSION') ? WISHCART_VERSION : '1.0.0'
     );
 
     $custom_css = '
@@ -231,15 +231,15 @@ function aisk_contact_form_enqueue_assets() {
         }
     ';
 
-    wp_add_inline_style('aisk-contact-form-styles', wp_strip_all_tags($custom_css));
-    wp_enqueue_style('aisk-contact-form-styles');
+    wp_add_inline_style('wishcart-contact-form-styles', wp_strip_all_tags($custom_css));
+    wp_enqueue_style('wishcart-contact-form-styles');
 
     // Register and enqueue scripts
     wp_register_script(
-        'aisk-contact-form-scripts',
+        'wishcart-contact-form-scripts',
         false,
         [],
-        AISK_VERSION,
+        WISHCART_VERSION,
         true
     );
 
@@ -319,10 +319,10 @@ function aisk_contact_form_enqueue_assets() {
         });
     ";
 
-    wp_add_inline_script('aisk-contact-form-scripts', esc_js($custom_js));
-    wp_enqueue_script('aisk-contact-form-scripts');
+    wp_add_inline_script('wishcart-contact-form-scripts', esc_js($custom_js));
+    wp_enqueue_script('wishcart-contact-form-scripts');
 }
-add_action('wp_enqueue_scripts', 'aisk_contact_form_enqueue_assets');
+add_action('wp_enqueue_scripts', 'wishcart_contact_form_enqueue_assets');
 
 ?>
 <!DOCTYPE html>
@@ -335,7 +335,7 @@ add_action('wp_enqueue_scripts', 'aisk_contact_form_enqueue_assets');
 <body <?php body_class(); ?>>
 <?php
 // Get and render the shortcode
-$settings = get_option('aisk_settings', []);
+$settings = get_option('wishcart_settings', []);
 $shortcode = $settings['integrations']['contact_form']['shortcode'];
 if ($shortcode) {
     echo do_shortcode($shortcode);

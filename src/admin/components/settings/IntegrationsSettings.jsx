@@ -22,7 +22,7 @@ const IntegrationsSettings = ({ settings, updateSettings }) => {
         
         const whatsappPattern = /^whatsapp:\+\d{10,15}$/;
         if (!whatsappPattern.test(number)) {
-            setWhatsappNumberError(__('WhatsApp number must be in format: whatsapp:+1234567890', 'aisk-ai-chat-for-fluentcart'));
+            setWhatsappNumberError(__('WhatsApp number must be in format: whatsapp:+1234567890', 'wish-cart'));
             return false;
         }
         
@@ -103,15 +103,15 @@ const IntegrationsSettings = ({ settings, updateSettings }) => {
             <TabsList className="mb-4">
                 <TabsTrigger value="whatsapp" className="flex items-center gap-2">
                     <MessageSquare className="w-4 h-4" />
-                    {__('WhatsApp', 'aisk-ai-chat-for-fluentcart')}
+                    {__('WhatsApp', 'wish-cart')}
                 </TabsTrigger>
                 <TabsTrigger value="telegram" className="flex items-center gap-2">
                     <Send className="w-4 h-4" />
-                    {__('Telegram', 'aisk-ai-chat-for-fluentcart')}
+                    {__('Telegram', 'wish-cart')}
                 </TabsTrigger>
                 <TabsTrigger value="contact_form" className="flex items-center gap-2">
                     <Mail className="w-4 h-4" />
-                    {__('Contact Form', 'aisk-ai-chat-for-fluentcart')}
+                    {__('Contact Form', 'wish-cart')}
                 </TabsTrigger>
             </TabsList>
 
@@ -119,14 +119,14 @@ const IntegrationsSettings = ({ settings, updateSettings }) => {
             <TabsContent value="whatsapp">
                 <Card>
                     <CardHeader>
-                        <CardTitle>{__('WhatsApp Integration', 'aisk-ai-chat-for-fluentcart')}</CardTitle>
-                        <CardDescription>{__('Configure WhatsApp messaging integration', 'aisk-ai-chat-for-fluentcart')}</CardDescription>
+                        <CardTitle>{__('WhatsApp Integration', 'wish-cart')}</CardTitle>
+                        <CardDescription>{__('Configure WhatsApp messaging integration', 'wish-cart')}</CardDescription>
                     </CardHeader>
                     <CardContent className="space-y-6">
                         <div className="flex items-center justify-between">
                             <div className="space-y-0.5">
-                                <Label>{__('Enable WhatsApp', 'aisk-ai-chat-for-fluentcart')}</Label>
-                                <p className="text-sm text-gray-500">{__('Activate WhatsApp integration', 'aisk-ai-chat-for-fluentcart')}</p>
+                                <Label>{__('Enable WhatsApp', 'wish-cart')}</Label>
+                                <p className="text-sm text-gray-500">{__('Activate WhatsApp integration', 'wish-cart')}</p>
                                 <Switch
                                     checked={settings.integrations.whatsapp.enabled}
                                     onCheckedChange={(checked) => updateIntegrationSettings('whatsapp', 'enabled', checked)}
@@ -135,7 +135,7 @@ const IntegrationsSettings = ({ settings, updateSettings }) => {
                         </div>
 
                         <div className="space-y-2">
-                            <Label htmlFor="account_sid">{__('Twilio Account SID', 'aisk-ai-chat-for-fluentcart')}</Label>
+                            <Label htmlFor="account_sid">{__('Twilio Account SID', 'wish-cart')}</Label>
                             <Input
                                 id="account_sid"
                                 value={settings.integrations.whatsapp.account_sid}
@@ -143,7 +143,7 @@ const IntegrationsSettings = ({ settings, updateSettings }) => {
                                 type="password"
                             />
                             <p className="text-xs text-muted-foreground">
-                                {__('Get your SID from', 'aisk-ai-chat-for-fluentcart')}{" "}
+                                {__('Get your SID from', 'wish-cart')}{" "}
                                 <a
                                     href="https://www.twilio.com/try-twilio"
                                     target="_blank"
@@ -156,7 +156,7 @@ const IntegrationsSettings = ({ settings, updateSettings }) => {
                         </div>
 
                         <div className="space-y-2">
-                            <Label htmlFor="auth_token">{__('Twilio Auth Token', 'aisk-ai-chat-for-fluentcart')}</Label>
+                            <Label htmlFor="auth_token">{__('Twilio Auth Token', 'wish-cart')}</Label>
                             <Input
                                 id="auth_token"
                                 value={settings.integrations.whatsapp.auth_token}
@@ -164,7 +164,7 @@ const IntegrationsSettings = ({ settings, updateSettings }) => {
                                 type="password"
                             />
                             <p className="text-xs text-muted-foreground">
-                                {__('Get your auth token from', 'aisk-ai-chat-for-fluentcart')}{" "}
+                                {__('Get your auth token from', 'wish-cart')}{" "}
                                 <a
                                     href="https://www.twilio.com/try-twilio"
                                     target="_blank"
@@ -177,16 +177,16 @@ const IntegrationsSettings = ({ settings, updateSettings }) => {
                         </div>
 
                         <div className="space-y-2">
-                            <Label htmlFor="phone_number">{__('WhatsApp Number', 'aisk-ai-chat-for-fluentcart')}</Label>
+                            <Label htmlFor="phone_number">{__('WhatsApp Number', 'wish-cart')}</Label>
                             <Input
                                 id="phone_number"
                                 value={settings.integrations.whatsapp.phone_number}
                                 onChange={handleWhatsappNumberChange}
-                                placeholder={__('whatsapp:+1234567890', 'aisk-ai-chat-for-fluentcart')}
+                                placeholder={__('whatsapp:+1234567890', 'wish-cart')}
                                 className={whatsappNumberError ? 'border-red-500 focus:border-red-500' : ''}
                             />
                             <p className="text-xs text-muted-foreground">
-                                {__('Format: "whatsapp:+1234567890"', 'aisk-ai-chat-for-fluentcart')}
+                                {__('Format: "whatsapp:+1234567890"', 'wish-cart')}
                             </p>
                             {whatsappNumberError && (
                                 <div className="flex items-center gap-2 text-sm text-red-600">
@@ -197,30 +197,30 @@ const IntegrationsSettings = ({ settings, updateSettings }) => {
                         </div>
 
                         <div className="space-y-2">
-                            <Label htmlFor="whatsapp_welcome">{__('Welcome Message', 'aisk-ai-chat-for-fluentcart')}</Label>
+                            <Label htmlFor="whatsapp_welcome">{__('Welcome Message', 'wish-cart')}</Label>
                             <Textarea
                                 id="whatsapp_welcome"
                                 value={settings.integrations.whatsapp.welcome_message}
                                 onChange={(e) => updateIntegrationSettings('whatsapp', 'welcome_message', e.target.value)}
-                                placeholder={__('Enter welcome message', 'aisk-ai-chat-for-fluentcart')}
+                                placeholder={__('Enter welcome message', 'wish-cart')}
                                 rows={3}
                             />
                         </div>
 
                         <div className="space-y-2">
-                            <Label>{__('Webhook URL', 'aisk-ai-chat-for-fluentcart')}</Label>
+                            <Label>{__('Webhook URL', 'wish-cart')}</Label>
                             <div className="p-2 bg-gray-100 rounded-md flex items-center justify-between">
-                                <code className="text-sm">{window.location.origin}/wp-json/aisk/v1/whatsapp-webhook</code>
-                                {/* <code className="text-sm">https://ff13-103-31-154-235.ngrok-free.app/wp-json/aisk/v1/whatsapp-webhook</code> */}
+                                <code className="text-sm">{window.location.origin}/wp-json/wishcart/v1/whatsapp-webhook</code>
+                                {/* <code className="text-sm">https://ff13-103-31-154-235.ngrok-free.app/wp-json/wishcart/v1/whatsapp-webhook</code> */}
                                 <Button
                                     variant="ghost"
                                     size="sm"
-                                    onClick={() => copyToClipboard(`${window.location.origin}/wp-json/aisk/v1/whatsapp-webhook`, 'whatsapp')}
+                                    onClick={() => copyToClipboard(`${window.location.origin}/wp-json/wishcart/v1/whatsapp-webhook`, 'whatsapp')}
                                 >
                                     {copiedWhatsapp ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
                                 </Button>
                             </div>
-                            <p className="text-sm text-gray-500">{__('Set this as your Twilio WhatsApp webhook URL', 'aisk-ai-chat-for-fluentcart')}</p>
+                            <p className="text-sm text-gray-500">{__('Set this as your Twilio WhatsApp webhook URL', 'wish-cart')}</p>
                         </div>
 
                         {/* <div className="flex items-center space-x-2">
@@ -229,7 +229,7 @@ const IntegrationsSettings = ({ settings, updateSettings }) => {
                                 checked={settings.integrations.whatsapp.enable_template_messages}
                                 onCheckedChange={(checked) => updateIntegrationSettings('whatsapp', 'enable_template_messages', checked)}
                             />
-                            <Label htmlFor="template_messages">{__('Enable template messages', 'aisk-ai-chat-for-fluentcart')}</Label>
+                            <Label htmlFor="template_messages">{__('Enable template messages', 'wish-cart')}</Label>
                         </div> */}
                     </CardContent>
                 </Card>
@@ -239,14 +239,14 @@ const IntegrationsSettings = ({ settings, updateSettings }) => {
             <TabsContent value="telegram">
                 <Card>
                     <CardHeader>
-                        <CardTitle>{__('Telegram Integration', 'aisk-ai-chat-for-fluentcart')}</CardTitle>
-                        <CardDescription>{__('Configure Telegram bot integration', 'aisk-ai-chat-for-fluentcart')}</CardDescription>
+                        <CardTitle>{__('Telegram Integration', 'wish-cart')}</CardTitle>
+                        <CardDescription>{__('Configure Telegram bot integration', 'wish-cart')}</CardDescription>
                     </CardHeader>
                     <CardContent className="space-y-6">
                         <div className="flex items-center justify-between">
                             <div className="space-y-0.5">
-                                <Label>{__('Enable Telegram', 'aisk-ai-chat-for-fluentcart')}</Label>
-                                <p className="text-sm text-gray-500">{__('Activate Telegram integration', 'aisk-ai-chat-for-fluentcart')}</p>
+                                <Label>{__('Enable Telegram', 'wish-cart')}</Label>
+                                <p className="text-sm text-gray-500">{__('Activate Telegram integration', 'wish-cart')}</p>
                                 <Switch
                                     checked={settings.integrations.telegram.enabled}
                                     onCheckedChange={(checked) => updateIntegrationSettings('telegram', 'enabled', checked)}
@@ -255,61 +255,61 @@ const IntegrationsSettings = ({ settings, updateSettings }) => {
                         </div>
 
                         <div className="space-y-2">
-                            <Label htmlFor="bot_token">{__('Bot Token', 'aisk-ai-chat-for-fluentcart')}</Label>
+                            <Label htmlFor="bot_token">{__('Bot Token', 'wish-cart')}</Label>
                             <Input
                                 id="bot_token"
                                 value={settings.integrations.telegram.bot_token}
                                 onChange={(e) => updateIntegrationSettings('telegram', 'bot_token', e.target.value)}
                                 type="password"
                             />
-                            <p className="text-sm text-gray-500">{__('Enter the bot token provided by @BotFather', 'aisk-ai-chat-for-fluentcart')}</p>
+                            <p className="text-sm text-gray-500">{__('Enter the bot token provided by @BotFather', 'wish-cart')}</p>
                         </div>
 
                         <div className="space-y-2">
-                            <Label htmlFor="bot_username">{__('Bot Username', 'aisk-ai-chat-for-fluentcart')}</Label>
+                            <Label htmlFor="bot_username">{__('Bot Username', 'wish-cart')}</Label>
                             <Input
                                 id="bot_username"
                                 value={settings.integrations.telegram.bot_username}
                                 onChange={(e) => updateIntegrationSettings('telegram', 'bot_username', e.target.value)}
-                                placeholder={__('@YourBotUsername', 'aisk-ai-chat-for-fluentcart')}
+                                placeholder={__('@YourBotUsername', 'wish-cart')}
                             />
                         </div>
 
                         <div className="space-y-2">
-                            <Label htmlFor="telegram_welcome">{__('Welcome Message', 'aisk-ai-chat-for-fluentcart')}</Label>
+                            <Label htmlFor="telegram_welcome">{__('Welcome Message', 'wish-cart')}</Label>
                             <Textarea
                                 id="telegram_welcome"
                                 value={settings.integrations.telegram.welcome_message}
                                 onChange={(e) => updateIntegrationSettings('telegram', 'welcome_message', e.target.value)}
-                                placeholder={__('Enter welcome message', 'aisk-ai-chat-for-fluentcart')}
+                                placeholder={__('Enter welcome message', 'wish-cart')}
                                 rows={3}
                             />
                         </div>
 
                         <div className="space-y-2">
-                            <Label>{__('Webhook URL', 'aisk-ai-chat-for-fluentcart')}</Label>
+                            <Label>{__('Webhook URL', 'wish-cart')}</Label>
                             <div className="p-2 bg-gray-100 rounded-md flex items-center justify-between overflow-x-auto">
                                 <code className="text-sm whitespace-nowrap">
-                                    https://api.telegram.org/bot%3CTOKEN%3E/setWebhook?url={window.location.origin}/wp-json/aisk/v1/telegram-webhook
+                                    https://api.telegram.org/bot%3CTOKEN%3E/setWebhook?url={window.location.origin}/wp-json/wishcart/v1/telegram-webhook
                                 </code>
                                 <div className="flex gap-2">
                                     <Button
                                         variant="ghost"
                                         size="sm"
-                                        onClick={() => copyToClipboard(`https://api.telegram.org/bot${settings.integrations.telegram.bot_token || '%3CTOKEN%3E'}/setWebhook?url=${window.location.origin}/wp-json/aisk/v1/telegram-webhook`, 'telegram')}
+                                        onClick={() => copyToClipboard(`https://api.telegram.org/bot${settings.integrations.telegram.bot_token || '%3CTOKEN%3E'}/setWebhook?url=${window.location.origin}/wp-json/wishcart/v1/telegram-webhook`, 'telegram')}
                                     >
                                         {copiedTelegram ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
                                     </Button>
                                     <Button
                                         variant="ghost"
                                         size="sm"
-                                        onClick={() => window.open(`https://api.telegram.org/bot${settings.integrations.telegram.bot_token || '%3CTOKEN%3E'}/setWebhook?url=${window.location.origin}/wp-json/aisk/v1/telegram-webhook`, '_blank')}
+                                        onClick={() => window.open(`https://api.telegram.org/bot${settings.integrations.telegram.bot_token || '%3CTOKEN%3E'}/setWebhook?url=${window.location.origin}/wp-json/wishcart/v1/telegram-webhook`, '_blank')}
                                     >
                                         <ExternalLink className="h-4 w-4" />
                                     </Button>
                                 </div>
                             </div>
-                            <p className="text-sm text-gray-500">{__('Visit this URL in your browser to set up the webhook', 'aisk-ai-chat-for-fluentcart')}</p>
+                            <p className="text-sm text-gray-500">{__('Visit this URL in your browser to set up the webhook', 'wish-cart')}</p>
                         </div>
                     </CardContent>
                 </Card>
@@ -319,14 +319,14 @@ const IntegrationsSettings = ({ settings, updateSettings }) => {
             <TabsContent value="contact_form">
                 <Card>
                     <CardHeader>
-                        <CardTitle>{__('Contact Form Integration', 'aisk-ai-chat-for-fluentcart')}</CardTitle>
-                        <CardDescription>{__('Configure contact form integration', 'aisk-ai-chat-for-fluentcart')}</CardDescription>
+                        <CardTitle>{__('Contact Form Integration', 'wish-cart')}</CardTitle>
+                        <CardDescription>{__('Configure contact form integration', 'wish-cart')}</CardDescription>
                     </CardHeader>
                     <CardContent className="space-y-6">
                         <div className="flex items-center justify-between">
                             <div className="space-y-0.5">
-                                <Label>{__('Enable Contact Form', 'aisk-ai-chat-for-fluentcart')}</Label>
-                                <p className="text-sm text-gray-500">{__('Activate contact form integration', 'aisk-ai-chat-for-fluentcart')}</p>
+                                <Label>{__('Enable Contact Form', 'wish-cart')}</Label>
+                                <p className="text-sm text-gray-500">{__('Activate contact form integration', 'wish-cart')}</p>
                                 <Switch
                                     checked={settings.integrations.contact_form.enabled}
                                     onCheckedChange={(checked) => updateIntegrationSettings('contact_form', 'enabled', checked)}
@@ -335,14 +335,14 @@ const IntegrationsSettings = ({ settings, updateSettings }) => {
                         </div>
 
                         <div className="space-y-2">
-                            <Label htmlFor="shortcode">{__('Form Shortcode', 'aisk-ai-chat-for-fluentcart')}</Label>
+                            <Label htmlFor="shortcode">{__('Form Shortcode', 'wish-cart')}</Label>
                             <Input
                                 id="shortcode"
                                 value={settings.integrations.contact_form.shortcode}
                                 onChange={(e) => updateIntegrationSettings('contact_form', 'shortcode', e.target.value)}
-                                placeholder={__('[contact-form-7 id=\'\']', 'aisk-ai-chat-for-fluentcart')}
+                                placeholder={__('[contact-form-7 id=\'\']', 'wish-cart')}
                             />
-                            <p className="text-sm text-gray-500">{__('Enter your contact form shortcode', 'aisk-ai-chat-for-fluentcart')}</p>
+                            <p className="text-sm text-gray-500">{__('Enter your contact form shortcode', 'wish-cart')}</p>
                         </div>
                     </CardContent>
                 </Card>

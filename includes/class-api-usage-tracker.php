@@ -6,21 +6,21 @@ if ( ! defined( 'ABSPATH' ) ) exit;
  *
  * @category WordPress
  * @package  AISK
- * @author   Aisk Team <support@aisk.chat>
+ * @author   WishCart Team <support@wishcart.chat>
  * @license  GPL-2.0+ https://www.gnu.org/licenses/gpl-2.0.html
- * @link     https://aisk.chat
+ * @link     https://wishcart.chat
  */
 
 /**
- * AISK_API_Usage_Tracker Class
+ * WISHCART_API_Usage_Tracker Class
  *
  * @category WordPress
  * @package  AISK
- * @author   Aisk Team <support@aisk.chat>
+ * @author   WishCart Team <support@wishcart.chat>
  * @license  GPL-2.0+ https://www.gnu.org/licenses/gpl-2.0.html
- * @link     https://aisk.chat
+ * @link     https://wishcart.chat
  */
-class AISK_API_Usage_Tracker {
+class WISHCART_API_Usage_Tracker {
 
     private static $instance = null;
     private $database;
@@ -30,7 +30,7 @@ class AISK_API_Usage_Tracker {
      *
      * @since 1.0.0
      *
-     * @return AISK_API_Usage_Tracker Instance of the class
+     * @return WISHCART_API_Usage_Tracker Instance of the class
      */
     public static function get_instance() {
         if ( null === self::$instance ) {
@@ -43,7 +43,7 @@ class AISK_API_Usage_Tracker {
      * Constructor
      */
     private function __construct() {
-        $this->database = new AISK_Database();
+        $this->database = new WISHCART_Database();
     }
 
     /**

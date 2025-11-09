@@ -183,7 +183,7 @@ const ChatAdminDashboard = () => {
     const columns = [
         {
             field: 'id',
-            headerName: __('ID', 'aisk-ai-chat-for-fluentcart'),
+            headerName: __('ID', 'wish-cart'),
             width: 100,
             renderCell: (params) => (
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
@@ -194,14 +194,14 @@ const ChatAdminDashboard = () => {
         },
         {
             field: 'location',
-            headerName: __('Location', 'aisk-ai-chat-for-fluentcart'),
+            headerName: __('Location', 'wish-cart'),
             width: 200,
             renderCell: (params) => (
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                     <MapPin size={16} />
                     <Stack>
                         <Typography variant="body2">
-                            {params.row.city || __('Unknown City', 'aisk-ai-chat-for-fluentcart')}
+                            {params.row.city || __('Unknown City', 'wish-cart')}
                             {params.row.country && `, ${params.row.country}`}
                         </Typography>
                         {params.row.ip_address && (
@@ -216,7 +216,7 @@ const ChatAdminDashboard = () => {
         },
         {
             field: 'intents',
-            headerName: __('Intents', 'aisk-ai-chat-for-fluentcart'),
+            headerName: __('Intents', 'wish-cart'),
             width: 200,
             renderCell: (params) => {
                 let intents = [];
@@ -239,12 +239,12 @@ const ChatAdminDashboard = () => {
         },
         {
             field: 'user_info',
-            headerName: __('User Info', 'aisk-ai-chat-for-fluentcart'),
+            headerName: __('User Info', 'wish-cart'),
             width: 250,
             renderCell: (params) => (
                 <Stack>
                     <Typography variant="body2">
-                        {params.row.user_name || __('Anonymous', 'aisk-ai-chat-for-fluentcart')}
+                        {params.row.user_name || __('Anonymous', 'wish-cart')}
                     </Typography>
                     {params.row.user_email && (
                         <Typography variant="caption" color="textSecondary">
@@ -261,7 +261,7 @@ const ChatAdminDashboard = () => {
         },
         {
             field: 'page_url',
-            headerName: __('Source Page', 'aisk-ai-chat-for-fluentcart'),
+            headerName: __('Source Page', 'wish-cart'),
             width: 200,
             renderCell: (params) => (
                 <Tooltip title={params.row.page_url || ''}>
@@ -273,7 +273,7 @@ const ChatAdminDashboard = () => {
         },
         {
             field: 'created_at',
-            headerName: __('Date & Time', 'aisk-ai-chat-for-fluentcart'),
+            headerName: __('Date & Time', 'wish-cart'),
             width: 200,
             valueFormatter: (params) => {
                 // Parse the UTC timestamp from the database (stored in UTC)
@@ -303,11 +303,11 @@ const ChatAdminDashboard = () => {
 
                 // If date is today
                 if (utcDate.toDateString() === today.toDateString()) {
-                    return __('Today', 'aisk-ai-chat-for-fluentcart') + `, ${time}`;
+                    return __('Today', 'wish-cart') + `, ${time}`;
                 }
                 // If date is yesterday
                 if (utcDate.toDateString() === yesterday.toDateString()) {
-                    return __('Yesterday', 'aisk-ai-chat-for-fluentcart') + `, ${time}`;
+                    return __('Yesterday', 'wish-cart') + `, ${time}`;
                 }
                 // For other dates
                 return utcDate.toLocaleDateString(undefined, {
@@ -319,7 +319,7 @@ const ChatAdminDashboard = () => {
         },
         {
             field: 'actions',
-            headerName: __('Actions', 'aisk-ai-chat-for-fluentcart'),
+            headerName: __('Actions', 'wish-cart'),
             width: 120,
             sortable: false,
             renderCell: (params) => (
@@ -328,7 +328,7 @@ const ChatAdminDashboard = () => {
                     size="small"
                     onClick={() => handleViewChat(params.row)}
                 >
-                    {__('View Chat', 'aisk-ai-chat-for-fluentcart')}
+                    {__('View Chat', 'wish-cart')}
                 </Button>
             )
         }
@@ -341,14 +341,14 @@ const ChatAdminDashboard = () => {
     const loadConversations = async () => {
         setLoading(true); // Set loading immediately
 
-        let apiUrl = `${AiskSettings.apiUrl}/conversations`;
+        let apiUrl = `${WishCartSettings.apiUrl}/conversations`;
         apiUrl += `?page=${page + 1}&per_page=${pageSize}&time_filter=${timeFilter}&location_filter=${locationFilter}`;
 
         console.log("Fetching from API:", apiUrl);
 
         try {
             const response = await fetch(apiUrl, {
-                headers: { 'X-WP-Nonce': AiskSettings.nonce }
+                headers: { 'X-WP-Nonce': WishCartSettings.nonce }
             });
 
             if (!response.ok) {
@@ -389,32 +389,32 @@ const ChatAdminDashboard = () => {
         <ThemeProvider theme={theme}>
             <Box sx={{ p: 3 }}>
                 <Typography variant="h4" component="h1" gutterBottom>
-                    {__('Chats', 'aisk-ai-chat-for-fluentcart')}
+                    {__('Chats', 'wish-cart')}
                 </Typography>
 
                 {/* Filters */}
                 <Box sx={{ mb: 3, display: 'flex', gap: 2 }}>
                     <FormControl size="small" sx={{ width: 200 }}>
-                        <InputLabel>{__('Time Period', 'aisk-ai-chat-for-fluentcart')}</InputLabel>
+                        <InputLabel>{__('Time Period', 'wish-cart')}</InputLabel>
                         <Select
                             value={timeFilter}
-                            label={__('Time Period', 'aisk-ai-chat-for-fluentcart')}
+                            label={__('Time Period', 'wish-cart')}
                             onChange={(e) => setTimeFilter(e.target.value)}
                         >
-                            <MenuItem value="7days">{__('Past 7 Days', 'aisk-ai-chat-for-fluentcart')}</MenuItem>
-                            <MenuItem value="30days">{__('Past 30 Days', 'aisk-ai-chat-for-fluentcart')}</MenuItem>
-                            <MenuItem value="90days">{__('Past 90 Days', 'aisk-ai-chat-for-fluentcart')}</MenuItem>
+                            <MenuItem value="7days">{__('Past 7 Days', 'wish-cart')}</MenuItem>
+                            <MenuItem value="30days">{__('Past 30 Days', 'wish-cart')}</MenuItem>
+                            <MenuItem value="90days">{__('Past 90 Days', 'wish-cart')}</MenuItem>
                         </Select>
                     </FormControl>
 
                     <FormControl size="small" sx={{ width: 200 }}>
-                        <InputLabel>{__('Location', 'aisk-ai-chat-for-fluentcart')}</InputLabel>
+                        <InputLabel>{__('Location', 'wish-cart')}</InputLabel>
                         <Select
                             value={locationFilter}
-                            label={__('Location', 'aisk-ai-chat-for-fluentcart')}
+                            label={__('Location', 'wish-cart')}
                             onChange={(e) => setLocationFilter(e.target.value)}
                         >
-                            <MenuItem value="all">{__('All Locations', 'aisk-ai-chat-for-fluentcart')}</MenuItem>
+                            <MenuItem value="all">{__('All Locations', 'wish-cart')}</MenuItem>
                             {availableLocations.map(location => (
                                 <MenuItem key={location} value={location.toLowerCase()}>
                                     {location}

@@ -7,9 +7,9 @@
  *
  * @category WordPress
  * @package  AISK
- * @author   AISK Team <support@aisk.chat>
+ * @author   AISK Team <support@wishcart.chat>
  * @license  GPL-2.0+ https://www.gnu.org/licenses/gpl-2.0.html
- * @link     https://aisk.chat
+ * @link     https://wishcart.chat
  * @since    1.0.0
  * @location includes/services/queue/class-pdf-queue-handler.php
  */
@@ -25,26 +25,26 @@ if (!defined('ABSPATH')) {
  *
  * @category Class
  * @package  AISK
- * @author   AISK Team <support@aisk.chat>
+ * @author   AISK Team <support@wishcart.chat>
  * @license  GPL-2.0+ https://www.gnu.org/licenses/gpl-2.0.html
- * @link     https://aisk.chat
+ * @link     https://wishcart.chat
  */
-class AISK_PDF_Queue_Handler {
+class WISHCART_PDF_Queue_Handler {
 
     /**
      * Action hook for processing PDF files
      */
-    const PROCESS_PDF_ACTION = 'aisk_process_pdf';
+    const PROCESS_PDF_ACTION = 'wishcart_process_pdf';
 
     /**
      * Action hook for cleaning up failed jobs
      */
-    const CLEANUP_ACTION = 'aisk_cleanup_failed_pdf_jobs';
+    const CLEANUP_ACTION = 'wishcart_cleanup_failed_pdf_jobs';
 
     /**
      * Action hook for background processing
      */
-    const BACKGROUND_PROCESS_ACTION = 'aisk_background_process_pdf';
+    const BACKGROUND_PROCESS_ACTION = 'wishcart_background_process_pdf';
 
     /**
      * Database table name for PDF queue
@@ -81,14 +81,14 @@ class AISK_PDF_Queue_Handler {
      */
     public function __construct() {
         global $wpdb;
-        $this->table_name = $wpdb->prefix . 'aisk_pdf_queue';
+        $this->table_name = $wpdb->prefix . 'wishcart_pdf_queue';
 
         // Initialize WordPress cron hooks
         add_action(self::PROCESS_PDF_ACTION, array($this, 'process_pdf'), 10, 2);
         add_action(self::CLEANUP_ACTION, array($this, 'cleanup_failed_jobs'));
         add_action(self::BACKGROUND_PROCESS_ACTION, array($this, 'process_pending_jobs'));
 
-        // Schedule cleanup aisk if not already scheduled
+        // Schedule cleanup wishcart if not already scheduled
         if (!wp_next_scheduled(self::CLEANUP_ACTION)) {
             wp_schedule_event(strtotime('tomorrow midnight'), 'daily', self::CLEANUP_ACTION);
         }
@@ -110,9 +110,9 @@ class AISK_PDF_Queue_Handler {
      * Add custom cron interval
      */
     public function add_cron_interval($schedules) {
-        $schedules['aisk_five_minutes'] = array(
+        $schedules['wishcart_five_minutes'] = array(
             'interval' => self::MIN_PROCESSING_INTERVAL,
-            'display'  => __('Every 5 Minutes', 'aisk-ai-chat-for-fluentcart')
+            'display'  => __('Every 5 Minutes', 'wish-cart')
         );
         return $schedules;
     }
@@ -121,7 +121,7 @@ class AISK_PDF_Queue_Handler {
      * Register REST API routes
      */
     public function register_rest_routes() {
-        register_rest_route('aisk/v1', '/process-pdf-queue', array(
+        register_rest_route('wishcart/v1', '/process-pdf-queue', array(
             'methods' => 'POST',
             'callback' => array($this, 'handle_manual_processing'),
             'permission_callback' => function() {
@@ -169,8 +169,8 @@ class AISK_PDF_Queue_Handler {
      * Maybe schedule background processing
      */
     public function maybe_schedule_background_processing() {
-        $cache_key = 'aisk_pdf_queue_pending_count';
-        $pending_count = wp_cache_get($cache_key, 'aisk_pdf_queue');
+        $cache_key = 'wishcart_pdf_queue_pending_count';
+        $pending_count = wp_cache_get($cache_key, 'wishcart_pdf_queue');
         
         if (false === $pending_count) {
             // @codingStandardsIgnoreStart
@@ -184,16 +184,16 @@ class AISK_PDF_Queue_Handler {
             );
             // @codingStandardsIgnoreEnd
             
-            wp_cache_set($cache_key, $pending_count, 'aisk_pdf_queue', 300); // Cache for 5 minutes
+            wp_cache_set($cache_key, $pending_count, 'wishcart_pdf_queue', 300); // Cache for 5 minutes
         }
 
         if ($pending_count > 0) {
             // Check if we've processed recently
-            $last_processed = get_option('aisk_last_pdf_processing', 0);
+            $last_processed = get_option('wishcart_last_pdf_processing', 0);
             if (time() - $last_processed >= self::MIN_PROCESSING_INTERVAL) {
                 // Schedule immediate processing
                 wp_schedule_single_event(time(), self::BACKGROUND_PROCESS_ACTION);
-                update_option('aisk_last_pdf_processing', time());
+                update_option('wishcart_last_pdf_processing', time());
             }
         }
     }
@@ -209,8 +209,8 @@ class AISK_PDF_Queue_Handler {
         global $wpdb;
         $queue_id = intval($queue_id);
         $attachment_id = intval($attachment_id);
-        $cache_key = 'aisk_pdf_queue_item_' . $queue_id;
-        $queue_item = wp_cache_get($cache_key, 'aisk_pdf_queue');
+        $cache_key = 'wishcart_pdf_queue_item_' . $queue_id;
+        $queue_item = wp_cache_get($cache_key, 'wishcart_pdf_queue');
         
         if (false === $queue_item) {
             // @codingStandardsIgnoreStart
@@ -221,7 +221,7 @@ class AISK_PDF_Queue_Handler {
             // @codingStandardsIgnoreEnd
             
             if ($queue_item) {
-                wp_cache_set($cache_key, $queue_item, 'aisk_pdf_queue', 300); // Cache for 5 minutes
+                wp_cache_set($cache_key, $queue_item, 'wishcart_pdf_queue', 300); // Cache for 5 minutes
             }
         }
 
@@ -246,7 +246,7 @@ class AISK_PDF_Queue_Handler {
             );
             // @codingStandardsIgnoreEnd
             
-            wp_cache_delete($cache_key, 'aisk_pdf_queue');
+            wp_cache_delete($cache_key, 'wishcart_pdf_queue');
             return true;
         }
 
@@ -259,14 +259,14 @@ class AISK_PDF_Queue_Handler {
         );
         // @codingStandardsIgnoreEnd
         
-        wp_cache_delete($cache_key, 'aisk_pdf_queue');
+        wp_cache_delete($cache_key, 'wishcart_pdf_queue');
 
         try {
             // Set time limit using WordPress filters
             add_filter('max_execution_time', function() { return self::MAX_PROCESSING_TIME; });
             
             // Get the embeddings handler instance
-            $embeddings_handler = new AISK_External_Embeddings_Handler();
+            $embeddings_handler = new WISHCART_External_Embeddings_Handler();
             
             // Process the PDF with attachment_id
             // $result = $embeddings_handler->process_pdf($queue_item->file_path, $attachment_id);
@@ -308,7 +308,7 @@ class AISK_PDF_Queue_Handler {
             // @codingStandardsIgnoreEnd
         }
 
-        wp_cache_delete($cache_key, 'aisk_pdf_queue');
+        wp_cache_delete($cache_key, 'wishcart_pdf_queue');
         return $result['success'];
     }
 
@@ -376,7 +376,7 @@ class AISK_PDF_Queue_Handler {
      */
     private function ensure_processing_scheduled() {
         if (!wp_next_scheduled(self::BACKGROUND_PROCESS_ACTION)) {
-            wp_schedule_event(time() + 60, 'aisk_five_minutes', self::BACKGROUND_PROCESS_ACTION);
+            wp_schedule_event(time() + 60, 'wishcart_five_minutes', self::BACKGROUND_PROCESS_ACTION);
         }
     }
 
@@ -391,8 +391,8 @@ class AISK_PDF_Queue_Handler {
         $this->ensure_processing_scheduled();
 
         global $wpdb;
-        $cache_key = 'aisk_pdf_pending_jobs';
-        $pending_jobs = wp_cache_get($cache_key, 'aisk_pdf_queue');
+        $cache_key = 'wishcart_pdf_pending_jobs';
+        $pending_jobs = wp_cache_get($cache_key, 'wishcart_pdf_queue');
         
         if (false === $pending_jobs) {
             // @codingStandardsIgnoreStart
@@ -411,7 +411,7 @@ class AISK_PDF_Queue_Handler {
             // @codingStandardsIgnoreEnd
             
             if ($pending_jobs) {
-                wp_cache_set($cache_key, $pending_jobs, 'aisk_pdf_queue', 300); // Cache for 5 minutes
+                wp_cache_set($cache_key, $pending_jobs, 'wishcart_pdf_queue', 300); // Cache for 5 minutes
             }
         }
 
@@ -429,7 +429,7 @@ class AISK_PDF_Queue_Handler {
             usleep(100000); // 100ms delay
         }
 
-        wp_cache_delete($cache_key, 'aisk_pdf_queue');
+        wp_cache_delete($cache_key, 'wishcart_pdf_queue');
         return $processed;
     }
 
@@ -450,8 +450,8 @@ class AISK_PDF_Queue_Handler {
         // @codingStandardsIgnoreEnd
         
         // Clear all related caches
-        wp_cache_delete('aisk_pdf_queue_pending_count', 'aisk_pdf_queue');
-        wp_cache_delete('aisk_pdf_queue_pending_jobs', 'aisk_pdf_queue');
+        wp_cache_delete('wishcart_pdf_queue_pending_count', 'wishcart_pdf_queue');
+        wp_cache_delete('wishcart_pdf_queue_pending_jobs', 'wishcart_pdf_queue');
     }
 
     /**
@@ -464,8 +464,8 @@ class AISK_PDF_Queue_Handler {
     public function get_job_status($attachment_id) {
         global $wpdb;
         $attachment_id = intval($attachment_id);
-        $cache_key = 'aisk_pdf_status_' . $attachment_id;
-        $status = wp_cache_get($cache_key, 'aisk_pdf_queue');
+        $cache_key = 'wishcart_pdf_status_' . $attachment_id;
+        $status = wp_cache_get($cache_key, 'wishcart_pdf_queue');
         if ($status === false) {
             // @codingStandardsIgnoreStart
             $status = $wpdb->get_row($wpdb->prepare(
@@ -476,7 +476,7 @@ class AISK_PDF_Queue_Handler {
                 $attachment_id
             ), ARRAY_A);
             // @codingStandardsIgnoreEnd
-            wp_cache_set($cache_key, $status, 'aisk_pdf_queue', 300);
+            wp_cache_set($cache_key, $status, 'wishcart_pdf_queue', 300);
         }
         if (!$status) {
             return array(

@@ -1,24 +1,24 @@
 <?php
 
 /**
- * Plugin Name:  Aisk — AI Sales Chatbot for FluentCart | Knowledgebase & Support bot
- * Plugin URI:  https://aisk.chat
+ * Plugin Name:  WishCart - Wishlist for FluentCart
+ * Plugin URI:  https://wishcart.chat
  * Description: AI chatbot for WordPress & FluentCart with WhatsApp & Telegram integration. Provides instant answers, product recommendations, order status, inquiry submit and much more.
  * Version:     1.0.0
  * Requires PHP: 7.4
- * Author:      Aisk Team <support@aisk.chat>
- * Author URI:  https://aisk.chat/
- * Contributors: aisk, zrshishir, sabbirxprt
- * Text Domain:  aisk-ai-chat-for-fluentcart
+ * Author:      WishCart Team <support@wishcart.chat>
+ * Author URI:  https://wishcart.chat/
+ * Contributors: wishcart, zrshishir, sabbirxprt
+ * Text Domain:  wish-cart
  * Domain Path: /languages/
  * License: GPL2
  * License URI: http://www.gnu.org/licenses/gpl-2.0.txt
  *
  * @category WordPress
  * @package  AISK
- * @author   Aisk Team <support@aisk.chat>
+ * @author   WishCart Team <support@wishcart.chat>
  * @license  GPL-2.0+ http://www.gnu.org/licenses/gpl-2.0.txt
- * @link     https://aisk.chat
+ * @link     https://wishcart.chat
  *
  * Third-party Libraries:
  * - Smalot/PdfParser: Required for PDF text extraction and processing
@@ -47,7 +47,7 @@ if ( file_exists( __DIR__ . '/vendor/autoload.php' ) ) {
 } else {
     // Log error but don't stop plugin execution
     if ( defined('WP_DEBUG') && WP_DEBUG ) {
-        // error_log('Aisk AI Chat: Composer autoloader not found. Some features may not work properly.');
+        // error_log('WishCart AI Chat: Composer autoloader not found. Some features may not work properly.');
     }
 }
 
@@ -59,11 +59,11 @@ if ( file_exists( __DIR__ . '/vendor/autoload.php' ) ) {
  *
  * @category WordPress
  * @package  AISK
- * @author   Aisk Team <support@aisk.chat>
+ * @author   WishCart Team <support@wishcart.chat>
  * @license  GPL-2.0+ http://www.gnu.org/licenses/gpl-2.0.txt
- * @link     https://aisk.chat
+ * @link     https://wishcart.chat
  */
-class AISK_AI_Chatbot {
+class WISHCART_AI_Chatbot {
 
     private static $instance = null;
     private $pdf_queue_handler = null;
@@ -71,7 +71,7 @@ class AISK_AI_Chatbot {
     /**
      * Get singleton instance of this class
      *
-     * @return AISK_AI_Chatbot Instance of this class
+     * @return WISHCART_AI_Chatbot Instance of this class
      */
     public static function get_instance() {
         if ( null === self::$instance ) {
@@ -85,20 +85,20 @@ class AISK_AI_Chatbot {
      */
     private function __construct() {
         // Define constants
-        define('AISK_PLUGIN_FILE', __FILE__);
-        define('AISK_VERSION', '1.0.0');
-        define('AISK_PLUGIN_DIR', plugin_dir_path(__FILE__));
-        define('AISK_PLUGIN_URL', plugin_dir_url(__FILE__));
-        define('AISK_TEXT_DOMAIN', 'aisk-ai-chat-for-fluentcart');
-        define('AISK_CHAT_SESSION_COOKIE', 'aisk_chat_session');
-        define('AISK_GREAP_KEY', 'zcP5AsW6bwGApWF5NdyF4TvyKZs6w7KP');
-        define('AISK_APPSERO_TOKEN', '444f5bd6-5aae-4079-8757-43e72a1180c4');
-        define('AISK_OPENAI_API_URL', 'https://api.openai.com/v1');
+        define('WISHCART_PLUGIN_FILE', __FILE__);
+        define('WISHCART_VERSION', '1.0.0');
+        define('WISHCART_PLUGIN_DIR', plugin_dir_path(__FILE__));
+        define('WISHCART_PLUGIN_URL', plugin_dir_url(__FILE__));
+        define('WISHCART_TEXT_DOMAIN', 'wish-cart');
+        define('WISHCART_CHAT_SESSION_COOKIE', 'wishcart_chat_session');
+        define('WISHCART_GREAP_KEY', 'zcP5AsW6bwGApWF5NdyF4TvyKZs6w7KP');
+        define('WISHCART_APPSERO_TOKEN', '444f5bd6-5aae-4079-8757-43e72a1180c4');
+        define('WISHCART_OPENAI_API_URL', 'https://api.openai.com/v1');
 
 
         // Initialize components
         add_action('init', [ $this, 'init' ]);
-        add_action('init', [ $this, 'aisk_increase_upload_limits' ]);
+        add_action('init', [ $this, 'wishcart_increase_upload_limits' ]);
         register_activation_hook(__FILE__, [ $this, 'activate' ]);
 
         // Ensure API Usage table exists on upgrade to 2.5.0+
@@ -106,7 +106,7 @@ class AISK_AI_Chatbot {
         add_action('plugins_loaded', [ $this, 'ensure_api_usage_table_on_upgrade' ], 1);
         
         $this->include_appsero_client();
-        $this->appsero_init_tracker_aisk_ai_chat();
+        $this->appsero_init_tracker_wishcart_ai_chat();
 
         // Load required files
         $this->load_dependencies();
@@ -146,13 +146,13 @@ class AISK_AI_Chatbot {
             esc_js( $user->user_email ),
             esc_js( $user->display_name ),
             esc_js( $user_role ),
-            esc_js( defined('AISK_VERSION') ? AISK_VERSION : '' ),
+            esc_js( defined('WISHCART_VERSION') ? WISHCART_VERSION : '' ),
             esc_js( function_exists('get_site_url') ? get_site_url() : '' ),
             esc_js( function_exists('is_multisite') && is_multisite() ? 'Yes' : 'No' ),
             esc_js( function_exists('get_bloginfo') ? get_bloginfo('version') : '' ),
             esc_js( defined('PHP_VERSION') ? PHP_VERSION : '' ),
             esc_js( function_exists('get_bloginfo') ? get_bloginfo('name') : '' ),
-            esc_js( defined('AISK_GREAP_KEY') ? AISK_GREAP_KEY : '' )
+            esc_js( defined('WISHCART_GREAP_KEY') ? WISHCART_GREAP_KEY : '' )
         );
     }
 
@@ -169,15 +169,15 @@ class AISK_AI_Chatbot {
         // Verify nonce for security
         if (isset($_GET['page']) && !wp_verify_nonce(
             // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized -- Nonce verification handles sanitization internally
-            wp_unslash($_GET['_wpnonce'] ?? ''), 'aisk_admin_nonce')) {
+            wp_unslash($_GET['_wpnonce'] ?? ''), 'wishcart_admin_nonce')) {
             return;
         }
 
         
         // Check if we're on stock notifier pages
         if (
-            (!$screen || strpos($screen->base, 'aisk') === false) && 
-            $current_page !== 'aisk-inquiries' && $current_page !== 'aisk-history' && $current_page !== 'aisk-uses' && $current_page !== 'aisk-settings'
+            (!$screen || strpos($screen->base, 'wishcart') === false) && 
+            $current_page !== 'wishcart-inquiries' && $current_page !== 'wishcart-history' && $current_page !== 'wishcart-uses' && $current_page !== 'wishcart-settings'
         ) {
             return;
         }
@@ -185,9 +185,9 @@ class AISK_AI_Chatbot {
         $user = wp_get_current_user();
         $user_role = ( !empty($user->roles) && isset($user->roles[0]) ) ? $user->roles[0] : '';
 
-        wp_register_script( 'aisk-gleap-dummy', false, [], AISK_VERSION, true );
-        wp_enqueue_script( 'aisk-gleap-dummy' );
-        wp_add_inline_script( 'aisk-gleap-dummy', $this->get_gleap_inline_script( $user, $user_role ) );
+        wp_register_script( 'wishcart-gleap-dummy', false, [], WISHCART_VERSION, true );
+        wp_enqueue_script( 'wishcart-gleap-dummy' );
+        wp_add_inline_script( 'wishcart-gleap-dummy', $this->get_gleap_inline_script( $user, $user_role ) );
     }
 
     /**
@@ -195,8 +195,8 @@ class AISK_AI_Chatbot {
      *
      * @return void
      */
-    public function appsero_init_tracker_aisk_ai_chat() {
-        $client = new Aisk_Ai_Chat\Appsero\Client( AISK_APPSERO_TOKEN, 'Aisk — AI Sales Chatbot for FluentCart | Knowledgebase & Support bot', AISK_PLUGIN_FILE );
+    public function appsero_init_tracker_wishcart_ai_chat() {
+        $client = new WishCart_Ai_Chat\Appsero\Client( WISHCART_APPSERO_TOKEN, 'WishCart - Wishlist for FluentCart', WISHCART_PLUGIN_FILE );
 
         // Active insights.
         $client->insights()->init();
@@ -206,25 +206,25 @@ class AISK_AI_Chatbot {
      * Includes the Appsero client by creating a class alias if necessary.
      *
      * If the 'Appsero\Client' class is not defined, it will create an alias to
-     * 'AISK_AI_CHAT\Appsero\Client'.
+     * 'WISHCART_AI_CHAT\Appsero\Client'.
      *
      * @version 1.0.0
      * @return void
      */
     public function include_appsero_client() {
-        if ( ! class_exists( 'Aisk_Ai_Chat\Appsero\Client' ) ) {
+        if ( ! class_exists( 'WishCart_Ai_Chat\Appsero\Client' ) ) {
             require_once __DIR__ . '/appsero/client/src/Client.php';
         }
 
-        if ( ! class_exists('Aisk_Ai_Chat\Appsero\Client') ) {
-            class_alias('Aisk_Ai_Chat\Appsero\Client','Aisk_Ai_Chat\Appsero\Client');
+        if ( ! class_exists('WishCart_Ai_Chat\Appsero\Client') ) {
+            class_alias('WishCart_Ai_Chat\Appsero\Client','WishCart_Ai_Chat\Appsero\Client');
         }
     }
     /**
      * Initialize the PDF queue handler
      */
     private function init_pdf_queue_handler() {
-        $this->pdf_queue_handler = new AISK_PDF_Queue_Handler();
+        $this->pdf_queue_handler = new WISHCART_PDF_Queue_Handler();
         add_action('wp_loaded', [ $this, 'handle_pdf_queue_processing' ]);
     }
 
@@ -233,13 +233,13 @@ class AISK_AI_Chatbot {
      */
     public function handle_pdf_queue_processing() {
         // Check for real cron request and verify nonce
-        if (!isset($_GET['aisk_cron']) || $_GET['aisk_cron'] !== 'process_pdf_queue' || 
-            !isset($_GET['_wpnonce']) || !wp_verify_nonce(sanitize_text_field(wp_unslash($_GET['_wpnonce'])), 'aisk_pdf_queue')) {
+        if (!isset($_GET['wishcart_cron']) || $_GET['wishcart_cron'] !== 'process_pdf_queue' || 
+            !isset($_GET['_wpnonce']) || !wp_verify_nonce(sanitize_text_field(wp_unslash($_GET['_wpnonce'])), 'wishcart_pdf_queue')) {
             return;
         }
 
         // Verify the security key
-        if (!isset($_GET['key']) || $_GET['key'] !== wp_hash('aisk_pdf_queue')) {
+        if (!isset($_GET['key']) || $_GET['key'] !== wp_hash('wishcart_pdf_queue')) {
             wp_die('Invalid security key', 'Security Error', array('response' => 403));
         }
 
@@ -254,7 +254,7 @@ class AISK_AI_Chatbot {
         ));
     }
 
-    function aisk_increase_upload_limits() {
+    function wishcart_increase_upload_limits() {
         // Increase PHP limits using WordPress filters instead of ini_set
         add_filter('upload_max_filesize', function() { return '128M'; });
         add_filter('post_max_size', function() { return '128M'; });
@@ -321,7 +321,7 @@ class AISK_AI_Chatbot {
         $this->maybe_load_integrations();
 
         // Initialize contact form handler if enabled
-        add_action('wp_loaded', [ 'AISK_Contact_Form_Handler', 'maybe_init' ]);
+        add_action('wp_loaded', [ 'WISHCART_Contact_Form_Handler', 'maybe_init' ]);
 
         // Clear FluentCart detection cache when plugins are activated/deactivated
         add_action('activated_plugin', [ $this, 'clear_fluentcart_cache' ]);
@@ -338,9 +338,9 @@ class AISK_AI_Chatbot {
         // Clear cache if FluentCart or this plugin was activated/deactivated
         if ( strpos( $plugin, 'fluentcart' ) !== false || 
              strpos( $plugin, 'fluent-cart' ) !== false ||
-             strpos( $plugin, 'aisk-ai-chat-for-fluentcart' ) !== false ) {
-            if ( class_exists( 'AISK_FluentCart_Helper' ) ) {
-                AISK_FluentCart_Helper::clear_detection_cache();
+             strpos( $plugin, 'wish-cart' ) !== false ) {
+            if ( class_exists( 'WISHCART_FluentCart_Helper' ) ) {
+                WISHCART_FluentCart_Helper::clear_detection_cache();
             }
         }
     }
@@ -351,40 +351,40 @@ class AISK_AI_Chatbot {
      * @return void
      */
     private function load_dependencies() {
-        include_once AISK_PLUGIN_DIR . 'includes/class-database.php';
-        include_once AISK_PLUGIN_DIR . 'includes/class-api-usage-tracker.php';
-        include_once AISK_PLUGIN_DIR . 'includes/class-fluentcart-helper.php';
-        include_once AISK_PLUGIN_DIR . 'includes/class-embeddings-handler.php';
-        include_once AISK_PLUGIN_DIR . 'includes/class-external-embeddings-handler.php';
-        include_once AISK_PLUGIN_DIR . 'includes/class-product-handler.php';
-        include_once AISK_PLUGIN_DIR . 'includes/class-order-handler.php';
-        include_once AISK_PLUGIN_DIR . 'includes/class-chat-storage.php';
-        include_once AISK_PLUGIN_DIR . 'includes/class-response-formatter.php';
-        include_once AISK_PLUGIN_DIR . 'includes/class-chat-handler.php';
-        include_once AISK_PLUGIN_DIR . 'includes/class-script-loader.php';
-        include_once AISK_PLUGIN_DIR . 'includes/class-aisk-admin.php';
-        include_once AISK_PLUGIN_DIR . 'includes/services/queue/class-pdf-queue-handler.php';
+        include_once WISHCART_PLUGIN_DIR . 'includes/class-database.php';
+        include_once WISHCART_PLUGIN_DIR . 'includes/class-api-usage-tracker.php';
+        include_once WISHCART_PLUGIN_DIR . 'includes/class-fluentcart-helper.php';
+        include_once WISHCART_PLUGIN_DIR . 'includes/class-embeddings-handler.php';
+        include_once WISHCART_PLUGIN_DIR . 'includes/class-external-embeddings-handler.php';
+        include_once WISHCART_PLUGIN_DIR . 'includes/class-product-handler.php';
+        include_once WISHCART_PLUGIN_DIR . 'includes/class-order-handler.php';
+        include_once WISHCART_PLUGIN_DIR . 'includes/class-chat-storage.php';
+        include_once WISHCART_PLUGIN_DIR . 'includes/class-response-formatter.php';
+        include_once WISHCART_PLUGIN_DIR . 'includes/class-chat-handler.php';
+        include_once WISHCART_PLUGIN_DIR . 'includes/class-script-loader.php';
+        include_once WISHCART_PLUGIN_DIR . 'includes/class-wishcart-admin.php';
+        include_once WISHCART_PLUGIN_DIR . 'includes/services/queue/class-pdf-queue-handler.php';
 
         // Initialize admin class
         if (is_admin()) {
             add_action('admin_init', function() {
-                AISK_Admin::get_instance();
+                WISHCART_Admin::get_instance();
             });
         }
 
         // Load contact form feature handlers
-        include_once AISK_PLUGIN_DIR . 'includes/features/class-contact-form-handler.php';
+        include_once WISHCART_PLUGIN_DIR . 'includes/features/class-contact-form-handler.php';
 
         // Ensure database tables exist even after updates (without reactivation)
         // Safe to call: dbDelta is idempotent
-        try { new AISK_Database(); } catch ( \Throwable $e ) {}
+        try { new WISHCART_Database(); } catch ( \Throwable $e ) {}
 
         // Initialize PDF Queue Handler
-        new AISK_PDF_Queue_Handler();
+        new WISHCART_PDF_Queue_Handler();
     }
 
     /**
-     * Ensure `aisk_api_usage` exists when upgrading to >= 2.5.0
+     * Ensure `wishcart_api_usage` exists when upgrading to >= 2.5.0
      * Mirrors the user's version-gated pattern
      *
      * @return void
@@ -392,8 +392,8 @@ class AISK_AI_Chatbot {
     public function ensure_api_usage_table_on_upgrade() {
         global $wpdb;
 
-        $stored_version = get_option('aisk_plugin_version', '1.0.0');
-        $current_version = defined('AISK_VERSION') ? AISK_VERSION : '0.0.0';
+        $stored_version = get_option('wishcart_plugin_version', '1.0.0');
+        $current_version = defined('WISHCART_VERSION') ? WISHCART_VERSION : '0.0.0';
 
         $stored_num = floatval(str_replace('.', '', $stored_version));
         $current_num = floatval(str_replace('.', '', $current_version));
@@ -401,7 +401,7 @@ class AISK_AI_Chatbot {
 
         // Only act when upgrading to >= 2.5.0 from a lower version
         if ($stored_num < $threshold_num && $current_num >= $threshold_num) {
-            $table_name = $wpdb->prefix . 'aisk_api_usage';
+            $table_name = $wpdb->prefix . 'wishcart_api_usage';
 
             // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- Table existence check during upgrade needs real-time data
             $exists = $wpdb->get_var(
@@ -458,35 +458,35 @@ class AISK_AI_Chatbot {
      * @return void
      */
     private function maybe_load_integrations() {
-        $settings = get_option('aisk_settings', []);
+        $settings = get_option('wishcart_settings', []);
 
         // Load WhatsApp class if enabled
         if ( ! empty($settings['integrations']['whatsapp']['enabled']) ) {
-            include_once AISK_PLUGIN_DIR . 'includes/messenger/class-whatsapp-handler.php';
-            new AISK_WhatsApp_Handler();
+            include_once WISHCART_PLUGIN_DIR . 'includes/messenger/class-whatsapp-handler.php';
+            new WISHCART_WhatsApp_Handler();
         }
 
         // Load Telegram class if enabled
         if ( ! empty($settings['integrations']['telegram']['enabled']) ) {
-            include_once AISK_PLUGIN_DIR . 'includes/messenger/class-telegram-handler.php';
-            new AISK_Telegram_Handler();
+            include_once WISHCART_PLUGIN_DIR . 'includes/messenger/class-telegram-handler.php';
+            new WISHCART_Telegram_Handler();
         }
     }
     
 
     /**
-     * Handle plugin activation aisks
+     * Handle plugin activation wishcarts
      *
      * @return void
      */
     public function activate() {
         // Initialize contact form if enabled
-        $contact_form = AISK_Contact_Form_Handler::get_instance();
+        $contact_form = WISHCART_Contact_Form_Handler::get_instance();
         if ( $contact_form->is_enabled() ) {
             $contact_form->ensure_page_and_template_exists();
         }
 
-        new AISK_Database();
+        new WISHCART_Database();
     }
 
     /**
@@ -495,8 +495,8 @@ class AISK_AI_Chatbot {
      * @return void
      */
     public function enqueue_scripts() {
-        if ( ! is_page('aisk-contact-form') ) {
-            AISK_Scripts::load_chat_widget_assets();
+        if ( ! is_page('wishcart-contact-form') ) {
+            WISHCART_Scripts::load_chat_widget_assets();
         }
     }
 
@@ -507,12 +507,12 @@ class AISK_AI_Chatbot {
      */
     public function render_chat_widget() {
         // Check if we're on the contact form page
-        if ( ! is_page('aisk-contact-form') ) {
-            echo '<div id="aisk-chat-widget"></div>';
+        if ( ! is_page('wishcart-contact-form') ) {
+            echo '<div id="wishcart-chat-widget"></div>';
         }
     }
 
 }
 
 // Initialize the plugin
-AISK_AI_Chatbot::get_instance();
+WISHCART_AI_Chatbot::get_instance();

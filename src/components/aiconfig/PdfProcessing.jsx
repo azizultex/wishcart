@@ -27,18 +27,18 @@ const PdfProcessing = ({ settings, updateSettings, isActiveConfigTab }) => {
 
     // Helper function to get max upload size
     const getMaxUploadSize = () => {
-        if (window.AiskSettings && window.AiskSettings.maxUploadSize) {
-            return (window.AiskSettings.maxUploadSize / (1024 * 1024)).toFixed(1) + ' MB';
+        if (window.WishCartSettings && window.WishCartSettings.maxUploadSize) {
+            return (window.WishCartSettings.maxUploadSize / (1024 * 1024)).toFixed(1) + ' MB';
         }
         return '2 MB'; // Default fallback
     };
 
     // Helper function to validate file size
     const validateFileSize = (file) => {
-        const maxSize = window.AiskSettings?.maxUploadSize || 2 * 1024 * 1024; // Default 2MB
+        const maxSize = window.WishCartSettings?.maxUploadSize || 2 * 1024 * 1024; // Default 2MB
         if (file.size > maxSize) {
             setPdfError(sprintf(
-                __('File size exceeds the maximum allowed size of %s. This is limited by your server configuration.', 'aisk-ai-chat-for-fluentcart'),
+                __('File size exceeds the maximum allowed size of %s. This is limited by your server configuration.', 'wish-cart'),
                 getMaxUploadSize()
             ));
             return false;
@@ -50,13 +50,13 @@ const PdfProcessing = ({ settings, updateSettings, isActiveConfigTab }) => {
     const validatePdfFile = (file) => {
         // Check file extension
         if (!file.name.toLowerCase().endsWith('.pdf')) {
-            setPdfError(__('Please upload a PDF file with .pdf extension', 'aisk-ai-chat-for-fluentcart'));
+            setPdfError(__('Please upload a PDF file with .pdf extension', 'wish-cart'));
             return false;
         }
 
         // Check MIME type
         if (file.type && file.type !== 'application/pdf') {
-            setPdfError(__('Invalid file type. Please upload a valid PDF file', 'aisk-ai-chat-for-fluentcart'));
+            setPdfError(__('Invalid file type. Please upload a valid PDF file', 'wish-cart'));
             return false;
         }
 
@@ -72,7 +72,7 @@ const PdfProcessing = ({ settings, updateSettings, isActiveConfigTab }) => {
                 if (header === '%PDF-') {
                     resolve(true);
                 } else {
-                    setPdfError(__('Invalid PDF file. The file does not appear to be a valid PDF document', 'aisk-ai-chat-for-fluentcart'));
+                    setPdfError(__('Invalid PDF file. The file does not appear to be a valid PDF document', 'wish-cart'));
                     resolve(false);
                 }
             };
@@ -90,7 +90,7 @@ const PdfProcessing = ({ settings, updateSettings, isActiveConfigTab }) => {
 
     const processPdf = async () => {
         if (!pdfFile) {
-            setPdfError(__('No PDF file selected', 'aisk-ai-chat-for-fluentcart'));
+            setPdfError(__('No PDF file selected', 'wish-cart'));
             return;
         }
 
@@ -109,10 +109,10 @@ const PdfProcessing = ({ settings, updateSettings, isActiveConfigTab }) => {
 
             try {
                 // Fetch current settings from WordPress to ensure we have the latest data
-                const settingsResponse = await fetch('/wp-json/aisk/v1/settings', {
+                const settingsResponse = await fetch('/wp-json/wishcart/v1/settings', {
                     method: 'GET',
                     headers: {
-                        'X-WP-Nonce': window.AiskData.nonce
+                        'X-WP-Nonce': window.WishCartData.nonce
                     },
                 });
 
@@ -161,11 +161,11 @@ const PdfProcessing = ({ settings, updateSettings, isActiveConfigTab }) => {
 
             // Save to WordPress database immediately
             try {
-                const saveResponse = await fetch('/wp-json/aisk/v1/settings', {
+                const saveResponse = await fetch('/wp-json/wishcart/v1/settings', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
-                        'X-WP-Nonce': window.AiskData.nonce
+                        'X-WP-Nonce': window.WishCartData.nonce
                     },
                     body: JSON.stringify(currentSettings)
                 });
@@ -185,16 +185,16 @@ const PdfProcessing = ({ settings, updateSettings, isActiveConfigTab }) => {
             // After closing popup, start progress animation and show processing message in the main UI
             setPdfProcessing(true);
             setPdfProgress(10);
-            setProcessMessage(__('Processing PDF...', 'aisk-ai-chat-for-fluentcart'));
+            setProcessMessage(__('Processing PDF...', 'wish-cart'));
 
             // Now process the PDF in the background
             const formData = new FormData();
             formData.append('pdf_file', pdfFile);
 
-            const response = await fetch('/wp-json/aisk/v1/process-pdf', {
+            const response = await fetch('/wp-json/wishcart/v1/process-pdf', {
                 method: 'POST',
                 headers: {
-                    'X-WP-Nonce': window.AiskData.nonce
+                    'X-WP-Nonce': window.WishCartData.nonce
                 },
                 body: formData
             });
@@ -209,16 +209,16 @@ const PdfProcessing = ({ settings, updateSettings, isActiveConfigTab }) => {
                 // Handle non-JSON response
                 const text = await response.text();
                 console.error('Invalid response:', text);
-                throw new Error(__('Server returned an invalid response. Please try again.', 'aisk-ai-chat-for-fluentcart'));
+                throw new Error(__('Server returned an invalid response. Please try again.', 'wish-cart'));
             }
 
             if (!response.ok) {
-                throw new Error(result.message || __('Failed to process PDF', 'aisk-ai-chat-for-fluentcart'));
+                throw new Error(result.message || __('Failed to process PDF', 'wish-cart'));
             }
 
             if (result.success) {
                 setPdfProgress(100);
-                setProcessMessage(__('PDF queued for processing!', 'aisk-ai-chat-for-fluentcart'));
+                setProcessMessage(__('PDF queued for processing!', 'wish-cart'));
 
                 // When updating after upload, only update the last PDF (the new one)
                 const latestPdfs = (settings.ai_config.pdf_files || []);
@@ -235,11 +235,11 @@ const PdfProcessing = ({ settings, updateSettings, isActiveConfigTab }) => {
 
                 // Save to server
                 currentSettings.ai_config.pdf_files = updatedPdfs;
-                fetch('/wp-json/aisk/v1/settings', {
+                fetch('/wp-json/wishcart/v1/settings', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
-                        'X-WP-Nonce': window.AiskData.nonce
+                        'X-WP-Nonce': window.WishCartData.nonce
                     },
                     body: JSON.stringify(currentSettings)
                 }).catch(error => {
@@ -253,7 +253,7 @@ const PdfProcessing = ({ settings, updateSettings, isActiveConfigTab }) => {
                     }, 2000);
                 }
             } else {
-                throw new Error(result.message || __('Failed to process PDF', 'aisk-ai-chat-for-fluentcart'));
+                throw new Error(result.message || __('Failed to process PDF', 'wish-cart'));
             }
 
             // Reset states after a short delay
@@ -267,15 +267,15 @@ const PdfProcessing = ({ settings, updateSettings, isActiveConfigTab }) => {
             console.error('Error processing PDF:', error);
             setPdfProgress(0);
             setPdfProcessing(false);
-            setProcessMessage(error.message || __('Failed to process PDF. Please try again.', 'aisk-ai-chat-for-fluentcart'));
+            setProcessMessage(error.message || __('Failed to process PDF. Please try again.', 'wish-cart'));
 
             // Remove the failed PDF from settings
             try {
                 // Get fresh settings
-                const settingsResponse = await fetch('/wp-json/aisk/v1/settings', {
+                const settingsResponse = await fetch('/wp-json/wishcart/v1/settings', {
                     method: 'GET',
                     headers: {
-                        'X-WP-Nonce': window.AiskData.nonce
+                        'X-WP-Nonce': window.WishCartData.nonce
                     },
                 });
 
@@ -290,11 +290,11 @@ const PdfProcessing = ({ settings, updateSettings, isActiveConfigTab }) => {
                         updateSettings('ai_config', 'pdf_files', freshSettings.ai_config.pdf_files);
 
                         // Save to server
-                        fetch('/wp-json/aisk/v1/settings', {
+                        fetch('/wp-json/wishcart/v1/settings', {
                             method: 'POST',
                             headers: {
                                 'Content-Type': 'application/json',
-                                'X-WP-Nonce': window.AiskData.nonce
+                                'X-WP-Nonce': window.WishCartData.nonce
                             },
                             body: JSON.stringify(freshSettings)
                         }).catch(error => {
@@ -315,9 +315,9 @@ const PdfProcessing = ({ settings, updateSettings, isActiveConfigTab }) => {
 
         const checkStatus = async () => {
             try {
-                const response = await fetch(`/wp-json/aisk/v1/pdf-job-status?job_id=${queueId}`, {
+                const response = await fetch(`/wp-json/wishcart/v1/pdf-job-status?job_id=${queueId}`, {
                     headers: {
-                        'X-WP-Nonce': window.AiskData.nonce
+                        'X-WP-Nonce': window.WishCartData.nonce
                     }
                 });
 
@@ -341,7 +341,7 @@ const PdfProcessing = ({ settings, updateSettings, isActiveConfigTab }) => {
                         if (data.failed) {
                             newStatus = 'failed';
                             newChunks = 0;
-                            errorMsg = data.user_message || __('PDF processing failed', 'aisk-ai-chat-for-fluentcart');
+                            errorMsg = data.user_message || __('PDF processing failed', 'wish-cart');
                         }
                         currentSettings.ai_config.pdf_files[pdfIndex] = {
                             ...currentSettings.ai_config.pdf_files[pdfIndex],
@@ -354,11 +354,11 @@ const PdfProcessing = ({ settings, updateSettings, isActiveConfigTab }) => {
                         updateSettings('ai_config', 'pdf_files', currentSettings.ai_config.pdf_files);
 
                         // Save to server
-                        fetch('/wp-json/aisk/v1/settings', {
+                        fetch('/wp-json/wishcart/v1/settings', {
                             method: 'POST',
                             headers: {
                                 'Content-Type': 'application/json',
-                                'X-WP-Nonce': window.AiskData.nonce
+                                'X-WP-Nonce': window.WishCartData.nonce
                             },
                             body: JSON.stringify(currentSettings)
                         }).catch(error => {
@@ -377,9 +377,9 @@ const PdfProcessing = ({ settings, updateSettings, isActiveConfigTab }) => {
                     attempts++;
                     setTimeout(checkStatus, 5000); // Check every 5 seconds
                 } else if (data.failed) {
-                    setProcessMessage(data.user_message || __('PDF processing failed', 'aisk-ai-chat-for-fluentcart'));
+                    setProcessMessage(data.user_message || __('PDF processing failed', 'wish-cart'));
                 } else if (data.processed) {
-                    setProcessMessage(__('PDF processed successfully!', 'aisk-ai-chat-for-fluentcart'));
+                    setProcessMessage(__('PDF processed successfully!', 'wish-cart'));
                 }
             } catch (error) {
                 console.error('Error checking PDF status:', error);
@@ -398,8 +398,8 @@ const PdfProcessing = ({ settings, updateSettings, isActiveConfigTab }) => {
     const fetchPdfStatus = useCallback(async (pdf) => {
         if (!pdf.job_id) return pdf;
         try {
-            const response = await fetch(`/wp-json/aisk/v1/pdf-job-status?job_id=${pdf.job_id}`, {
-                headers: { 'X-WP-Nonce': window.AiskData.nonce }
+            const response = await fetch(`/wp-json/wishcart/v1/pdf-job-status?job_id=${pdf.job_id}`, {
+                headers: { 'X-WP-Nonce': window.WishCartData.nonce }
             });
             if (!response.ok) return pdf;
             const data = await response.json();
@@ -450,7 +450,7 @@ const PdfProcessing = ({ settings, updateSettings, isActiveConfigTab }) => {
             const pdfToRemove = settings.ai_config.pdf_files[index];
 
             // Show processing state
-            setProcessMessage(__('Deleting PDF...', 'aisk-ai-chat-for-fluentcart'));
+            setProcessMessage(__('Deleting PDF...', 'wish-cart'));
 
             // First, remove from local state
             const newPdfs = [...(settings.ai_config.pdf_files || [])];
@@ -461,11 +461,11 @@ const PdfProcessing = ({ settings, updateSettings, isActiveConfigTab }) => {
             if (pdfToRemove && pdfToRemove.job_id) {
 
                 // Call our endpoint to delete the PDF embeddings
-                const response = await fetch('/wp-json/aisk/v1/delete-pdf', {
+                const response = await fetch('/wp-json/wishcart/v1/delete-pdf', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
-                        'X-WP-Nonce': window.AiskData.nonce
+                        'X-WP-Nonce': window.WishCartData.nonce
                     },
                     body: JSON.stringify({
                         job_id: pdfToRemove.job_id
@@ -488,7 +488,7 @@ const PdfProcessing = ({ settings, updateSettings, isActiveConfigTab }) => {
 
                 if (data.success) {
                     // Set success message
-                    setProcessMessage(__('PDF deleted successfully.', 'aisk-ai-chat-for-fluentcart'));
+                    setProcessMessage(__('PDF deleted successfully.', 'wish-cart'));
 
                     // Fetch the updated queue list from backend
                     await fetchPdfQueueList();
@@ -496,10 +496,10 @@ const PdfProcessing = ({ settings, updateSettings, isActiveConfigTab }) => {
                     // Fetch fresh settings before updating
                     let freshSettings;
                     try {
-                        const response = await fetch('/wp-json/aisk/v1/settings', {
+                        const response = await fetch('/wp-json/wishcart/v1/settings', {
                             method: 'GET',
                             headers: {
-                                'X-WP-Nonce': window.AiskData.nonce
+                                'X-WP-Nonce': window.WishCartData.nonce
                             }
                         });
 
@@ -534,11 +534,11 @@ const PdfProcessing = ({ settings, updateSettings, isActiveConfigTab }) => {
                     }
 
                     // Persist to server
-                    fetch('/wp-json/aisk/v1/settings', {
+                    fetch('/wp-json/wishcart/v1/settings', {
                         method: 'POST',
                         headers: {
                             'Content-Type': 'application/json',
-                            'X-WP-Nonce': window.AiskData.nonce
+                            'X-WP-Nonce': window.WishCartData.nonce
                         },
                         body: JSON.stringify(freshSettings)
                     }).catch(error => {
@@ -550,22 +550,22 @@ const PdfProcessing = ({ settings, updateSettings, isActiveConfigTab }) => {
                         setProcessMessage('');
                     }, 3000);
                 } else {
-                    throw new Error(data.message || __('Failed to delete PDF', 'aisk-ai-chat-for-fluentcart'));
+                    throw new Error(data.message || __('Failed to delete PDF', 'wish-cart'));
                 }
             } else {
                 // For PDFs that are still processing or don't have an attachment ID yet
                 console.log('PDF had no attachment ID, only removed from settings');
 
                 // Set success message
-                setProcessMessage(__('PDF removed from settings.', 'aisk-ai-chat-for-fluentcart'));
+                setProcessMessage(__('PDF removed from settings.', 'wish-cart'));
 
                 // Fetch fresh settings before updating
                 let freshSettings;
                 try {
-                    const response = await fetch('/wp-json/aisk/v1/settings', {
+                    const response = await fetch('/wp-json/wishcart/v1/settings', {
                         method: 'GET',
                         headers: {
-                            'X-WP-Nonce': window.AiskData.nonce
+                            'X-WP-Nonce': window.WishCartData.nonce
                         }
                     });
 
@@ -604,11 +604,11 @@ const PdfProcessing = ({ settings, updateSettings, isActiveConfigTab }) => {
                 }
 
                 // Persist to server
-                fetch('/wp-json/aisk/v1/settings', {
+                fetch('/wp-json/wishcart/v1/settings', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
-                        'X-WP-Nonce': window.AiskData.nonce
+                        'X-WP-Nonce': window.WishCartData.nonce
                     },
                     body: JSON.stringify(freshSettings)
                 }).catch(error => {
@@ -622,7 +622,7 @@ const PdfProcessing = ({ settings, updateSettings, isActiveConfigTab }) => {
             }
         } catch (error) {
             console.error('Error removing PDF:', error);
-            setProcessMessage(__(`Error: ${error.message}`, 'aisk-ai-chat-for-fluentcart'));
+            setProcessMessage(__(`Error: ${error.message}`, 'wish-cart'));
 
             // Reset error message after a delay
             setTimeout(() => {
@@ -636,8 +636,8 @@ const PdfProcessing = ({ settings, updateSettings, isActiveConfigTab }) => {
     // Fetch PDF queue list from backend
     const fetchPdfQueueList = useCallback(async () => {
         try {
-            const response = await fetch('/wp-json/aisk/v1/pdf-queue-list', {
-                headers: { 'X-WP-Nonce': window.AiskData.nonce }
+            const response = await fetch('/wp-json/wishcart/v1/pdf-queue-list', {
+                headers: { 'X-WP-Nonce': window.WishCartData.nonce }
             });
             if (!response.ok) return;
             const pdfQueue = await response.json();
@@ -671,7 +671,7 @@ const PdfProcessing = ({ settings, updateSettings, isActiveConfigTab }) => {
     return (
         <div className="space-y-4 mt-6">
             <div className="flex items-center justify-between mb-4">
-                <Label>{__('PDF Sources', 'aisk-ai-chat-for-fluentcart')}</Label>
+                <Label>{__('PDF Sources', 'wish-cart')}</Label>
                 <div className="flex gap-2">
                     <Button
                         variant="outline"
@@ -680,7 +680,7 @@ const PdfProcessing = ({ settings, updateSettings, isActiveConfigTab }) => {
                         className="flex items-center gap-2"
                     >
                         <PlusIcon className="h-4 w-4" />
-                        {__('Add PDF', 'aisk-ai-chat-for-fluentcart')}
+                        {__('Add PDF', 'wish-cart')}
                     </Button>
                 </div>
             </div>
@@ -697,7 +697,7 @@ const PdfProcessing = ({ settings, updateSettings, isActiveConfigTab }) => {
                 <div className="space-y-2">
                     <Progress value={pdfProgress} className="w-full" />
                     <p className="text-sm text-center text-gray-500">
-                        {__('Processing... This may take a few minutes for larger files.', 'aisk-ai-chat-for-fluentcart')}
+                        {__('Processing... This may take a few minutes for larger files.', 'wish-cart')}
                     </p>
                 </div>
             )}
@@ -705,7 +705,7 @@ const PdfProcessing = ({ settings, updateSettings, isActiveConfigTab }) => {
             {(settings.ai_config.pdf_files || []).length === 0 ? (
                 <div className="text-center py-4 border rounded-lg bg-gray-50">
                     <p className="text-sm text-gray-500">
-                        {__('No PDF sources added yet', 'aisk-ai-chat-for-fluentcart')}
+                        {__('No PDF sources added yet', 'wish-cart')}
                     </p>
                 </div>
             ) : (
@@ -717,7 +717,7 @@ const PdfProcessing = ({ settings, updateSettings, isActiveConfigTab }) => {
                         >
                             <div className="flex items-center gap-2 w-full">
                                 <span className="font-medium">
-                                    {pdfConfig.name || __('Unnamed PDF', 'aisk-ai-chat-for-fluentcart')}
+                                    {pdfConfig.name || __('Unnamed PDF', 'wish-cart')}
                                 </span>
                                 {/* Status badge with color and error message for failed */}
                                 {pdfConfig.status && (
@@ -741,7 +741,7 @@ const PdfProcessing = ({ settings, updateSettings, isActiveConfigTab }) => {
                                 )}
                                 {pdfConfig.chunks !== undefined && (
                                     <span className="text-xs text-gray-500">
-                                        {pdfConfig.chunks} {__('chunks', 'aisk-ai-chat-for-fluentcart')}
+                                        {pdfConfig.chunks} {__('chunks', 'wish-cart')}
                                     </span>
                                 )}
 
@@ -754,7 +754,7 @@ const PdfProcessing = ({ settings, updateSettings, isActiveConfigTab }) => {
 
                                 {pdfConfig.status === 'failed' && pdfConfig.user_message && (
                                     <span className="text-xs text-red-600 bg-red-100 px-2 py-0.5 rounded ml-2">
-                                        <strong>{__('Error:', 'aisk-ai-chat-for-fluentcart')}</strong> {pdfConfig.user_message}
+                                        <strong>{__('Error:', 'wish-cart')}</strong> {pdfConfig.user_message}
                                     </span>
                                 )}
                             </div>
@@ -775,14 +775,14 @@ const PdfProcessing = ({ settings, updateSettings, isActiveConfigTab }) => {
             <Dialog open={openPdfDialog} onOpenChange={setOpenPdfDialog}>
                 <DialogContent className="sm:max-w-md">
                     <DialogHeader>
-                        <DialogTitle>{__('Add PDF Document', 'aisk-ai-chat-for-fluentcart')}</DialogTitle>
+                        <DialogTitle>{__('Add PDF Document', 'wish-cart')}</DialogTitle>
                         <DialogDescription>
-                            {__('Upload a PDF document to process and include in the knowledge base', 'aisk-ai-chat-for-fluentcart')}
+                            {__('Upload a PDF document to process and include in the knowledge base', 'wish-cart')}
                         </DialogDescription>
                     </DialogHeader>
                     <div className="space-y-4 py-2">
                         <div className="space-y-2">
-                            <Label htmlFor="pdf-upload">{__('PDF Document', 'aisk-ai-chat-for-fluentcart')}</Label>
+                            <Label htmlFor="pdf-upload">{__('PDF Document', 'wish-cart')}</Label>
                             <Input
                                 id="pdf-upload"
                                 type="file"
@@ -791,12 +791,12 @@ const PdfProcessing = ({ settings, updateSettings, isActiveConfigTab }) => {
                                     const file = e.target.files[0];
                                     if (file) {
                                         // Check file size on client side
-                                        // const maxSize = window.AiskSettings?.maxUploadSize || 2 * 1024 * 1024; // Default 2MB
+                                        // const maxSize = window.WishCartSettings?.maxUploadSize || 2 * 1024 * 1024; // Default 2MB
                                         const maxSize = getMaxUploadSize();
 
                                         if (file.size > maxSize) {
                                             setPdfError(
-                                                __(`The file is too large. Maximum allowed size is ${getMaxUploadSize()}. This is limited by your server configuration.`, 'aisk-ai-chat-for-fluentcart')
+                                                __(`The file is too large. Maximum allowed size is ${getMaxUploadSize()}. This is limited by your server configuration.`, 'wish-cart')
                                             );
                                             e.target.value = ''; // Clear the input
                                         } else {
@@ -814,11 +814,11 @@ const PdfProcessing = ({ settings, updateSettings, isActiveConfigTab }) => {
                                 }}
                             />
                             <p className="text-xs text-gray-500">
-                                {__(`Maximum file size: ${getMaxUploadSize()} (server limit)`, 'aisk-ai-chat-for-fluentcart')}
+                                {__(`Maximum file size: ${getMaxUploadSize()} (server limit)`, 'wish-cart')}
                             </p>
                             {pdfFile && (
                                 <p className="text-sm text-gray-500">
-                                    {__('Selected file:', 'aisk-ai-chat-for-fluentcart')} {pdfFile.name} ({(pdfFile.size / (1024 * 1024)).toFixed(2)} MB)
+                                    {__('Selected file:', 'wish-cart')} {pdfFile.name} ({(pdfFile.size / (1024 * 1024)).toFixed(2)} MB)
                                 </p>
                             )}
                         </div>
@@ -847,7 +847,7 @@ const PdfProcessing = ({ settings, updateSettings, isActiveConfigTab }) => {
                             }}
                             disabled={pdfProcessing}
                         >
-                            {__('Cancel', 'aisk-ai-chat-for-fluentcart')}
+                            {__('Cancel', 'wish-cart')}
                         </Button>
                         <Button
                             variant="default"
@@ -855,7 +855,7 @@ const PdfProcessing = ({ settings, updateSettings, isActiveConfigTab }) => {
                             onClick={processPdf}
                             disabled={!pdfFile || pdfProcessing || pdfError}
                         >
-                            {pdfProcessing ? __('Processing...', 'aisk-ai-chat-for-fluentcart') : __('Process Now', 'aisk-ai-chat-for-fluentcart')}
+                            {pdfProcessing ? __('Processing...', 'wish-cart') : __('Process Now', 'wish-cart')}
                         </Button>
                     </DialogFooter>
                 </DialogContent>
@@ -865,15 +865,15 @@ const PdfProcessing = ({ settings, updateSettings, isActiveConfigTab }) => {
             <Dialog open={openDeleteDialog} onOpenChange={setOpenDeleteDialog}>
                 <DialogContent className="sm:max-w-md">
                     <DialogHeader>
-                        <DialogTitle>{__('Confirm Deletion', 'aisk-ai-chat-for-fluentcart')}</DialogTitle>
+                        <DialogTitle>{__('Confirm Deletion', 'wish-cart')}</DialogTitle>
                         <DialogDescription>
-                            {__('Are you sure you want to delete this PDF? This will remove it from your knowledge base.', 'aisk-ai-chat-for-fluentcart')}
+                            {__('Are you sure you want to delete this PDF? This will remove it from your knowledge base.', 'wish-cart')}
                         </DialogDescription>
                     </DialogHeader>
                     {pdfToDelete !== null && settings.ai_config.pdf_files && settings.ai_config.pdf_files[pdfToDelete] && (
                         <div className="py-3">
                             <p className="font-medium text-center">
-                                {settings.ai_config.pdf_files[pdfToDelete].name || __('Unnamed PDF', 'aisk-ai-chat-for-fluentcart')}
+                                {settings.ai_config.pdf_files[pdfToDelete].name || __('Unnamed PDF', 'wish-cart')}
                             </p>
                         </div>
                     )}
@@ -882,13 +882,13 @@ const PdfProcessing = ({ settings, updateSettings, isActiveConfigTab }) => {
                             variant="secondary"
                             onClick={cancelDelete}
                         >
-                            {__('Cancel', 'aisk-ai-chat-for-fluentcart')}
+                            {__('Cancel', 'wish-cart')}
                         </Button>
                         <Button
                             variant="destructive"
                             onClick={confirmDelete}
                         >
-                            {__('Delete', 'aisk-ai-chat-for-fluentcart')}
+                            {__('Delete', 'wish-cart')}
                         </Button>
                     </DialogFooter>
                 </DialogContent>

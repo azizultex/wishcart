@@ -1,10 +1,10 @@
 <?php
 if ( ! defined( 'ABSPATH' ) ) exit;
 /**
- * Class AISK_URLDiscoverer
+ * Class WISHCART_URLDiscoverer
  * Handles discovering URLs from content
  */
-class AISK_URLDiscoverer {
+class WISHCART_URLDiscoverer {
     private $content_fetcher;
 
     public function __construct($content_fetcher) {
