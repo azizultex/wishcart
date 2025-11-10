@@ -79,38 +79,9 @@ class WISHCART_Admin {
             esc_html__( 'WishCart', 'wish-cart' ),
             'manage_options',
             $this->plugin_slug,
-            [ $this, 'render_dashboard_page' ],
+            [ $this, 'render_settings_page' ],
             plugin_dir_url( dirname( __FILE__ ) ) . 'assets/images/icons/menu-icon-short.svg', 
             30
-        );
-
-        add_submenu_page(
-            $this->plugin_slug,
-            esc_html__( 'Inquiries', 'wish-cart' ),
-            esc_html__( 'Inquiries', 'wish-cart' ),
-            'manage_options',
-            $this->plugin_slug . '-inquiries',
-            [ $this, 'render_inquiries_page' ]
-        );
-
-        // Add Chat History submenu
-        add_submenu_page(
-            $this->plugin_slug,
-            esc_html__( 'Chat History', 'wish-cart' ),
-            esc_html__( 'Chat History', 'wish-cart' ),
-            'manage_options',
-            $this->plugin_slug . '-history',
-            [ $this, 'render_history_page' ]
-        );
-
-        // Add Uses Analytics submenu
-        add_submenu_page(
-            $this->plugin_slug,
-            esc_html__( 'API Usage', 'wish-cart' ),
-            esc_html__( 'API Usage', 'wish-cart' ),
-            'manage_options',
-            $this->plugin_slug . '-uses',
-            [ $this, 'render_uses_page' ]
         );
 
         // Add Settings submenu
@@ -122,9 +93,6 @@ class WISHCART_Admin {
             $this->plugin_slug . '-settings',
             [ $this, 'render_settings_page' ]
         );
-
-        // Remove default submenu page
-        remove_submenu_page($this->plugin_slug, $this->plugin_slug);
     }
     /**
      * Enqueue admin scripts and styles
@@ -138,9 +106,6 @@ class WISHCART_Admin {
     public function enqueue_admin_scripts($hook) {
         $allowed_hooks = [
             'toplevel_page_' . $this->plugin_slug,
-            $this->plugin_slug . '_page_' . $this->plugin_slug . '-inquiries',
-            $this->plugin_slug . '_page_' . $this->plugin_slug . '-history',
-            $this->plugin_slug . '_page_' . $this->plugin_slug . '-uses',
             $this->plugin_slug . '_page_' . $this->plugin_slug . '-settings',
         ];
 
@@ -148,10 +113,7 @@ class WISHCART_Admin {
             return;
         }
 
-        // First load the common chat widget assets
-        WISHCART_Scripts::load_chat_widget_assets();
-
-        // Then load admin-specific assets
+        // Load admin-specific assets
         wp_enqueue_media();
 
         // Register and enqueue admin styles
@@ -237,6 +199,45 @@ class WISHCART_Admin {
             'callback' => array($this, 'get_products'),
             'permission_callback' => function () {
                 return current_user_can('manage_options');
+            },
+        ));
+
+        // Wishlist endpoints
+        register_rest_route('wishcart/v1', '/wishlist/add', array(
+            'methods' => 'POST',
+            'callback' => array($this, 'wishlist_add'),
+            'permission_callback' => '__return_true', // Public endpoint
+        ));
+
+        register_rest_route('wishcart/v1', '/wishlist/remove', array(
+            'methods' => 'POST',
+            'callback' => array($this, 'wishlist_remove'),
+            'permission_callback' => '__return_true', // Public endpoint
+        ));
+
+        register_rest_route('wishcart/v1', '/wishlist', array(
+            'methods' => 'GET',
+            'callback' => array($this, 'wishlist_get'),
+            'permission_callback' => '__return_true', // Public endpoint
+        ));
+
+        register_rest_route('wishcart/v1', '/wishlist/check/(?P<product_id>\d+)', array(
+            'methods' => 'GET',
+            'callback' => array($this, 'wishlist_check'),
+            'permission_callback' => '__return_true', // Public endpoint
+            'args' => array(
+                'product_id' => array(
+                    'required' => true,
+                    'type' => 'integer',
+                ),
+            ),
+        ));
+
+        register_rest_route('wishcart/v1', '/wishlist/sync', array(
+            'methods' => 'POST',
+            'callback' => array($this, 'wishlist_sync'),
+            'permission_callback' => function () {
+                return is_user_logged_in();
             },
         ));
 
@@ -412,39 +413,6 @@ class WISHCART_Admin {
             'isActive' => $is_active,
             'message' => $is_active ? 'FluentCart is active' : 'FluentCart is not installed or not active',
         ));
-    }
-
-    /**
-     * Render inquiries admin page
-     *
-     * @since 1.0.0
-     *
-     * @return void
-     */
-    public function render_inquiries_page() {
-        echo '<div id="wishcart-inquiries"></div>';
-    }
-
-    /**
-     * Render chat history admin page
-     *
-     * @since 1.0.0
-     *
-     * @return void
-     */
-    public function render_history_page() {
-        echo '<div id="wishcart-history"></div>';
-    }
-
-    /**
-     * Render uses analytics admin page
-     *
-     * @since 1.0.0
-     *
-     * @return void
-     */
-    public function render_uses_page() {
-        echo '<div id="wishcart-uses"></div>';
     }
 
     /**
@@ -950,6 +918,165 @@ class WISHCART_Admin {
         }
 
         return rest_ensure_response( $products );
+    }
+
+    /**
+     * Add product to wishlist
+     *
+     * @param WP_REST_Request $request Request object
+     * @return WP_REST_Response
+     */
+    public function wishlist_add( $request ) {
+        $handler = new WISHCART_Wishlist_Handler();
+        $params = $request->get_json_params();
+        $product_id = isset( $params['product_id'] ) ? intval( $params['product_id'] ) : 0;
+        
+        // Handler will determine user_id or session_id automatically
+        $result = $handler->add_to_wishlist( $product_id );
+
+        if ( is_wp_error( $result ) ) {
+            return new WP_Error(
+                $result->get_error_code(),
+                $result->get_error_message(),
+                array( 'status' => 400 )
+            );
+        }
+
+        return rest_ensure_response( array(
+            'success' => true,
+            'message' => __( 'Product added to wishlist', 'wish-cart' ),
+        ) );
+    }
+
+    /**
+     * Remove product from wishlist
+     *
+     * @param WP_REST_Request $request Request object
+     * @return WP_REST_Response
+     */
+    public function wishlist_remove( $request ) {
+        $handler = new WISHCART_Wishlist_Handler();
+        $params = $request->get_json_params();
+        $product_id = isset( $params['product_id'] ) ? intval( $params['product_id'] ) : 0;
+        
+        // Handler will determine user_id or session_id automatically
+        $result = $handler->remove_from_wishlist( $product_id );
+
+        if ( is_wp_error( $result ) ) {
+            return new WP_Error(
+                $result->get_error_code(),
+                $result->get_error_message(),
+                array( 'status' => 400 )
+            );
+        }
+
+        return rest_ensure_response( array(
+            'success' => true,
+            'message' => __( 'Product removed from wishlist', 'wish-cart' ),
+        ) );
+    }
+
+    /**
+     * Get user's wishlist
+     *
+     * @param WP_REST_Request $request Request object
+     * @return WP_REST_Response
+     */
+    public function wishlist_get( $request ) {
+        $handler = new WISHCART_Wishlist_Handler();
+        
+        // Handler will determine user_id or session_id automatically
+        $product_ids = $handler->get_user_wishlist();
+
+        // Get product details
+        $products = array();
+        foreach ( $product_ids as $product_id ) {
+            $product = WISHCART_FluentCart_Helper::get_product( $product_id );
+            if ( $product ) {
+                $image_id = $product->get_image_id();
+                $image_url = $image_id ? wp_get_attachment_image_url( $image_id, 'medium' ) : '';
+                
+                $products[] = array(
+                    'id' => $product_id,
+                    'name' => $product->get_name(),
+                    'price' => $product->get_price(),
+                    'regular_price' => $product->get_regular_price(),
+                    'sale_price' => $product->get_sale_price(),
+                    'is_on_sale' => $product->is_on_sale(),
+                    'image_url' => $image_url,
+                    'permalink' => get_permalink( $product_id ),
+                );
+            }
+        }
+
+        return rest_ensure_response( array(
+            'success' => true,
+            'products' => $products,
+            'count' => count( $products ),
+        ) );
+    }
+
+    /**
+     * Check if product is in wishlist
+     *
+     * @param WP_REST_Request $request Request object
+     * @return WP_REST_Response
+     */
+    public function wishlist_check( $request ) {
+        $handler = new WISHCART_Wishlist_Handler();
+        $product_id = intval( $request->get_param( 'product_id' ) );
+        
+        // Handler will determine user_id or session_id automatically
+        $is_in_wishlist = $handler->is_in_wishlist( $product_id );
+
+        return rest_ensure_response( array(
+            'success' => true,
+            'in_wishlist' => $is_in_wishlist,
+        ) );
+    }
+
+    /**
+     * Sync guest wishlist to user account
+     *
+     * @param WP_REST_Request $request Request object
+     * @return WP_REST_Response
+     */
+    public function wishlist_sync( $request ) {
+        if ( ! is_user_logged_in() ) {
+            return new WP_Error(
+                'not_logged_in',
+                __( 'User must be logged in', 'wish-cart' ),
+                array( 'status' => 401 )
+            );
+        }
+
+        $handler = new WISHCART_Wishlist_Handler();
+        $params = $request->get_json_params();
+        $session_id = isset( $params['session_id'] ) ? sanitize_text_field( $params['session_id'] ) : null;
+        $user_id = get_current_user_id();
+
+        if ( empty( $session_id ) ) {
+            return new WP_Error(
+                'missing_session_id',
+                __( 'Session ID is required', 'wish-cart' ),
+                array( 'status' => 400 )
+            );
+        }
+
+        $result = $handler->sync_guest_wishlist_to_user( $session_id, $user_id );
+
+        if ( is_wp_error( $result ) ) {
+            return new WP_Error(
+                $result->get_error_code(),
+                $result->get_error_message(),
+                array( 'status' => 400 )
+            );
+        }
+
+        return rest_ensure_response( array(
+            'success' => true,
+            'message' => __( 'Wishlist synced successfully', 'wish-cart' ),
+        ) );
     }
 }
 

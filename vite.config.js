@@ -5,9 +5,14 @@ import path from 'path'
 // Determine which entry point to build based on command line argument
 const buildTarget = process.env.BUILD_TARGET || 'chat-widget'
 
-const entryPoint = buildTarget === 'chat-admin'
-    ? path.resolve(__dirname, 'src/admin/index.jsx')
-    : path.resolve(__dirname, 'src/index.jsx')
+let entryPoint;
+if (buildTarget === 'chat-admin') {
+    entryPoint = path.resolve(__dirname, 'src/admin/index.jsx');
+} else if (buildTarget === 'wishlist-frontend') {
+    entryPoint = path.resolve(__dirname, 'src/frontend/index.jsx');
+} else {
+    entryPoint = path.resolve(__dirname, 'src/index.jsx');
+}
 
 export default defineConfig({
     plugins: [react()],

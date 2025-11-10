@@ -9,84 +9,34 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Toaster } from "@/components/ui/toaster"
 import { useToast } from "@/components/hooks/use-toast"
 import {
-    Settings,
-    MessageSquare,
-    Wand2,
-    Share2,
-    MoreHorizontal,
+    Heart,
     HelpCircle,
     ExternalLink,
     CheckCircle2,
     XCircle
 } from 'lucide-react';
 
-import ChatWidgetSettings from './ChatWidgetSettings';
-import AiConfigSettings from './AiConfigSettings';
-import IntegrationsSettings from './IntegrationsSettings';
-import MiscSettings from './MiscSettings';
+import WishlistSettings from './WishlistSettings';
 import {buttonVariants} from "../../../components/ui/button";
 
 
 const SettingsApp = () => {
     const { toast } = useToast()
     const [settings, setSettings] = useState({
-        general: {
-            openai_key: '',
-        },
-        chatwidget: {
-            chat_icon: '',
-            widget_logo: '',
-            widget_text: '',
-            widget_color: '#1976d2',
-            suggested_questions: [],
-            widget_position: 'bottom-right',
-            widget_greeting: '',
-            widget_placeholder: '',
-            widget_title: '',
-            widget_subtitle: '',
-        },
-        ai_config: {
-            fluentcart_enabled: false,
-            included_post_types: ['post', 'page'],
-            excluded_posts: [],
-            excluded_pages: [],
-            excluded_products: [],
-            exclude_categories: [],
-            contact_info: '',
-            custom_content: '',
-            batch_size: 10,
-            max_context_length: 2000,
-        },
-        integrations: {
-            whatsapp: {
-                enabled: false,
-                account_sid: '',
-                auth_token: '',
-                phone_number: '',
-                welcome_message: '',
-                enable_template_messages: false,
-            },
-            telegram: {
-                enabled: false,
-                bot_token: '',
-                bot_username: '',
-                welcome_message: '',
-            },
-            contact_form: {
-                enabled: false,
-                shortcode: '',
-            },
-        },
-        misc: {
+        wishlist: {
+            enabled: true,
+            shop_page_button: true,
+            product_page_button: true,
+            button_position: 'after',
             custom_css: '',
+            wishlist_page_id: 0,
+            guest_cookie_expiry: 30,
         },
     });
 
     const [isSaving, setIsSaving] = useState(false);
     const [saveMessage, setSaveMessage] = useState('');
-    const [activeTab, setActiveTab] = useState("general");
-    const [activeIntegrationTab, setActiveIntegrationTab] = useState("whatsapp");
-    const { nonce, apiUrl } = settings;
+    const [activeTab, setActiveTab] = useState("wishlist");
 
     useEffect(() => {
         // Load settings from WordPress on mount
@@ -114,23 +64,7 @@ const SettingsApp = () => {
 
     // Validate inputs before saving
     const validateBeforeSave = () => {
-        const phone = settings?.integrations?.whatsapp?.phone_number || '';
-        if (phone && !/^whatsapp:\+\d{10,15}$/.test(phone)) {
-            // Focus the Integrations → WhatsApp tab and show an error toast
-            setActiveTab('integrations');
-            setActiveIntegrationTab('whatsapp');
-            toast({
-                title: (
-                    <div className="flex items-center gap-2">
-                        <XCircle className="h-4 w-4 text-red-500" />
-                        <span>{__('Invalid WhatsApp number', 'wish-cart')}</span>
-                    </div>
-                ),
-                description: __('Use format "whatsapp:+1234567890" including country code.', 'wish-cart'),
-                className: "bg-red-50 border-red-200"
-            });
-            return false;
-        }
+        // Add validation if needed
         return true;
     };
 
@@ -196,7 +130,7 @@ const SettingsApp = () => {
                             <div>
                                 <CardTitle className="text-2xl">{__('WishCart Settings', 'wish-cart')}</CardTitle>
                                 <CardDescription>
-                                    {__('Configure your chatbot and integration settings', 'wish-cart')}
+                                    {__('Configure your wishlist settings', 'wish-cart')}
                                 </CardDescription>
                             </div>
                             <div className="space-x-3">
@@ -227,121 +161,16 @@ const SettingsApp = () => {
                     </Alert>
                 )}
 
-                <Tabs defaultValue="general" className="w-full">
+                <Tabs defaultValue="wishlist" className="w-full">
                     <TabsList className="mb-4">
-                        <TabsTrigger value="general" className="flex items-center gap-2">
-                            <Settings className="w-4 h-4" />
-                            {__('General', 'wish-cart')}
-                        </TabsTrigger>
-                        <TabsTrigger value="chatwidget" className="flex items-center gap-2">
-                            <MessageSquare className="w-4 h-4" />
-                            {__('Chat Widget', 'wish-cart')}
-                        </TabsTrigger>
-                        <TabsTrigger value="ai_config" className="flex items-center gap-2">
-                            <Wand2 className="w-4 h-4" />
-                            {__('AI Config', 'wish-cart')}
-                        </TabsTrigger>
-                        <TabsTrigger value="integrations" className="flex items-center gap-2">
-                            <Share2 className="w-4 h-4" />
-                            {__('Integrations', 'wish-cart')}
-                        </TabsTrigger>
-                        <TabsTrigger value="misc" className="flex items-center gap-2">
-                            <MoreHorizontal className="w-4 h-4" />
-                            {__('Misc', 'wish-cart')}
+                        <TabsTrigger value="wishlist" className="flex items-center gap-2">
+                            <Heart className="w-4 h-4" />
+                            {__('Wishlist', 'wish-cart')}
                         </TabsTrigger>
                     </TabsList>
 
-                    <TabsContent value="general">
-                        <Card>
-                            <CardHeader>
-                                <CardTitle>{__('General Settings', 'wish-cart')}</CardTitle>
-                                <CardDescription>
-                                    {__('Configure your API keys and general settings', 'wish-cart')}
-                                </CardDescription>
-                            </CardHeader>
-                            <CardContent className="space-y-4 max-w-2xl">
-                                
-
-                                <div className="space-y-2">
-                                    <Label htmlFor="openai_key">{__('OpenAI API Key', 'wish-cart')}</Label>
-                                    <Input
-                                        id="openai_key"
-                                        value={settings.general.openai_key}
-                                        onChange={(e) => updateSettings('general', 'openai_key', e.target.value)}
-                                        type="password"
-                                        className="max-w-xl"
-                                    />
-                                    <p className="text-xs text-muted-foreground">
-                                        {__('Generate your API key at', 'wish-cart')}{" "}
-                                        <a
-                                            href="https://platform.openai.com/api-keys"
-                                            target="_blank"
-                                            rel="noopener noreferrer"
-                                            className="text-primary hover:text-primary/80 underline"
-                                        >
-                                            platform.openai.com/api-keys
-                                        </a>
-                                    </p>
-                                </div>
-                            </CardContent>
-                        </Card>
-                    </TabsContent>
-
-                    <TabsContent value="chatwidget">
-                        <ChatWidgetSettings
-                            settings={settings}
-                            updateSettings={updateSettings}
-                        />
-                    </TabsContent>
-
-                    <TabsContent value="ai_config">
-                        <AiConfigSettings
-                            settings={settings}
-                            updateSettings={updateSettings}
-                        />
-                    </TabsContent>
-
-                    <TabsContent value="integrations">
-                        <div className="bg-white p-6 rounded-lg shadow">
-                            <Tabs value={activeIntegrationTab} onValueChange={setActiveIntegrationTab}>
-
-                                <TabsContent value="whatsapp">
-                                    <IntegrationsSettings
-                                        type="whatsapp"
-                                        settings={settings}
-                                        updateSettings={updateSettings}
-                                    />
-                                </TabsContent>
-
-                                <TabsContent value="telegram">
-                                    <IntegrationsSettings
-                                        type="telegram"
-                                        settings={settings}
-                                        updateSettings={updateSettings}
-                                    />
-                                </TabsContent>
-
-                                <TabsContent value="webhook">
-                                    <IntegrationsSettings
-                                        type="webhook"
-                                        settings={settings}
-                                        updateSettings={updateSettings}
-                                    />
-                                </TabsContent>
-
-                                <TabsContent value="contact_form">
-                                    <IntegrationsSettings
-                                        type="contact_form"
-                                        settings={settings}
-                                        updateSettings={updateSettings}
-                                    />
-                                </TabsContent>
-                            </Tabs>
-                        </div>
-                    </TabsContent>
-
-                    <TabsContent value="misc">
-                        <MiscSettings
+                    <TabsContent value="wishlist">
+                        <WishlistSettings
                             settings={settings}
                             updateSettings={updateSettings}
                         />

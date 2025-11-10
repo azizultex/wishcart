@@ -152,6 +152,21 @@ class WISHCART_Database {
 
 		$sql_api_usage = $this->get_api_usage_table_sql($this->table_prefix . 'wishcart_api_usage', $charset_collate);
 
+        // Wishlist table
+        $sql_wishlist = "CREATE TABLE IF NOT EXISTS {$this->table_prefix}wishcart_wishlist (
+            id bigint(20) NOT NULL AUTO_INCREMENT,
+            user_id bigint(20) DEFAULT NULL,
+            session_id varchar(50) DEFAULT NULL,
+            product_id bigint(20) NOT NULL,
+            created_at datetime DEFAULT CURRENT_TIMESTAMP,
+            PRIMARY KEY (id),
+            KEY user_id (user_id),
+            KEY session_id (session_id),
+            KEY product_id (product_id),
+            UNIQUE KEY user_product (user_id, product_id),
+            UNIQUE KEY session_product (session_id, product_id)
+        ) $charset_collate;";
+
         include_once ABSPATH . 'wp-admin/includes/upgrade.php';
 
         dbDelta($sql_conversations);
@@ -160,6 +175,7 @@ class WISHCART_Database {
         dbDelta($sql_inquiries);
         dbDelta($sql_inquiry_notes);
         dbDelta($sql_embeddings);
+        dbDelta($sql_wishlist);
         
 		// Only create API usage table if it's a fresh install (2.5.0+) or upgrade from 2.4.1
 		$should_create = $this->should_create_api_usage_table();
