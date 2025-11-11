@@ -5,6 +5,8 @@ import WishlistPage from '../components/WishlistPage';
 import '../styles/WishlistButton.scss';
 import '../styles/WishlistPage.scss';
 
+const isWishlistEnabled = () => window.WishCartWishlist?.enabled !== false;
+
 const normalizePosition = (value, fallback = 'bottom') => {
     let candidate = value || fallback || 'bottom';
 
@@ -64,6 +66,10 @@ const mountWishlistButtonAtContainer = (container) => {
 };
 
 const injectFluentCartContainer = () => {
+    if (!isWishlistEnabled()) {
+        return null;
+    }
+
     if (window.WishCartWishlist?.showOnProduct === false) {
         return null;
     }
@@ -132,6 +138,10 @@ const extractProductId = (element) => {
 };
 
 const injectWishlistIntoProductCards = () => {
+    if (!isWishlistEnabled()) {
+        return;
+    }
+
     if (window.WishCartWishlist?.showOnShop === false) {
         return;
     }
@@ -173,6 +183,10 @@ const injectWishlistIntoProductCards = () => {
 };
 
 const injectWishlistIntoArchiveEntries = () => {
+    if (!isWishlistEnabled()) {
+        return;
+    }
+
     if (window.WishCartWishlist?.showOnShop === false) {
         return;
     }
@@ -218,6 +232,10 @@ const injectWishlistIntoArchiveEntries = () => {
 };
 
 const injectWishlistNearActionButtons = () => {
+    if (!isWishlistEnabled()) {
+        return;
+    }
+
     const buttons = document.querySelectorAll('.fluent-cart-add-to-cart-button[data-product-id]');
 
     buttons.forEach((button) => {
@@ -288,6 +306,10 @@ const initializeSessionId = () => {
 
 // Mount wishlist buttons
 const mountWishlistButtons = () => {
+    if (!isWishlistEnabled()) {
+        return;
+    }
+
     injectWishlistIntoProductCards();
     injectWishlistIntoArchiveEntries();
     injectWishlistNearActionButtons();

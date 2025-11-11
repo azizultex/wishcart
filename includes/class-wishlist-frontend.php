@@ -70,10 +70,17 @@ class WISHCART_Wishlist_Frontend {
      * @return void
      */
     public function enqueue_scripts() {
+        $settings = get_option( 'wishcart_settings', array() );
+        $wishlist_settings = isset( $settings['wishlist'] ) ? $settings['wishlist'] : array();
+
+        if ( empty( $wishlist_settings['enabled'] ) ) {
+            return;
+        }
+
         // Enqueue on product pages, shop pages, or wishlist page
         $wishlist_page_id = WISHCART_Wishlist_Page::get_wishlist_page_id();
         $is_wishlist_page = $wishlist_page_id > 0 && is_page( $wishlist_page_id );
-        
+
         if ( ! $this->is_product_page() && ! $is_wishlist_page ) {
             return;
         }
@@ -96,8 +103,6 @@ class WISHCART_Wishlist_Frontend {
 
         // Localize script
         $session_id = $this->handler->get_or_create_session_id();
-        $settings = get_option( 'wishcart_settings', array() );
-        $wishlist_settings = isset( $settings['wishlist'] ) ? $settings['wishlist'] : array();
         wp_localize_script(
             'wishcart-wishlist-frontend',
             'WishCartWishlist',
@@ -108,6 +113,7 @@ class WISHCART_Wishlist_Frontend {
                 'isLoggedIn' => is_user_logged_in(),
                 'userId' => get_current_user_id(),
                 'buttonPosition' => $this->get_button_position(),
+                'enabled' => ! empty( $wishlist_settings['enabled'] ),
                 'showOnProduct' => ! empty( $wishlist_settings['product_page_button'] ),
                 'showOnShop' => ! empty( $wishlist_settings['shop_page_button'] ),
             )
