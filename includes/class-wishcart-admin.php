@@ -144,7 +144,7 @@ class WISHCART_Admin {
             'wishcart-admin',
             'WishCartSettings',
             [
-                'apiUrl' => rest_url('wishcart/v1'),
+                'apiUrl' => trailingslashit( rest_url( 'wishcart/v1' ) ),
                 'nonce' => wp_create_nonce('wp_rest'),
                 'pluginUrl' => WISHCART_PLUGIN_URL,
                 'isFluentCartActive' => WISHCART_FluentCart_Helper::is_fluentcart_active(),

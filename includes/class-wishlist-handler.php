@@ -16,6 +16,7 @@ class WISHCART_Wishlist_Handler {
 
     private $wpdb;
     private $table_name;
+    private $guest_cookie_name = 'wishcart_guest_wishlist';
 
     /**
      * Constructor
@@ -24,6 +25,93 @@ class WISHCART_Wishlist_Handler {
         global $wpdb;
         $this->wpdb = $wpdb;
         $this->table_name = $wpdb->prefix . 'wishcart_wishlist';
+    }
+
+    /**
+     * Get guest wishlist cookie name
+     *
+     * @return string
+     */
+    private function get_guest_cookie_name() {
+        return $this->guest_cookie_name;
+    }
+
+    /**
+     * Get configured guest cookie expiry (days)
+     *
+     * @return int
+     */
+    private function get_guest_cookie_expiry_days() {
+        $settings = get_option( 'wishcart_settings', [] );
+        $expiry_days = isset( $settings['wishlist']['guest_cookie_expiry'] ) ? intval( $settings['wishlist']['guest_cookie_expiry'] ) : 30;
+
+        return $expiry_days > 0 ? $expiry_days : 30;
+    }
+
+    /**
+     * Get guest wishlist from cookie
+     *
+     * @return array<int>
+     */
+    private function get_guest_wishlist_from_cookie() {
+        $cookie_name = $this->get_guest_cookie_name();
+        $wishlist = [];
+
+        if ( isset( $_COOKIE[ $cookie_name ] ) && '' !== $_COOKIE[ $cookie_name ] ) {
+            $raw = wp_unslash( $_COOKIE[ $cookie_name ] );
+            $decoded = json_decode( $raw, true );
+
+            if ( is_array( $decoded ) ) {
+                foreach ( $decoded as $product_id ) {
+                    $product_id = intval( $product_id );
+                    if ( $product_id > 0 ) {
+                        $wishlist[] = $product_id;
+                    }
+                }
+            }
+        }
+
+        return array_values( array_unique( $wishlist ) );
+    }
+
+    /**
+     * Persist guest wishlist to cookie
+     *
+     * @param array<int> $product_ids
+     * @return void
+     */
+    private function set_guest_wishlist_cookie( $product_ids ) {
+        $cookie_name = $this->get_guest_cookie_name();
+        $product_ids = array_values(
+            array_unique(
+                array_filter(
+                    array_map( 'intval', (array) $product_ids ),
+                    function ( $id ) {
+                        return $id > 0;
+                    }
+                )
+            )
+        );
+
+        $json = wp_json_encode( $product_ids );
+        if ( false === $json ) {
+            $json = '[]';
+        }
+
+        $expiry = time() + ( $this->get_guest_cookie_expiry_days() * DAY_IN_SECONDS );
+        setcookie( $cookie_name, $json, $expiry, '/', '', is_ssl(), true );
+        $_COOKIE[ $cookie_name ] = $json;
+    }
+
+    /**
+     * Clear guest wishlist cookie
+     *
+     * @return void
+     */
+    private function clear_guest_wishlist_cookie() {
+        $cookie_name = $this->get_guest_cookie_name();
+        setcookie( $cookie_name, '', time() - DAY_IN_SECONDS, '/', '', is_ssl(), true );
+        unset( $_COOKIE[ $cookie_name ] );
     }
 
     /**
@@ -78,40 +166,62 @@ class WISHCART_Wishlist_Handler {
         if ( is_user_logged_in() ) {
             $user_id = get_current_user_id();
             $session_id = null;
-        } else {
-            if ( empty( $session_id ) ) {
-                $session_id = $this->get_or_create_session_id();
+
+            // Check if already in wishlist
+            if ( $this->is_in_wishlist( $product_id, $user_id, $session_id ) ) {
+                return true; // Already added
             }
-            $user_id = null;
+
+            // Insert into database
+            $result = $this->wpdb->insert(
+                $this->table_name,
+                [
+                    'user_id' => $user_id,
+                    'session_id' => $session_id,
+                    'product_id' => $product_id,
+                ],
+                [
+                    '%d',
+                    '%s',
+                    '%d',
+                ]
+            );
+
+            if ( false === $result ) {
+                return new WP_Error( 'db_error', __( 'Failed to add product to wishlist', 'wish-cart' ) );
+            }
+
+            // Clear cache
+            $this->clear_wishlist_cache( $user_id, null );
+
+            return true;
         }
 
-        // Check if already in wishlist
-        if ( $this->is_in_wishlist( $product_id, $user_id, $session_id ) ) {
-            return true; // Already added
+        if ( empty( $session_id ) ) {
+            $session_id = $this->get_or_create_session_id();
         }
 
-        // Insert into database
-        $result = $this->wpdb->insert(
-            $this->table_name,
-            [
-                'user_id' => $user_id,
-                'session_id' => $session_id,
-                'product_id' => $product_id,
-            ],
-            [
-                '%d',
-                '%s',
-                '%d',
-            ]
-        );
-
-        if ( false === $result ) {
-            return new WP_Error( 'db_error', __( 'Failed to add product to wishlist', 'wish-cart' ) );
+        $wishlist = $this->get_guest_wishlist_from_cookie();
+        if ( in_array( $product_id, $wishlist, true ) ) {
+            return true;
         }
 
-        // Clear cache
-        $this->clear_wishlist_cache( $user_id, $session_id );
+        $wishlist[] = $product_id;
+        $this->set_guest_wishlist_cookie( $wishlist );
 
+        if ( ! empty( $session_id ) ) {
+            $this->wpdb->delete(
+                $this->table_name,
+                [
+                    'session_id' => $session_id,
+                    'product_id' => $product_id,
+                ],
+                [
+                    '%s',
+                    '%d',
+                ]
+            );
+        }
         return true;
     }
 
@@ -134,38 +244,58 @@ class WISHCART_Wishlist_Handler {
         if ( is_user_logged_in() ) {
             $user_id = get_current_user_id();
             $session_id = null;
-        } else {
-            if ( empty( $session_id ) ) {
-                $session_id = $this->get_or_create_session_id();
-            }
-            $user_id = null;
-        }
+            
+            // Build where clause
+            $where = [ 'product_id' => $product_id ];
+            $where_format = [ '%d' ];
 
-        // Build where clause
-        $where = [ 'product_id' => $product_id ];
-        $where_format = [ '%d' ];
-
-        if ( $user_id ) {
             $where['user_id'] = $user_id;
             $where_format[] = '%d';
-        } else {
-            $where['session_id'] = $session_id;
-            $where_format[] = '%s';
+
+            // Delete from database
+            $result = $this->wpdb->delete(
+                $this->table_name,
+                $where,
+                $where_format
+            );
+
+            if ( false === $result ) {
+                return new WP_Error( 'db_error', __( 'Failed to remove product from wishlist', 'wish-cart' ) );
+            }
+
+            // Clear cache
+            $this->clear_wishlist_cache( $user_id, null );
+
+            return true;
         }
 
-        // Delete from database
-        $result = $this->wpdb->delete(
-            $this->table_name,
-            $where,
-            $where_format
-        );
-
-        if ( false === $result ) {
-            return new WP_Error( 'db_error', __( 'Failed to remove product from wishlist', 'wish-cart' ) );
+        if ( empty( $session_id ) ) {
+            $session_id = $this->get_or_create_session_id();
         }
 
-        // Clear cache
-        $this->clear_wishlist_cache( $user_id, $session_id );
+        $wishlist = $this->get_guest_wishlist_from_cookie();
+        $index = array_search( $product_id, $wishlist, true );
+
+        if ( false === $index ) {
+            return true;
+        }
+
+        unset( $wishlist[ $index ] );
+        $this->set_guest_wishlist_cookie( $wishlist );
+
+        if ( ! empty( $session_id ) ) {
+            $this->wpdb->delete(
+                $this->table_name,
+                [
+                    'session_id' => $session_id,
+                    'product_id' => $product_id,
+                ],
+                [
+                    '%s',
+                    '%d',
+                ]
+            );
+        }
 
         return true;
     }
@@ -186,7 +316,33 @@ class WISHCART_Wishlist_Handler {
             if ( empty( $session_id ) ) {
                 $session_id = $this->get_or_create_session_id();
             }
-            $user_id = null;
+
+            $wishlist = $this->get_guest_wishlist_from_cookie();
+            if ( ! empty( $wishlist ) ) {
+                return $wishlist;
+            }
+
+            // Backwards compatibility: fall back to legacy database storage if present.
+            $results = $this->wpdb->get_results(
+                $this->wpdb->prepare(
+                    "SELECT product_id FROM {$this->table_name} WHERE session_id = %s ORDER BY created_at DESC",
+                    $session_id
+                ),
+                ARRAY_A
+            );
+
+            $product_ids = [];
+            if ( $results ) {
+                foreach ( $results as $row ) {
+                    $product_ids[] = intval( $row['product_id'] );
+                }
+            }
+
+            if ( ! empty( $product_ids ) ) {
+                $this->set_guest_wishlist_cookie( $product_ids );
+            }
+
+            return $product_ids;
         }
 
         // Check cache
@@ -198,23 +354,13 @@ class WISHCART_Wishlist_Handler {
         }
 
         // Build query
-        if ( $user_id ) {
-            $results = $this->wpdb->get_results(
-                $this->wpdb->prepare(
-                    "SELECT product_id FROM {$this->table_name} WHERE user_id = %d ORDER BY created_at DESC",
-                    $user_id
-                ),
-                ARRAY_A
-            );
-        } else {
-            $results = $this->wpdb->get_results(
-                $this->wpdb->prepare(
-                    "SELECT product_id FROM {$this->table_name} WHERE session_id = %s ORDER BY created_at DESC",
-                    $session_id
-                ),
-                ARRAY_A
-            );
-        }
+        $results = $this->wpdb->get_results(
+            $this->wpdb->prepare(
+                "SELECT product_id FROM {$this->table_name} WHERE user_id = %d ORDER BY created_at DESC",
+                $user_id
+            ),
+            ARRAY_A
+        );
 
         $product_ids = [];
         if ( $results ) {
@@ -248,15 +394,7 @@ class WISHCART_Wishlist_Handler {
         if ( is_user_logged_in() ) {
             $user_id = get_current_user_id();
             $session_id = null;
-        } else {
-            if ( empty( $session_id ) ) {
-                $session_id = $this->get_or_create_session_id();
-            }
-            $user_id = null;
-        }
 
-        // Build query
-        if ( $user_id ) {
             $count = $this->wpdb->get_var(
                 $this->wpdb->prepare(
                     "SELECT COUNT(*) FROM {$this->table_name} WHERE user_id = %d AND product_id = %d",
@@ -264,17 +402,34 @@ class WISHCART_Wishlist_Handler {
                     $product_id
                 )
             );
-        } else {
-            $count = $this->wpdb->get_var(
-                $this->wpdb->prepare(
-                    "SELECT COUNT(*) FROM {$this->table_name} WHERE session_id = %s AND product_id = %d",
-                    $session_id,
-                    $product_id
-                )
-            );
+
+            return ( $count > 0 );
         }
 
-        return ( $count > 0 );
+        if ( empty( $session_id ) ) {
+            $session_id = $this->get_or_create_session_id();
+        }
+
+        $wishlist = $this->get_guest_wishlist_from_cookie();
+        if ( in_array( $product_id, $wishlist, true ) ) {
+            return true;
+        }
+
+        // Backwards compatibility: check legacy database entries and migrate.
+        $count = $this->wpdb->get_var(
+            $this->wpdb->prepare(
+                "SELECT COUNT(*) FROM {$this->table_name} WHERE session_id = %s AND product_id = %d",
+                $session_id,
+                $product_id
+            )
+        );
+
+        if ( $count > 0 ) {
+            $this->set_guest_wishlist_cookie( array_merge( $wishlist, [ $product_id ] ) );
+            return true;
+        }
+
+        return false;
     }
 
     /**
@@ -285,19 +440,35 @@ class WISHCART_Wishlist_Handler {
      * @return bool|WP_Error True on success
      */
     public function sync_guest_wishlist_to_user( $session_id, $user_id ) {
-        if ( empty( $session_id ) || empty( $user_id ) ) {
+        if ( empty( $user_id ) ) {
             return new WP_Error( 'invalid_params', __( 'Invalid parameters', 'wish-cart' ) );
         }
 
-        // Get guest wishlist
-        $guest_products = $this->wpdb->get_col(
-            $this->wpdb->prepare(
-                "SELECT product_id FROM {$this->table_name} WHERE session_id = %s",
-                $session_id
-            )
-        );
+        $guest_products = $this->get_guest_wishlist_from_cookie();
+        $guest_products = array_map( 'intval', $guest_products );
+
+        if ( ! empty( $session_id ) ) {
+            $legacy_products = $this->wpdb->get_col(
+                $this->wpdb->prepare(
+                    "SELECT product_id FROM {$this->table_name} WHERE session_id = %s",
+                    $session_id
+                )
+            );
+
+            if ( $legacy_products ) {
+                $guest_products = array_unique( array_merge( $guest_products, array_map( 'intval', $legacy_products ) ) );
+            }
+        }
 
         if ( empty( $guest_products ) ) {
+            $this->clear_guest_wishlist_cookie();
+            if ( ! empty( $session_id ) ) {
+                $this->wpdb->delete(
+                    $this->table_name,
+                    [ 'session_id' => $session_id ],
+                    [ '%s' ]
+                );
+            }
             return true; // Nothing to sync
         }
 
@@ -336,15 +507,21 @@ class WISHCART_Wishlist_Handler {
         }
 
         // Delete guest wishlist entries
-        $this->wpdb->delete(
-            $this->table_name,
-            [ 'session_id' => $session_id ],
-            [ '%s' ]
-        );
+        if ( ! empty( $session_id ) ) {
+            $this->wpdb->delete(
+                $this->table_name,
+                [ 'session_id' => $session_id ],
+                [ '%s' ]
+            );
+        }
+
+        $this->clear_guest_wishlist_cookie();
 
         // Clear caches
         $this->clear_wishlist_cache( $user_id, null );
-        $this->clear_wishlist_cache( null, $session_id );
+        if ( ! empty( $session_id ) ) {
+            $this->clear_wishlist_cache( null, $session_id );
+        }
 
         return true;
     }

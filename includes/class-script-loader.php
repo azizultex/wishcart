@@ -111,7 +111,7 @@ class WISHCART_Scripts {
             ],
             // Essential system paths/urls
             'pluginUrl' => WISHCART_PLUGIN_URL,
-            'apiUrl' => rest_url('wishcart/v1'),
+            'apiUrl' => trailingslashit( rest_url( 'wishcart/v1' ) ),
             'adminUrl' => admin_url('admin.php'),
             'nonce' => wp_create_nonce('wp_rest'),
         ];

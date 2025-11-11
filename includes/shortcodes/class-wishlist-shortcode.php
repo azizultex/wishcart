@@ -50,7 +50,7 @@ class WISHCART_Wishlist_Shortcode {
             'wishcart-wishlist-frontend',
             'WishCartWishlist',
             array(
-                'apiUrl' => rest_url( 'wishcart/v1' ),
+                'apiUrl' => trailingslashit( rest_url( 'wishcart/v1' ) ),
                 'nonce' => wp_create_nonce( 'wp_rest' ),
                 'sessionId' => $session_id,
                 'isLoggedIn' => is_user_logged_in(),
