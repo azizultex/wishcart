@@ -13,11 +13,29 @@ const WishlistSettings = ({ settings, updateSettings }) => {
         enabled: true,
         shop_page_button: true,
         product_page_button: true,
-        button_position: 'after',
+        button_position: 'bottom',
         custom_css: '',
         wishlist_page_id: 0,
         guest_cookie_expiry: 30,
     };
+
+    const resolveButtonPosition = (value) => {
+        switch (value) {
+            case 'before':
+                return 'top';
+            case 'after':
+                return 'bottom';
+            case 'top':
+            case 'bottom':
+            case 'left':
+            case 'right':
+                return value;
+            default:
+                return 'bottom';
+        }
+    };
+
+    const buttonPosition = resolveButtonPosition(wishlistSettings.button_position);
 
     const [wishlistPages, setWishlistPages] = useState([]);
     const [loadingPages, setLoadingPages] = useState(false);
@@ -110,7 +128,7 @@ const WishlistSettings = ({ settings, updateSettings }) => {
                         <div className="space-y-2">
                             <Label htmlFor="button_position">{__('Button Position', 'wish-cart')}</Label>
                             <Select
-                                value={wishlistSettings.button_position || 'after'}
+                                value={buttonPosition}
                                 onValueChange={(value) => updateWishlistSetting('button_position', value)}
                                 disabled={!wishlistSettings.enabled}
                             >
@@ -118,16 +136,22 @@ const WishlistSettings = ({ settings, updateSettings }) => {
                                     <SelectValue />
                                 </SelectTrigger>
                                 <SelectContent>
-                                    <SelectItem value="before">
-                                        {__('Before Add to Cart Button', 'wish-cart')}
+                                    <SelectItem value="top">
+                                        {__('Above product actions', 'wish-cart')}
                                     </SelectItem>
-                                    <SelectItem value="after">
-                                        {__('After Add to Cart Button', 'wish-cart')}
+                                    <SelectItem value="bottom">
+                                        {__('Below product actions', 'wish-cart')}
+                                    </SelectItem>
+                                    <SelectItem value="left">
+                                        {__('Left of Add to Cart button', 'wish-cart')}
+                                    </SelectItem>
+                                    <SelectItem value="right">
+                                        {__('Right of Add to Cart button', 'wish-cart')}
                                     </SelectItem>
                                 </SelectContent>
                             </Select>
                             <p className="text-sm text-muted-foreground">
-                                {__('Choose where to display the wishlist button on product pages', 'wish-cart')}
+                                {__('Choose where to display the wishlist button relative to the purchase actions.', 'wish-cart')}
                             </p>
                         </div>
                     )}

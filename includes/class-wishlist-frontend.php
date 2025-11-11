@@ -36,6 +36,35 @@ class WISHCART_Wishlist_Frontend {
     }
 
     /**
+     * Get the configured wishlist button position with backwards compatibility.
+     *
+     * @param array|null $wishlist_settings Optional wishlist settings array.
+     * @return string
+     */
+    private function get_button_position( $wishlist_settings = null ) {
+        if ( null === $wishlist_settings ) {
+            $settings = get_option( 'wishcart_settings', array() );
+            $wishlist_settings = isset( $settings['wishlist'] ) ? $settings['wishlist'] : array();
+        }
+
+        $position = isset( $wishlist_settings['button_position'] ) ? $wishlist_settings['button_position'] : 'bottom';
+
+        if ( 'before' === $position ) {
+            $position = 'top';
+        } elseif ( 'after' === $position ) {
+            $position = 'bottom';
+        }
+
+        $valid_positions = array( 'top', 'bottom', 'left', 'right' );
+
+        if ( ! in_array( $position, $valid_positions, true ) ) {
+            $position = 'bottom';
+        }
+
+        return $position;
+    }
+
+    /**
      * Enqueue frontend scripts and styles
      *
      * @return void
@@ -67,6 +96,8 @@ class WISHCART_Wishlist_Frontend {
 
         // Localize script
         $session_id = $this->handler->get_or_create_session_id();
+        $settings = get_option( 'wishcart_settings', array() );
+        $wishlist_settings = isset( $settings['wishlist'] ) ? $settings['wishlist'] : array();
         wp_localize_script(
             'wishcart-wishlist-frontend',
             'WishCartWishlist',
@@ -76,6 +107,9 @@ class WISHCART_Wishlist_Frontend {
                 'sessionId' => $session_id,
                 'isLoggedIn' => is_user_logged_in(),
                 'userId' => get_current_user_id(),
+                'buttonPosition' => $this->get_button_position(),
+                'showOnProduct' => ! empty( $wishlist_settings['product_page_button'] ),
+                'showOnShop' => ! empty( $wishlist_settings['shop_page_button'] ),
             )
         );
     }
@@ -103,14 +137,31 @@ class WISHCART_Wishlist_Frontend {
 
         // Hook for product detail page
         if ( ! empty( $wishlist_settings['product_page_button'] ) ) {
-            $position = isset( $wishlist_settings['button_position'] ) ? $wishlist_settings['button_position'] : 'after';
-            
-            if ( $position === 'before' ) {
-                add_action( 'fluentcart_before_add_to_cart_button', array( $this, 'render_wishlist_button' ), 10 );
-                add_action( 'woocommerce_before_add_to_cart_button', array( $this, 'render_wishlist_button' ), 10 );
-            } else {
-                add_action( 'fluentcart_after_add_to_cart_button', array( $this, 'render_wishlist_button' ), 10 );
-                add_action( 'woocommerce_after_add_to_cart_button', array( $this, 'render_wishlist_button' ), 10 );
+            $position = $this->get_button_position( $wishlist_settings );
+
+            $hook_map = array(
+                'top' => array(
+                    'fluentcart_before_add_to_cart_button',
+                    'woocommerce_before_add_to_cart_button',
+                ),
+                'left' => array(
+                    'fluentcart_before_add_to_cart_button',
+                    'woocommerce_before_add_to_cart_button',
+                ),
+                'bottom' => array(
+                    'fluentcart_after_add_to_cart_button',
+                    'woocommerce_after_add_to_cart_button',
+                ),
+                'right' => array(
+                    'fluentcart_after_add_to_cart_button',
+                    'woocommerce_after_add_to_cart_button',
+                ),
+            );
+
+            $selected_hooks = isset( $hook_map[ $position ] ) ? $hook_map[ $position ] : $hook_map['bottom'];
+
+            foreach ( $selected_hooks as $hook_name ) {
+                add_action( $hook_name, array( $this, 'render_wishlist_button' ), 10 );
             }
         }
     }
@@ -144,8 +195,14 @@ class WISHCART_Wishlist_Frontend {
             return;
         }
 
+        $position = $this->get_button_position();
+        $classes = array(
+            'wishcart-wishlist-button-container',
+            'wishcart-position-' . $position,
+        );
+
         // Render button container (React will mount here)
-        echo '<div class="wishcart-wishlist-button-container" data-product-id="' . esc_attr( $product_id ) . '"></div>';
+        echo '<div class="' . esc_attr( implode( ' ', $classes ) ) . '" data-product-id="' . esc_attr( $product_id ) . '" data-position="' . esc_attr( $position ) . '"></div>';
     }
 
     /**

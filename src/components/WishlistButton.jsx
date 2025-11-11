@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { Heart } from 'lucide-react';
+import { __ } from '@wordpress/i18n';
 import { cn } from '../lib/utils';
 
-const WishlistButton = ({ productId, className, customStyles, position = 'after' }) => {
+const WishlistButton = ({ productId, className, customStyles, position = 'bottom' }) => {
     const [isInWishlist, setIsInWishlist] = useState(false);
     const [isLoading, setIsLoading] = useState(true);
     const [isAdding, setIsAdding] = useState(false);
@@ -102,6 +103,9 @@ const WishlistButton = ({ productId, className, customStyles, position = 'after'
         }
     };
 
+    const buttonLabel = isInWishlist ? __('Saved to Wishlist', 'wish-cart') : __('Add to Wishlist', 'wish-cart');
+    const srLabel = isInWishlist ? __('Remove from wishlist', 'wish-cart') : __('Add to wishlist', 'wish-cart');
+
     if (isLoading) {
         return (
             <div className={cn("wishcart-wishlist-button-loading", className)} style={customStyles}>
@@ -126,19 +130,19 @@ const WishlistButton = ({ productId, className, customStyles, position = 'after'
                 "disabled:opacity-50 disabled:cursor-not-allowed",
                 isInWishlist && "text-red-600",
                 !isInWishlist && "text-gray-600",
+                position && `wishcart-placement-${position}`,
                 className
             )}
             style={customStyles}
-            aria-label={isInWishlist ? 'Remove from wishlist' : 'Add to wishlist'}
+            data-position={position}
+            aria-label={srLabel}
         >
             {isAdding ? (
                 <Heart className="w-5 h-5 animate-pulse" />
             ) : (
                 <Heart className={cn("w-5 h-5", isInWishlist && "fill-current")} />
             )}
-            <span className="sr-only">
-                {isInWishlist ? 'Remove from wishlist' : 'Add to wishlist'}
-            </span>
+            <span className="wishcart-wishlist-button__label">{buttonLabel}</span>
         </button>
     );
 };

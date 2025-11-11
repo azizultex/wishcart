@@ -27,7 +27,7 @@ const SettingsApp = () => {
             enabled: true,
             shop_page_button: true,
             product_page_button: true,
-            button_position: 'after',
+            button_position: 'bottom',
             custom_css: '',
             wishlist_page_id: 0,
             guest_cookie_expiry: 30,
@@ -52,9 +52,33 @@ const SettingsApp = () => {
             });
             const data = await response.json();
             if (data) {
+                const normalizedData = { ...data };
+
+                if (normalizedData.wishlist) {
+                    normalizedData.wishlist = { ...normalizedData.wishlist };
+                    const position = normalizedData.wishlist.button_position || 'bottom';
+                    switch (position) {
+                        case 'before':
+                            normalizedData.wishlist.button_position = 'top';
+                            break;
+                        case 'after':
+                            normalizedData.wishlist.button_position = 'bottom';
+                            break;
+                        case 'top':
+                        case 'bottom':
+                        case 'left':
+                        case 'right':
+                            normalizedData.wishlist.button_position = position;
+                            break;
+                        default:
+                            normalizedData.wishlist.button_position = 'bottom';
+                            break;
+                    }
+                }
+
                 setSettings(prevSettings => ({
                     ...prevSettings,
-                    ...data
+                    ...normalizedData
                 }));
             }
         } catch (error) {
