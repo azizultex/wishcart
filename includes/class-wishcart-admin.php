@@ -46,9 +46,11 @@ class WISHCART_Admin {
      * Constructor
      */
     public function __construct() {
-        add_action('admin_menu', [ $this, 'register_admin_menu' ]);
-        add_action('admin_enqueue_scripts', [ $this, 'enqueue_admin_scripts' ]);
-        add_action('admin_enqueue_scripts', [ $this, 'enqueue_admin_styles' ]);
+        if ( is_admin() ) {
+            add_action('admin_menu', [ $this, 'register_admin_menu' ]);
+            add_action('admin_enqueue_scripts', [ $this, 'enqueue_admin_scripts' ]);
+            add_action('admin_enqueue_scripts', [ $this, 'enqueue_admin_styles' ]);
+        }
 
         add_action('rest_api_init', [ $this, 'wishcart_register_settings_endpoints' ]);
     }
@@ -435,7 +437,32 @@ class WISHCART_Admin {
      */
     public function wishcart_get_settings() {
         $settings = get_option('wishcart_settings', []);
-        return rest_ensure_response($settings);
+        $page_id  = WISHCART_Wishlist_Page::create_wishlist_page();
+
+        $defaults = WISHCART_Wishlist_Page::get_default_settings( $page_id );
+        $changed  = false;
+
+        if ( ! isset( $settings['wishlist'] ) || ! is_array( $settings['wishlist'] ) ) {
+            $settings['wishlist'] = array();
+            $changed               = true;
+        }
+
+        $merged = wp_parse_args( $settings['wishlist'], $defaults );
+
+        if ( intval( $merged['wishlist_page_id'] ) !== intval( $page_id ) ) {
+            $merged['wishlist_page_id'] = intval( $page_id );
+        }
+
+        if ( $settings['wishlist'] !== $merged ) {
+            $settings['wishlist'] = $merged;
+            $changed               = true;
+        }
+
+        if ( $changed ) {
+            update_option( 'wishcart_settings', $settings );
+        }
+
+        return rest_ensure_response( $settings );
     }
 
     /**
@@ -930,9 +957,10 @@ class WISHCART_Admin {
         $handler = new WISHCART_Wishlist_Handler();
         $params = $request->get_json_params();
         $product_id = isset( $params['product_id'] ) ? intval( $params['product_id'] ) : 0;
+        $session_id = isset( $params['session_id'] ) ? sanitize_text_field( wp_unslash( $params['session_id'] ) ) : null;
         
         // Handler will determine user_id or session_id automatically
-        $result = $handler->add_to_wishlist( $product_id );
+        $result = $handler->add_to_wishlist( $product_id, null, $session_id );
 
         if ( is_wp_error( $result ) ) {
             return new WP_Error(
@@ -958,9 +986,10 @@ class WISHCART_Admin {
         $handler = new WISHCART_Wishlist_Handler();
         $params = $request->get_json_params();
         $product_id = isset( $params['product_id'] ) ? intval( $params['product_id'] ) : 0;
+        $session_id = isset( $params['session_id'] ) ? sanitize_text_field( wp_unslash( $params['session_id'] ) ) : null;
         
         // Handler will determine user_id or session_id automatically
-        $result = $handler->remove_from_wishlist( $product_id );
+        $result = $handler->remove_from_wishlist( $product_id, null, $session_id );
 
         if ( is_wp_error( $result ) ) {
             return new WP_Error(
@@ -984,9 +1013,11 @@ class WISHCART_Admin {
      */
     public function wishlist_get( $request ) {
         $handler = new WISHCART_Wishlist_Handler();
+        $session_id = $request->get_param( 'session_id' );
+        $session_id = is_string( $session_id ) ? sanitize_text_field( wp_unslash( $session_id ) ) : null;
         
         // Handler will determine user_id or session_id automatically
-        $product_ids = $handler->get_user_wishlist();
+        $product_ids = $handler->get_user_wishlist( null, $session_id );
 
         // Get product details
         $products = array();
@@ -1025,9 +1056,11 @@ class WISHCART_Admin {
     public function wishlist_check( $request ) {
         $handler = new WISHCART_Wishlist_Handler();
         $product_id = intval( $request->get_param( 'product_id' ) );
+        $session_id = $request->get_param( 'session_id' );
+        $session_id = is_string( $session_id ) ? sanitize_text_field( wp_unslash( $session_id ) ) : null;
         
         // Handler will determine user_id or session_id automatically
-        $is_in_wishlist = $handler->is_in_wishlist( $product_id );
+        $is_in_wishlist = $handler->is_in_wishlist( $product_id, null, $session_id );
 
         return rest_ensure_response( array(
             'success' => true,

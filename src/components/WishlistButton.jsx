@@ -22,14 +22,21 @@ const WishlistButton = ({ productId, className, customStyles, position = 'bottom
                 return value;
             }
         }
-        
+
+        if (window.WishCartWishlist?.sessionId) {
+            return window.WishCartWishlist.sessionId;
+        }
+
         // Create new session ID if not exists
         const sessionId = 'wc_' + Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
         const expiryDays = 30;
         const expiryDate = new Date();
         expiryDate.setTime(expiryDate.getTime() + (expiryDays * 24 * 60 * 60 * 1000));
         document.cookie = `wishcart_session_id=${sessionId};expires=${expiryDate.toUTCString()};path=/;SameSite=Lax`;
-        
+        if (window.WishCartWishlist) {
+            window.WishCartWishlist.sessionId = sessionId;
+        }
+
         return sessionId;
     };
 

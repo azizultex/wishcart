@@ -141,12 +141,8 @@ class WISHCART_Wishlist {
         include_once WISHCART_PLUGIN_DIR . 'includes/shortcodes/class-wishlist-shortcode.php';
         include_once WISHCART_PLUGIN_DIR . 'includes/class-wishcart-admin.php';
 
-        // Initialize admin class
-        if (is_admin()) {
-            add_action('admin_init', function() {
-                WISHCART_Admin::get_instance();
-            });
-        }
+        // Initialize admin/API class so REST routes register for all requests
+        WISHCART_Admin::get_instance();
 
         // Initialize frontend handler
         new WISHCART_Wishlist_Frontend();

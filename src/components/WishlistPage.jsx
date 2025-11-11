@@ -22,6 +22,11 @@ const WishlistPage = () => {
                 return value;
             }
         }
+
+        if (window.WishCartWishlist?.sessionId) {
+            return window.WishCartWishlist.sessionId;
+        }
+
         return null;
     };
 
