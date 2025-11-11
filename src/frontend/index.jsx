@@ -5,7 +5,46 @@ import WishlistPage from '../components/WishlistPage';
 import '../styles/WishlistButton.scss';
 import '../styles/WishlistPage.scss';
 
-const isWishlistEnabled = () => window.WishCartWishlist?.enabled !== false;
+const getSetting = (key, fallback) => {
+    if (!window.WishCartWishlist || !(key in window.WishCartWishlist)) {
+        return fallback;
+    }
+
+    return window.WishCartWishlist[key];
+};
+
+const normalizeBoolean = (value, fallback = true) => {
+    if (value === undefined || value === null) {
+        return fallback;
+    }
+
+    if (typeof value === 'string') {
+        if (value.toLowerCase() === 'false' || value === '0') {
+            return false;
+        }
+        if (value.toLowerCase() === 'true' || value === '1') {
+            return true;
+        }
+    }
+
+    return Boolean(value);
+};
+
+const isWishlistEnabled = () => normalizeBoolean(getSetting('enabled', true), true);
+const isProductButtonEnabled = () => {
+    if (!isWishlistEnabled()) {
+        return false;
+    }
+
+    return normalizeBoolean(getSetting('showOnProduct', undefined), true);
+};
+const isShopButtonEnabled = () => {
+    if (!isWishlistEnabled()) {
+        return false;
+    }
+
+    return normalizeBoolean(getSetting('showOnShop', undefined), true);
+};
 
 const normalizePosition = (value, fallback = 'bottom') => {
     let candidate = value || fallback || 'bottom';
@@ -66,11 +105,10 @@ const mountWishlistButtonAtContainer = (container) => {
 };
 
 const injectFluentCartContainer = () => {
-    if (!isWishlistEnabled()) {
-        return null;
-    }
-
-    if (window.WishCartWishlist?.showOnProduct === false) {
+    if (!isProductButtonEnabled()) {
+        document
+            .querySelectorAll('.fc-product-buttons-wrap .wishcart-wishlist-button-container, .fluent-cart-add-to-cart-button .wishcart-wishlist-button-container')
+            .forEach((container) => container.remove());
         return null;
     }
 
@@ -138,11 +176,10 @@ const extractProductId = (element) => {
 };
 
 const injectWishlistIntoProductCards = () => {
-    if (!isWishlistEnabled()) {
-        return;
-    }
-
-    if (window.WishCartWishlist?.showOnShop === false) {
+    if (!isShopButtonEnabled()) {
+        document
+            .querySelectorAll('.wishcart-wishlist-button-container.wishcart-card-container')
+            .forEach((container) => container.remove());
         return;
     }
 
@@ -183,11 +220,10 @@ const injectWishlistIntoProductCards = () => {
 };
 
 const injectWishlistIntoArchiveEntries = () => {
-    if (!isWishlistEnabled()) {
-        return;
-    }
-
-    if (window.WishCartWishlist?.showOnShop === false) {
+    if (!isShopButtonEnabled()) {
+        document
+            .querySelectorAll('.wishcart-wishlist-button-container.wishcart-archive-container')
+            .forEach((container) => container.remove());
         return;
     }
 
@@ -232,7 +268,10 @@ const injectWishlistIntoArchiveEntries = () => {
 };
 
 const injectWishlistNearActionButtons = () => {
-    if (!isWishlistEnabled()) {
+    if (!isProductButtonEnabled()) {
+        document
+            .querySelectorAll('.fc-product-buttons-wrap .wishcart-wishlist-button-container, .fluent-cart-add-to-cart-button .wishcart-wishlist-button-container')
+            .forEach((container) => container.remove());
         return;
     }
 
@@ -307,6 +346,26 @@ const initializeSessionId = () => {
 // Mount wishlist buttons
 const mountWishlistButtons = () => {
     if (!isWishlistEnabled()) {
+        document.querySelectorAll('.wishcart-wishlist-button-container').forEach((container) => container.remove());
+        return;
+    }
+
+    const showShop = isShopButtonEnabled();
+    const showProduct = isProductButtonEnabled();
+
+    if (!showShop) {
+        document
+            .querySelectorAll('.wishcart-wishlist-button-container.wishcart-card-container, .wishcart-wishlist-button-container.wishcart-archive-container')
+            .forEach((container) => container.remove());
+    }
+
+    if (!showProduct) {
+        document
+            .querySelectorAll('.fc-product-buttons-wrap .wishcart-wishlist-button-container, .fluent-cart-add-to-cart-button .wishcart-wishlist-button-container')
+            .forEach((container) => container.remove());
+    }
+
+    if (!showShop && !showProduct) {
         return;
     }
 
