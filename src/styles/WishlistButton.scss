@@ -57,23 +57,48 @@
     .wishcart-wishlist-button {
         width: 100%;
         justify-content: center;
-        border: 1px solid rgba(17, 24, 39, 0.08);
-        background: linear-gradient(180deg, #ffffff 0%, #f8fafc 100%);
-        color: #111827;
-        font-weight: 600;
-        box-shadow: 0 1px 2px rgba(15, 23, 42, 0.06);
+    }
+}
 
-        &:hover {
-            background: linear-gradient(180deg, #f8fafc 0%, #e2e8f0 100%);
+// Style for product cards (matching "View Options" button style)
+.wishcart-card-container {
+    .wishcart-wishlist-button {
+        background: #374151;
+        border-color: #374151;
+        color: #ffffff;
+        box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+
+        &:hover:not(:disabled) {
+            background: #4b5563;
+            border-color: #4b5563;
         }
 
-        &.text-red-600 {
-            border-color: rgba(220, 38, 38, 0.2);
-            background: linear-gradient(180deg, #fee2e2 0%, #fecaca 100%);
-            color: #991b1b;
+        &:active:not(:disabled) {
+            background: #1f2937;
+            border-color: #1f2937;
+        }
 
-            &:hover {
-                background: linear-gradient(180deg, #fecaca 0%, #fca5a5 100%);
+        .wishcart-wishlist-button__icon {
+            color: #ffffff;
+        }
+
+        &.wishcart-wishlist-button--active {
+            background: #dc2626;
+            border-color: #dc2626;
+            color: #ffffff;
+
+            &:hover:not(:disabled) {
+                background: #b91c1c;
+                border-color: #b91c1c;
+            }
+
+            &:active:not(:disabled) {
+                background: #991b1b;
+                border-color: #991b1b;
+            }
+
+            .wishcart-wishlist-button__icon {
+                color: #ffffff;
             }
         }
     }
@@ -109,64 +134,82 @@
     align-items: center;
     justify-content: center;
     gap: 0.5rem;
-    padding: 0.5rem 0.75rem;
+    padding: 0.625rem 1rem;
     border-radius: 0.375rem;
     font-size: 0.875rem;
     font-weight: 500;
     transition: all 0.2s ease-in-out;
     cursor: pointer;
-    border: none;
-    background: transparent;
+    border: 1px solid rgba(107, 114, 128, 0.3);
+    background: #ffffff;
+    color: #374151;
+    min-height: 2.5rem;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
 
-    &:hover {
-        background-color: rgba(0, 0, 0, 0.05);
+    &:active:not(:disabled) {
+        background-color: #f3f4f6;
+        transform: translateY(1px);
+        box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
     }
 
     &:focus {
         outline: none;
-        ring: 2px;
-        ring-offset: 2px;
-        ring-color: #3b82f6;
+        box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+        border-color: #3b82f6;
     }
 
     &:disabled {
-        opacity: 0.5;
+        opacity: 0.6;
         cursor: not-allowed;
+        pointer-events: none;
     }
 
-    svg {
-        width: 1.25rem;
-        height: 1.25rem;
-        transition: transform 0.2s ease-in-out;
-    }
+    &__icon {
+        width: 1.125rem;
+        height: 1.125rem;
+        transition: all 0.2s ease-in-out;
+        flex-shrink: 0;
 
-    &:hover:not(:disabled) svg {
-        transform: scale(1.1);
-    }
-
-    &.text-red-600 {
-        color: #dc2626;
-        
-        svg {
+        &--filled {
             fill: currentColor;
+        }
+
+        &--loading {
+            animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
         }
     }
 
-    &.text-gray-600 {
-        color: #4b5563;
+    &:hover:not(:disabled) &__icon {
+        transform: scale(1.1);
+    }
+
+    &--active {
+        border-color: rgba(220, 38, 38, 0.4);
+        background: #fef2f2;
+        color: #991b1b;
+
+        &:active:not(:disabled) {
+            background-color: #fecaca;
+        }
+
+        &:focus {
+            border-color: #dc2626;
+            box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.1);
+        }
     }
 
     &.wishcart-placement-top,
     &.wishcart-placement-bottom {
         width: 100%;
-        justify-content: flex-start;
+        justify-content: center;
     }
 
     &__label {
-        font-weight: 600;
+        font-weight: 500;
         color: inherit;
         display: inline-flex;
         align-items: center;
+        white-space: nowrap;
     }
 }
 
@@ -174,12 +217,15 @@
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    padding: 0.5rem 0.75rem;
+    padding: 0.625rem 1rem;
+    border-radius: 0.375rem;
+    min-height: 2.5rem;
 
     svg {
-        width: 1.25rem;
-        height: 1.25rem;
+        width: 1.125rem;
+        height: 1.125rem;
         animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+        color: #6b7280;
     }
 }
 
