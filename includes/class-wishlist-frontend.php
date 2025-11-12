@@ -77,14 +77,6 @@ class WISHCART_Wishlist_Frontend {
             return;
         }
 
-        // Enqueue on product pages, shop pages, or wishlist page
-        $wishlist_page_id = WISHCART_Wishlist_Page::get_wishlist_page_id();
-        $is_wishlist_page = $wishlist_page_id > 0 && is_page( $wishlist_page_id );
-
-        if ( ! $this->is_product_page() && ! $is_wishlist_page ) {
-            return;
-        }
-
         // Enqueue wishlist frontend script
         wp_enqueue_script(
             'wishcart-wishlist-frontend',
