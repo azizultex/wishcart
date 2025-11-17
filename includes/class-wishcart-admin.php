@@ -638,15 +638,26 @@ class WISHCART_Admin {
         $session_id = is_string( $session_id ) ? sanitize_text_field( wp_unslash( $session_id ) ) : null;
         
         // Handler will determine user_id or session_id automatically
-        $product_ids = $handler->get_user_wishlist( null, $session_id );
+        // Get wishlist items with dates
+        $wishlist_items = $handler->get_user_wishlist_with_dates( null, $session_id );
 
         // Get product details
         $products = array();
-        foreach ( $product_ids as $product_id ) {
+        foreach ( $wishlist_items as $item ) {
+            $product_id = $item['product_id'];
+            $created_at = $item['created_at'];
+            
             $product = WISHCART_FluentCart_Helper::get_product( $product_id );
             if ( $product ) {
                 $image_id = $product->get_image_id();
                 $image_url = $image_id ? wp_get_attachment_image_url( $image_id, 'medium' ) : '';
+                
+                // Format date added
+                $date_added = '';
+                if ( $created_at ) {
+                    $date_obj = new DateTime( $created_at );
+                    $date_added = $date_obj->format( 'F j, Y' ); // Format: "November 16, 2025"
+                }
                 
                 $products[] = array(
                     'id' => $product_id,
@@ -657,6 +668,8 @@ class WISHCART_Admin {
                     'is_on_sale' => $product->is_on_sale(),
                     'image_url' => $image_url,
                     'permalink' => get_permalink( $product_id ),
+                    'stock_status' => $product->get_stock_status(),
+                    'date_added' => $date_added,
                 );
             }
         }

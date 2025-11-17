@@ -103,6 +103,39 @@ class WISHCART_FluentCart_Product {
         return true; // Default to in stock if variant not found
     }
 
+    /**
+     * Get stock status text
+     *
+     * @return string Stock status text: "In stock", "Available on backorder", or "Out of stock"
+     */
+    public function get_stock_status() {
+        $variant = $this->get_default_variant();
+        if ( ! $variant || ! isset( $variant['stock_status'] ) ) {
+            return 'In stock'; // Default to in stock if variant not found
+        }
+
+        $status = $variant['stock_status'];
+        
+        switch ( $status ) {
+            case 'in-stock':
+                return 'In stock';
+            case 'on-backorder':
+            case 'available-on-backorder':
+                return 'Available on backorder';
+            case 'out-of-stock':
+                return 'Out of stock';
+            default:
+                // Handle any other status values
+                if ( strpos( $status, 'backorder' ) !== false ) {
+                    return 'Available on backorder';
+                }
+                if ( strpos( $status, 'out' ) !== false || strpos( $status, 'stock' ) === false ) {
+                    return 'Out of stock';
+                }
+                return 'In stock';
+        }
+    }
+
     public function get_image_id() {
         return get_post_thumbnail_id( $this->post_id );
     }

@@ -376,6 +376,85 @@ class WISHCART_Wishlist_Handler {
     }
 
     /**
+     * Get user's wishlist with dates
+     *
+     * @param int|null $user_id User ID (null for guests)
+     * @param string|null $session_id Session ID (null for logged-in users)
+     * @return array Array of arrays with 'product_id' and 'created_at' keys
+     */
+    public function get_user_wishlist_with_dates( $user_id = null, $session_id = null ) {
+        // Determine user_id or session_id
+        if ( is_user_logged_in() ) {
+            $user_id = get_current_user_id();
+            $session_id = null;
+        } else {
+            if ( empty( $session_id ) ) {
+                $session_id = $this->get_or_create_session_id();
+            }
+
+            $wishlist = $this->get_guest_wishlist_from_cookie();
+            if ( ! empty( $wishlist ) ) {
+                // For cookie-based wishlist, we don't have dates, so use current time
+                $items = [];
+                foreach ( $wishlist as $product_id ) {
+                    $items[] = [
+                        'product_id' => intval( $product_id ),
+                        'created_at' => current_time( 'mysql' ),
+                    ];
+                }
+                return $items;
+            }
+
+            // Backwards compatibility: fall back to legacy database storage if present.
+            $results = $this->wpdb->get_results(
+                $this->wpdb->prepare(
+                    "SELECT product_id, created_at FROM {$this->table_name} WHERE session_id = %s ORDER BY created_at DESC",
+                    $session_id
+                ),
+                ARRAY_A
+            );
+
+            $items = [];
+            if ( $results ) {
+                foreach ( $results as $row ) {
+                    $items[] = [
+                        'product_id' => intval( $row['product_id'] ),
+                        'created_at' => $row['created_at'],
+                    ];
+                }
+            }
+
+            if ( ! empty( $items ) ) {
+                $product_ids = array_column( $items, 'product_id' );
+                $this->set_guest_wishlist_cookie( $product_ids );
+            }
+
+            return $items;
+        }
+
+        // Build query to get product_id and created_at
+        $results = $this->wpdb->get_results(
+            $this->wpdb->prepare(
+                "SELECT product_id, created_at FROM {$this->table_name} WHERE user_id = %d ORDER BY created_at DESC",
+                $user_id
+            ),
+            ARRAY_A
+        );
+
+        $items = [];
+        if ( $results ) {
+            foreach ( $results as $row ) {
+                $items[] = [
+                    'product_id' => intval( $row['product_id'] ),
+                    'created_at' => $row['created_at'],
+                ];
+            }
+        }
+
+        return $items;
+    }
+
+    /**
      * Check if product is in wishlist
      *
      * @param int    $product_id Product ID
