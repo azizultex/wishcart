@@ -121,7 +121,7 @@ class WISHCART_Admin {
         // Register and enqueue admin styles
         wp_register_style(
             'wishcart-admin',
-            WISHCART_PLUGIN_URL . 'build/chat-admin.css',
+            WISHCART_PLUGIN_URL . 'build/admin.css',
             [],
             WISHCART_VERSION
         );
@@ -130,7 +130,7 @@ class WISHCART_Admin {
         // Register and enqueue admin scripts
         wp_register_script(
             'wishcart-admin',
-            WISHCART_PLUGIN_URL . 'build/chat-admin.js',
+            WISHCART_PLUGIN_URL . 'build/admin.js',
             ['wp-element', 'wp-components', 'wp-api-fetch', 'wp-i18n'],
             WISHCART_VERSION,
             [
@@ -243,39 +243,6 @@ class WISHCART_Admin {
             },
         ));
 
-        // Analytics endpoints
-        register_rest_route('wishcart/v1', '/analytics/overview', array(
-            'methods' => 'GET',
-            'callback' => array( $this, 'get_analytics_overview' ),
-            'permission_callback' => function () {
-                return current_user_can('manage_options');
-            },
-        ));
-
-        register_rest_route('wishcart/v1', '/analytics/usage', array(
-            'methods' => 'GET',
-            'callback' => array( $this, 'get_analytics_usage' ),
-            'permission_callback' => function () {
-                return current_user_can('manage_options');
-            },
-        ));
-
-
-        register_rest_route('wishcart/v1', '/analytics/errors', array(
-            'methods' => 'GET',
-            'callback' => array( $this, 'get_analytics_errors' ),
-            'permission_callback' => function () {
-                return current_user_can('manage_options');
-            },
-        ));
-
-        register_rest_route('wishcart/v1', '/analytics/costs', array(
-            'methods' => 'GET',
-            'callback' => array( $this, 'get_analytics_costs' ),
-            'permission_callback' => function () {
-                return current_user_can('manage_options');
-            },
-        ));
     }
 
     public function install_fluentcart() {
@@ -477,33 +444,13 @@ class WISHCART_Admin {
     public function wishcart_update_settings( $request ) {
         $settings = $request->get_json_params();
 
-        // Basic sanitization for excluded FluentCart products
-        if (isset($settings['ai_config']['excluded_products']) && is_array($settings['ai_config']['excluded_products'])) {
-            $sanitized_products = array();
-            foreach ($settings['ai_config']['excluded_products'] as $item) {
-                if (is_array($item) && isset($item['value']) && isset($item['label'])) {
-                    $sanitized_products[] = array(
-                        'value' => intval($item['value']),
-                        'label' => sanitize_text_field($item['label']),
-                        'type'  => 'product',
-                    );
-                } elseif (is_numeric($item)) {
-                    $sanitized_products[] = array(
-                        'value' => intval($item),
-                        'label' => '',
-                        'type'  => 'product',
-                    );
-                }
-            }
-            $settings['ai_config']['excluded_products'] = $sanitized_products;
-        }
 
         update_option('wishcart_settings', $settings);
         return rest_ensure_response([ 'success' => true ]);
     }
 
     /**
-     * Get analytics overview data
+     * Get analytics overview data - REMOVED (chat-related)
      *
      * @param WP_REST_Request $request Request object
      *
@@ -512,141 +459,11 @@ class WISHCART_Admin {
      * @return WP_REST_Response
      */
     public function get_analytics_overview( $request ) {
-        $time_filter = $request->get_param('time_filter') ?: '7days';
-        
-        global $wpdb;
-        $table_name = $wpdb->prefix . 'wishcart_api_usage';
-        
-        // phpcs:disable WordPress.DB.PreparedSQL.InterpolatedNotPrepared,WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- Table names cannot be parameterized, analytics data needs real-time queries
-        
-        // Calculate date range based on filter
-        $days = 7;
-        switch ($time_filter) {
-            case '30days':
-                $days = 30;
-                break;
-            case '90days':
-                $days = 90;
-                break;
-        }
-        
-        $date_from = gmdate('Y-m-d H:i:s', strtotime("-{$days} days"));
-        $feature = $request->get_param('feature');
-        $feature = is_string($feature) ? sanitize_text_field($feature) : '';
-        
-        // Get total requests
-        if (!empty($feature) && $feature !== 'all') {
-            $table_name_sql = esc_sql($table_name);
-            // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Table name cannot be parameterized
-            $total_requests = $wpdb->get_var($wpdb->prepare(
-                "SELECT COUNT(*) FROM {$table_name_sql} WHERE created_at >= %s AND feature = %s",
-                $date_from, $feature
-            ));
-        } else {
-            $table_name_sql = esc_sql($table_name);
-            // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Table name cannot be parameterized
-            $total_requests = $wpdb->get_var($wpdb->prepare(
-                "SELECT COUNT(*) FROM {$table_name_sql} WHERE created_at >= %s",
-                $date_from
-            ));
-        }
-
-        // Get chat requests (not filtered by feature to show overall chat volume)
-        $table_name_sql = esc_sql($table_name);
-        // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Table name cannot be parameterized
-        $chat_requests = $wpdb->get_var($wpdb->prepare(
-            "SELECT COUNT(*) FROM {$table_name_sql} WHERE created_at >= %s AND feature = 'chat'",
-            $date_from
-        ));
-
-        // Get classify requests (not filtered by feature to show overall classify volume)
-        $table_name_sql = esc_sql($table_name);
-        // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Table name cannot be parameterized
-        $classify_requests = $wpdb->get_var($wpdb->prepare(
-            "SELECT COUNT(*) FROM {$table_name_sql} WHERE created_at >= %s AND feature = 'classify'",
-            $date_from
-        ));
-        
-        // Get successful requests
-        if (!empty($feature) && $feature !== 'all') {
-            $table_name_sql = esc_sql($table_name);
-            // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Table name cannot be parameterized
-            $successful_requests = $wpdb->get_var($wpdb->prepare(
-                "SELECT COUNT(*) FROM {$table_name_sql} WHERE created_at >= %s AND status = 'success' AND feature = %s",
-                $date_from, $feature
-            ));
-        } else {
-            $table_name_sql = esc_sql($table_name);
-            // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Table name cannot be parameterized
-            $successful_requests = $wpdb->get_var($wpdb->prepare(
-                "SELECT COUNT(*) FROM {$table_name_sql} WHERE created_at >= %s AND status = 'success'",
-                $date_from
-            ));
-        }
-        
-        // Calculate success rate
-        $success_rate = $total_requests > 0 ? round(($successful_requests / $total_requests) * 100, 1) : 0;
-        
-        // Get average latency
-        if (!empty($feature) && $feature !== 'all') {
-            $table_name_sql = esc_sql($table_name);
-            // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Table name cannot be parameterized
-            $avg_latency = $wpdb->get_var($wpdb->prepare(
-                "SELECT AVG(latency_ms) FROM {$table_name_sql} WHERE created_at >= %s AND latency_ms > 0 AND feature = %s",
-                $date_from, $feature
-            ));
-        } else {
-            $table_name_sql = esc_sql($table_name);
-            // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Table name cannot be parameterized
-            $avg_latency = $wpdb->get_var($wpdb->prepare(
-                "SELECT AVG(latency_ms) FROM {$table_name_sql} WHERE created_at >= %s AND latency_ms > 0",
-                $date_from
-            ));
-        }
-        $avg_latency = $avg_latency ? round($avg_latency / 1000, 2) : 0; // Convert to seconds
-        
-        // Total cost removed as requested
-        
-        // Get total tokens (include system prompt tokens from metadata.system_tokens)
-        $tokens_expr = "(tokens_in + tokens_out + COALESCE(CAST(JSON_UNQUOTE(JSON_EXTRACT(metadata, '$.system_tokens')) AS UNSIGNED), 0))";
-        if (!empty($feature) && $feature !== 'all') {
-            $table_name_sql = esc_sql($table_name);
-            // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Table name and expression cannot be parameterized
-            $total_tokens = $wpdb->get_var($wpdb->prepare(
-                "SELECT SUM({$tokens_expr}) FROM {$table_name_sql} WHERE created_at >= %s AND feature = %s",
-                $date_from, $feature
-            ));
-        } else {
-            $table_name_sql = esc_sql($table_name);
-            // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Table name and expression cannot be parameterized
-            $total_tokens = $wpdb->get_var($wpdb->prepare(
-                "SELECT SUM({$tokens_expr}) FROM {$table_name_sql} WHERE created_at >= %s",
-                $date_from
-            ));
-        }
-        $total_tokens = $total_tokens ? intval($total_tokens) : 0;
-        
-        // Calculate error rate
-        $error_rate = $total_requests > 0 ? round((($total_requests - $successful_requests) / $total_requests) * 100, 1) : 0;
-        
-        $overview_data = [
-            'totalRequests' => intval($total_requests),
-            'chatRequests' => intval($chat_requests),
-            'classifyRequests' => intval($classify_requests),
-            'successRate' => $success_rate,
-            'avgLatency' => $avg_latency,
-            // 'totalCost' removed
-            'totalTokens' => $total_tokens,
-            'errorRate' => $error_rate
-        ];
-        
-        // phpcs:enable WordPress.DB.PreparedSQL.InterpolatedNotPrepared,WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching
-
-        return rest_ensure_response($overview_data);
+        return rest_ensure_response([]);
     }
 
     /**
-     * Get analytics usage data
+     * Get analytics usage data - REMOVED (chat-related)
      *
      * @param WP_REST_Request $request Request object
      *
@@ -655,79 +472,11 @@ class WISHCART_Admin {
      * @return WP_REST_Response
      */
     public function get_analytics_usage( $request ) {
-        $time_filter = $request->get_param('time_filter') ?: '7days';
-        $feature = $request->get_param('feature');
-        $feature = is_string($feature) ? sanitize_text_field($feature) : '';
-        
-        global $wpdb;
-        $table_name = $wpdb->prefix . 'wishcart_api_usage';
-        
-        // phpcs:disable WordPress.DB.PreparedSQL.InterpolatedNotPrepared,WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- Table names cannot be parameterized, analytics data needs real-time queries
-        
-        // Calculate date range based on filter
-        $days = 7;
-        switch ($time_filter) {
-            case '30days':
-                $days = 30;
-                break;
-            case '90days':
-                $days = 90;
-                break;
-        }
-        
-        $date_from = gmdate('Y-m-d H:i:s', strtotime("-{$days} days"));
-        
-        // Get daily usage data (include system prompt tokens from metadata.system_tokens)
-        $tokens_expr = "(tokens_in + tokens_out + COALESCE(CAST(JSON_UNQUOTE(JSON_EXTRACT(metadata, '$.system_tokens')) AS UNSIGNED), 0))";
-        if (!empty($feature) && $feature !== 'all') {
-            $table_name_sql = esc_sql($table_name);
-            // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Table name and expression cannot be parameterized
-            $usage_data = $wpdb->get_results($wpdb->prepare(
-                "SELECT 
-                    DATE(created_at) as date,
-                    COUNT(*) as requests,
-                    SUM({$tokens_expr}) as tokens
-                FROM {$table_name_sql} 
-                WHERE created_at >= %s AND feature = %s
-                GROUP BY DATE(created_at) 
-                ORDER BY date ASC",
-                $date_from, $feature
-            ));
-        } else {
-            $table_name_sql = esc_sql($table_name);
-            // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Table name and expression cannot be parameterized
-            $usage_data = $wpdb->get_results($wpdb->prepare(
-                "SELECT 
-                    DATE(created_at) as date,
-                    COUNT(*) as requests,
-                    SUM({$tokens_expr}) as tokens
-                FROM {$table_name_sql} 
-                WHERE created_at >= %s 
-                GROUP BY DATE(created_at) 
-                ORDER BY date ASC",
-                $date_from
-            ));
-        }
-        
-        // Format the data
-        $formatted_data = [];
-        foreach ($usage_data as $row) {
-            $formatted_data[] = [
-                'date' => $row->date,
-                'requests' => intval($row->requests),
-                'tokens' => intval($row->tokens)
-            ];
-        }
-        
-        // phpcs:enable WordPress.DB.PreparedSQL.InterpolatedNotPrepared,WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching
-
-        return rest_ensure_response($formatted_data);
+        return rest_ensure_response([]);
     }
 
-
-
     /**
-     * Get analytics errors data
+     * Get analytics errors data - REMOVED (chat-related)
      *
      * @param WP_REST_Request $request Request object
      *
@@ -736,82 +485,11 @@ class WISHCART_Admin {
      * @return WP_REST_Response
      */
     public function get_analytics_errors( $request ) {
-        $time_filter = $request->get_param('time_filter') ?: '7days';
-        $feature = $request->get_param('feature');
-        $feature = is_string($feature) ? sanitize_text_field($feature) : '';
-        
-        global $wpdb;
-        $table_name = $wpdb->prefix . 'wishcart_api_usage';
-        
-        // phpcs:disable WordPress.DB.PreparedSQL.InterpolatedNotPrepared,WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- Table names cannot be parameterized, analytics data needs real-time queries
-        
-        // Calculate date range based on filter
-        $days = 7;
-        switch ($time_filter) {
-            case '30days':
-                $days = 30;
-                break;
-            case '90days':
-                $days = 90;
-                break;
-        }
-        
-        $date_from = gmdate('Y-m-d H:i:s', strtotime("-{$days} days"));
-        
-        // Get error data
-        if (!empty($feature) && $feature !== 'all') {
-            $table_name_sql = esc_sql($table_name);
-            // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Table name cannot be parameterized
-            $errors_data = $wpdb->get_results($wpdb->prepare(
-                "SELECT 
-                    error_code,
-                    COUNT(*) as count
-                FROM {$table_name_sql} 
-                WHERE created_at >= %s AND status != 'success' AND error_code IS NOT NULL AND feature = %s
-                GROUP BY error_code 
-                ORDER BY count DESC",
-                $date_from, $feature
-            ));
-        } else {
-            $table_name_sql = esc_sql($table_name);
-            // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Table name cannot be parameterized
-            $errors_data = $wpdb->get_results($wpdb->prepare(
-                "SELECT 
-                    error_code,
-                    COUNT(*) as count
-                FROM {$table_name_sql} 
-                WHERE created_at >= %s AND status != 'success' AND error_code IS NOT NULL
-                GROUP BY error_code 
-                ORDER BY count DESC",
-                $date_from
-            ));
-        }
-        
-        // Calculate total errors for percentage
-        $total_errors = 0;
-        foreach ($errors_data as $row) {
-            $total_errors += intval($row->count);
-        }
-        
-        // Format the data
-        $formatted_data = [];
-        foreach ($errors_data as $row) {
-            $percentage = $total_errors > 0 ? round((intval($row->count) / $total_errors) * 100, 1) : 0;
-            
-            $formatted_data[] = [
-                'error' => ucfirst(str_replace('_', ' ', $row->error_code)),
-                'count' => intval($row->count),
-                'percentage' => $percentage
-            ];
-        }
-        
-        // phpcs:enable WordPress.DB.PreparedSQL.InterpolatedNotPrepared,WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching
-
-        return rest_ensure_response($formatted_data);
+        return rest_ensure_response([]);
     }
 
     /**
-     * Get analytics costs data
+     * Get analytics costs data - REMOVED (chat-related)
      *
      * @param WP_REST_Request $request Request object
      *
@@ -820,64 +498,7 @@ class WISHCART_Admin {
      * @return WP_REST_Response
      */
     public function get_analytics_costs( $request ) {
-        $time_filter = $request->get_param('time_filter') ?: '7days';
-        
-        global $wpdb;
-        $table_name = $wpdb->prefix . 'wishcart_api_usage';
-        
-        // phpcs:disable WordPress.DB.PreparedSQL.InterpolatedNotPrepared,WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- Table names cannot be parameterized, analytics data needs real-time queries
-        
-        // Calculate date range based on filter
-        $days = 7;
-        switch ($time_filter) {
-            case '30days':
-                $days = 30;
-                break;
-            case '90days':
-                $days = 90;
-                break;
-        }
-        
-        $date_from = gmdate('Y-m-d H:i:s', strtotime("-{$days} days"));
-        
-        // Get daily OpenAI cost data only (current provider)
-        $table_name_sql = esc_sql($table_name);
-        // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Table name cannot be parameterized
-        $costs_data = $wpdb->get_results($wpdb->prepare(
-            "SELECT 
-                DATE(created_at) as date,
-                provider,
-                SUM(cost_usd) as cost
-            FROM {$table_name_sql} 
-            WHERE created_at >= %s AND provider = 'openai'
-            GROUP BY DATE(created_at), provider 
-            ORDER BY date ASC, provider ASC",
-            $date_from
-        ));
-        
-        // Format the data by date and provider
-        $formatted_data = [];
-        $date_costs = [];
-        
-        foreach ($costs_data as $row) {
-            $date = $row->date;
-            if (!isset($date_costs[$date])) {
-                $date_costs[$date] = ['date' => $date, 'total' => 0];
-            }
-            
-            $date_costs[$date]['total'] += floatval($row->cost);
-            $date_costs[$date][strtolower($row->provider)] = round(floatval($row->cost), 2);
-        }
-        
-        // Convert to array format
-        foreach ($date_costs as $date => $costs) {
-            $costs['total'] = round($costs['total'], 2);
-            $formatted_data[] = $costs;
-        }
-        
-        // phpcs:enable WordPress.DB.PreparedSQL.InterpolatedNotPrepared,WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching
-
-        return rest_ensure_response($formatted_data);
+        return rest_ensure_response([]);
     }
 
     /**

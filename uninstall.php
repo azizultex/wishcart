@@ -25,19 +25,11 @@ class WISHCART_Uninstaller {
      */
     public function __construct() {
         $this->tables = [
-            'wishcart_conversations',
-            'wishcart_messages',
-            'wishcart_user_states',
-            'wishcart_inquiries',
-            'wishcart_inquiry_notes',
-            'wishcart_embeddings',
-            'wishcart_pdf_queue',
-            'wishcart_api_usage',
+            'wishcart_wishlist',
         ];
 
         $this->options = [
             'wishcart_settings',
-            'wishcart_last_pdf_processing',
         ];
     }
 
