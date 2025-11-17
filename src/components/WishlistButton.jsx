@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Heart } from 'lucide-react';
+import { Heart, Star, Bookmark } from 'lucide-react';
 import { __ } from '@wordpress/i18n';
 import { cn } from '../lib/utils';
 
@@ -110,13 +110,114 @@ const WishlistButton = ({ productId, className, customStyles, position = 'bottom
         }
     };
 
-    const buttonLabel = isInWishlist ? __('Saved to Wishlist', 'wish-cart') : __('Add to Wishlist', 'wish-cart');
+    // Get customization settings
+    const customization = window.WishCartWishlist?.buttonCustomization || {};
+    const colors = customization.colors || {};
+    const iconConfig = customization.icon || { type: 'predefined', value: 'heart', customUrl: '' };
+    const labels = customization.labels || {};
+
+    // Get button labels
+    const defaultAddLabel = __('Add to Wishlist', 'wish-cart');
+    const defaultSavedLabel = __('Saved to Wishlist', 'wish-cart');
+    const buttonLabel = isInWishlist 
+        ? (labels.saved || defaultSavedLabel)
+        : (labels.add || defaultAddLabel);
     const srLabel = isInWishlist ? __('Remove from wishlist', 'wish-cart') : __('Add to wishlist', 'wish-cart');
 
-    if (isLoading) {
+    // Get icon component
+    const getIconComponent = () => {
+        if (iconConfig.type === 'custom' && iconConfig.customUrl) {
+            return (
+                <img
+                    src={iconConfig.customUrl}
+                    alt=""
+                    className={cn("wishcart-wishlist-button__icon", isInWishlist && "wishcart-wishlist-button__icon--filled")}
+                    style={{ width: '1.125rem', height: '1.125rem' }}
+                />
+            );
+        }
+
+        const iconValue = iconConfig.value || 'heart';
+        const iconMap = {
+            heart: Heart,
+            star: Star,
+            bookmark: Bookmark,
+        };
+        const IconComponent = iconMap[iconValue] || Heart;
+        
         return (
-            <div className={cn("wishcart-wishlist-button-loading", className)} style={customStyles}>
-                <Heart className="wishcart-wishlist-button__icon wishcart-wishlist-button__icon--loading" />
+            <IconComponent className={cn("wishcart-wishlist-button__icon", isInWishlist && "wishcart-wishlist-button__icon--filled")} />
+        );
+    };
+
+    // Build dynamic styles
+    const buildButtonStyles = () => {
+        const baseStyles = customStyles || {};
+        const dynamicStyles = {};
+
+        if (colors.background) {
+            dynamicStyles['--wishlist-bg'] = colors.background;
+        }
+        if (colors.text) {
+            dynamicStyles['--wishlist-text'] = colors.text;
+        }
+        if (colors.border) {
+            dynamicStyles['--wishlist-border'] = colors.border;
+        }
+        if (colors.hoverBackground) {
+            dynamicStyles['--wishlist-hover-bg'] = colors.hoverBackground;
+        }
+        if (colors.hoverText) {
+            dynamicStyles['--wishlist-hover-text'] = colors.hoverText;
+        }
+        if (colors.activeBackground) {
+            dynamicStyles['--wishlist-active-bg'] = colors.activeBackground;
+        }
+        if (colors.activeText) {
+            dynamicStyles['--wishlist-active-text'] = colors.activeText;
+        }
+        if (colors.activeBorder) {
+            dynamicStyles['--wishlist-active-border'] = colors.activeBorder;
+        }
+        if (colors.focusBorder) {
+            dynamicStyles['--wishlist-focus-border'] = colors.focusBorder;
+        }
+
+        // Apply inline styles for immediate effect
+        if (!isInWishlist) {
+            if (colors.background) dynamicStyles.backgroundColor = colors.background;
+            if (colors.text) dynamicStyles.color = colors.text;
+            if (colors.border) dynamicStyles.borderColor = colors.border;
+        } else {
+            if (colors.activeBackground) dynamicStyles.backgroundColor = colors.activeBackground;
+            if (colors.activeText) dynamicStyles.color = colors.activeText;
+            if (colors.activeBorder) dynamicStyles.borderColor = colors.activeBorder;
+        }
+
+        return { ...baseStyles, ...dynamicStyles };
+    };
+
+    if (isLoading) {
+        const renderLoadingIcon = () => {
+            if (iconConfig.type === 'custom' && iconConfig.customUrl) {
+                return (
+                    <img
+                        src={iconConfig.customUrl}
+                        alt=""
+                        className="wishcart-wishlist-button__icon wishcart-wishlist-button__icon--loading"
+                        style={{ width: '1.125rem', height: '1.125rem' }}
+                    />
+                );
+            }
+            const iconValue = iconConfig.value || 'heart';
+            const iconMap = { heart: Heart, star: Star, bookmark: Bookmark };
+            const IconComponent = iconMap[iconValue] || Heart;
+            return <IconComponent className="wishcart-wishlist-button__icon wishcart-wishlist-button__icon--loading" />;
+        };
+
+        return (
+            <div className={cn("wishcart-wishlist-button-loading", className)} style={buildButtonStyles()}>
+                {renderLoadingIcon()}
             </div>
         );
     }
@@ -132,14 +233,74 @@ const WishlistButton = ({ productId, className, customStyles, position = 'bottom
                 position && `wishcart-placement-${position}`,
                 className
             )}
-            style={customStyles}
+            style={buildButtonStyles()}
             data-position={position}
             aria-label={srLabel}
+            onMouseEnter={(e) => {
+                if (isInWishlist) {
+                    if (colors.activeBackground) {
+                        e.currentTarget.style.backgroundColor = colors.activeBackground;
+                    }
+                    if (colors.activeText) {
+                        e.currentTarget.style.color = colors.activeText;
+                    }
+                } else {
+                    if (colors.hoverBackground) {
+                        e.currentTarget.style.backgroundColor = colors.hoverBackground;
+                    }
+                    if (colors.hoverText) {
+                        e.currentTarget.style.color = colors.hoverText;
+                    }
+                }
+            }}
+            onMouseLeave={(e) => {
+                if (isInWishlist) {
+                    if (colors.activeBackground) {
+                        e.currentTarget.style.backgroundColor = colors.activeBackground;
+                    }
+                    if (colors.activeText) {
+                        e.currentTarget.style.color = colors.activeText;
+                    }
+                } else {
+                    if (colors.background) {
+                        e.currentTarget.style.backgroundColor = colors.background;
+                    }
+                    if (colors.text) {
+                        e.currentTarget.style.color = colors.text;
+                    }
+                }
+            }}
+            onFocus={(e) => {
+                if (colors.focusBorder) {
+                    e.currentTarget.style.borderColor = colors.focusBorder;
+                    e.currentTarget.style.boxShadow = `0 0 0 3px ${colors.focusBorder}33`;
+                }
+            }}
+            onBlur={(e) => {
+                if (isInWishlist && colors.activeBorder) {
+                    e.currentTarget.style.borderColor = colors.activeBorder;
+                } else if (colors.border) {
+                    e.currentTarget.style.borderColor = colors.border;
+                }
+                e.currentTarget.style.boxShadow = '';
+            }}
         >
             {isAdding ? (
-                <Heart className="wishcart-wishlist-button__icon wishcart-wishlist-button__icon--loading" />
+                iconConfig.type === 'custom' && iconConfig.customUrl ? (
+                    <img
+                        src={iconConfig.customUrl}
+                        alt=""
+                        className="wishcart-wishlist-button__icon wishcart-wishlist-button__icon--loading"
+                        style={{ width: '1.125rem', height: '1.125rem' }}
+                    />
+                ) : (() => {
+                    const iconValue = iconConfig.value || 'heart';
+                    const iconMap = { heart: Heart, star: Star, bookmark: Bookmark };
+                    const IconComponent = iconMap[iconValue] || Heart;
+                    return <IconComponent className="wishcart-wishlist-button__icon wishcart-wishlist-button__icon--loading" />;
+                })()
             ) : (
-                <Heart className={cn("wishcart-wishlist-button__icon", isInWishlist && "wishcart-wishlist-button__icon--filled")} />
+                getIconComponent()
             )}
             <span className="wishcart-wishlist-button__label">{buttonLabel}</span>
         </button>

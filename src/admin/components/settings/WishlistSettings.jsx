@@ -17,6 +17,28 @@ const WishlistSettings = ({ settings, updateSettings }) => {
         custom_css: '',
         wishlist_page_id: 0,
         guest_cookie_expiry: 30,
+        button_customization: {
+            colors: {
+                background: '#ffffff',
+                text: '#374151',
+                border: 'rgba(107, 114, 128, 0.3)',
+                hoverBackground: '#f3f4f6',
+                hoverText: '#374151',
+                activeBackground: '#fef2f2',
+                activeText: '#991b1b',
+                activeBorder: 'rgba(220, 38, 38, 0.4)',
+                focusBorder: '#3b82f6',
+            },
+            icon: {
+                type: 'predefined',
+                value: 'heart',
+                customUrl: '',
+            },
+            labels: {
+                add: __('Add to Wishlist', 'wish-cart'),
+                saved: __('Saved to Wishlist', 'wish-cart'),
+            },
+        },
     };
 
     const resolveButtonPosition = (value) => {

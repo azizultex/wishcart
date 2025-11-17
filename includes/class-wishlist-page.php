@@ -180,6 +180,28 @@ class WISHCART_Wishlist_Page {
             'custom_css'           => '',
             'wishlist_page_id'     => intval( $page_id ),
             'guest_cookie_expiry'  => 30,
+            'button_customization' => array(
+                'colors' => array(
+                    'background'      => '#ffffff',
+                    'text'            => '#374151',
+                    'border'          => 'rgba(107, 114, 128, 0.3)',
+                    'hoverBackground' => '#f3f4f6',
+                    'hoverText'       => '#374151',
+                    'activeBackground' => '#fef2f2',
+                    'activeText'      => '#991b1b',
+                    'activeBorder'   => 'rgba(220, 38, 38, 0.4)',
+                    'focusBorder'    => '#3b82f6',
+                ),
+                'icon' => array(
+                    'type'      => 'predefined',
+                    'value'      => 'heart',
+                    'customUrl'  => '',
+                ),
+                'labels' => array(
+                    'add'    => __( 'Add to Wishlist', 'wish-cart' ),
+                    'saved'  => __( 'Saved to Wishlist', 'wish-cart' ),
+                ),
+            ),
         );
     }
 }

@@ -95,6 +95,12 @@ class WISHCART_Wishlist_Frontend {
 
         // Localize script
         $session_id = $this->handler->get_or_create_session_id();
+        
+        // Get button customization settings
+        $button_customization = isset( $wishlist_settings['button_customization'] ) ? $wishlist_settings['button_customization'] : array();
+        $default_customization = WISHCART_Wishlist_Page::get_default_settings();
+        $button_customization = wp_parse_args( $button_customization, isset( $default_customization['button_customization'] ) ? $default_customization['button_customization'] : array() );
+        
         wp_localize_script(
             'wishcart-wishlist-frontend',
             'WishCartWishlist',
@@ -108,6 +114,11 @@ class WISHCART_Wishlist_Frontend {
                 'enabled' => ! empty( $wishlist_settings['enabled'] ),
                 'showOnProduct' => ! empty( $wishlist_settings['product_page_button'] ),
                 'showOnShop' => ! empty( $wishlist_settings['shop_page_button'] ),
+                'buttonCustomization' => array(
+                    'colors' => isset( $button_customization['colors'] ) ? $button_customization['colors'] : array(),
+                    'icon' => isset( $button_customization['icon'] ) ? $button_customization['icon'] : array(),
+                    'labels' => isset( $button_customization['labels'] ) ? $button_customization['labels'] : array(),
+                ),
             )
         );
     }

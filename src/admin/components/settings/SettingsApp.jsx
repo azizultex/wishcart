@@ -16,10 +16,12 @@ import {
     XCircle,
     LifeBuoy,
     ShieldCheck,
-    Wrench
+    Wrench,
+    Palette
 } from 'lucide-react';
 
 import WishlistSettings from './WishlistSettings';
+import ButtonCustomizationSettings from './ButtonCustomizationSettings';
 import {buttonVariants} from "../../../components/ui/button";
 
 
@@ -229,6 +231,10 @@ const SettingsApp = () => {
                                         <Heart className="w-4 h-4" />
                                         {__('Settings', 'wish-cart')}
                                     </TabsTrigger>
+                                    <TabsTrigger value="button-customization" className="flex items-center gap-2">
+                                        <Palette className="w-4 h-4" />
+                                        {__('Button Customization', 'wish-cart')}
+                                    </TabsTrigger>
                                     <TabsTrigger value="tools" className="flex items-center gap-2">
                                         <Wrench className="w-4 h-4" />
                                         {__('Tools', 'wish-cart')}
@@ -245,6 +251,13 @@ const SettingsApp = () => {
 
                                 <TabsContent value="settings" className="space-y-6">
                                     <WishlistSettings
+                                        settings={settings}
+                                        updateSettings={updateSettings}
+                                    />
+                                </TabsContent>
+
+                                <TabsContent value="button-customization" className="space-y-6">
+                                    <ButtonCustomizationSettings
                                         settings={settings}
                                         updateSettings={updateSettings}
                                     />
