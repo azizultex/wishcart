@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -14,6 +14,9 @@ const ButtonCustomizationSettings = ({ settings, updateSettings }) => {
     const colors = buttonCustomization.colors || {};
     const icon = buttonCustomization.icon || { type: 'predefined', value: 'heart', customUrl: '' };
     const labels = buttonCustomization.labels || { add: '', saved: '' };
+
+    // State to track which color option is currently being edited
+    const [selectedColorKey, setSelectedColorKey] = useState('background');
 
     const updateButtonCustomization = (section, key, value) => {
         const currentCustomization = buttonCustomization || {};
@@ -52,6 +55,41 @@ const ButtonCustomizationSettings = ({ settings, updateSettings }) => {
         { value: 'bookmark', label: __('Bookmark', 'wish-cart'), component: Bookmark },
     ];
 
+    // Define all color options with their labels and default values
+    const colorOptions = [
+        { key: 'background', label: __('Background Color', 'wish-cart'), default: '#ffffff', group: 'basic' },
+        { key: 'text', label: __('Text Color', 'wish-cart'), default: '#374151', group: 'basic' },
+        { key: 'border', label: __('Border Color', 'wish-cart'), default: 'rgba(107, 114, 128, 0.3)', group: 'basic' },
+        { key: 'hoverBackground', label: __('Hover Background Color', 'wish-cart'), default: '#f3f4f6', group: 'hover' },
+        { key: 'hoverText', label: __('Hover Text Color', 'wish-cart'), default: '#374151', group: 'hover' },
+        { key: 'activeBackground', label: __('Active Background Color', 'wish-cart'), default: '#fef2f2', group: 'active' },
+        { key: 'activeText', label: __('Active Text Color', 'wish-cart'), default: '#991b1b', group: 'active' },
+        { key: 'activeBorder', label: __('Active Border Color', 'wish-cart'), default: 'rgba(220, 38, 38, 0.4)', group: 'active' },
+        { key: 'focusBorder', label: __('Focus Border Color', 'wish-cart'), default: '#3b82f6', group: 'focus' },
+    ];
+
+    const getCurrentColor = (key) => {
+        return colors[key] || colorOptions.find(opt => opt.key === key)?.default || '#ffffff';
+    };
+
+    const handleColorChange = (color) => {
+        updateButtonCustomization('colors', selectedColorKey, color.hex);
+    };
+
+    const handleHexInputChange = (key, value) => {
+        updateButtonCustomization('colors', key, value);
+        if (key === selectedColorKey) {
+            // Update selected color if this is the currently selected one
+        }
+    };
+
+    const groupedColors = {
+        basic: colorOptions.filter(opt => opt.group === 'basic'),
+        hover: colorOptions.filter(opt => opt.group === 'hover'),
+        active: colorOptions.filter(opt => opt.group === 'active'),
+        focus: colorOptions.filter(opt => opt.group === 'focus'),
+    };
+
     return (
         <div className="space-y-6">
             <Card>
@@ -65,269 +103,234 @@ const ButtonCustomizationSettings = ({ settings, updateSettings }) => {
                     </CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-6">
-                    {/* Colors Section */}
-                    <div className="space-y-4">
+                    {/* Colors Section - Two Column Layout */}
+                    <div className="space-y-6">
                         <div className="flex items-center justify-between">
                             <Label className="text-base font-semibold">{__('Colors', 'wish-cart')}</Label>
                         </div>
 
-                        {/* Background Color */}
-                        <div className="space-y-2">
-                            <Label htmlFor="color_background">{__('Background Color', 'wish-cart')}</Label>
-                            <div className="flex items-start gap-4">
-                                <Sketch
-                                    style={{ maxWidth: '250px' }}
-                                    color={colors.background || '#ffffff'}
-                                    onChange={(color) => updateButtonCustomization('colors', 'background', color.hex)}
-                                    presetColors={[
-                                        '#ffffff', '#f3f4f6', '#e5e7eb', '#d1d5db', '#9ca3af',
-                                        '#6b7280', '#374151', '#1f2937', '#111827', '#000000',
-                                    ]}
-                                />
+                        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                            {/* Left Column - Color Options List */}
+                            <div className="lg:col-span-1 space-y-4">
+                                {/* Basic Colors */}
                                 <div className="space-y-2">
-                                    <Input
-                                        type="text"
-                                        value={colors.background || '#ffffff'}
-                                        onChange={(e) => updateButtonCustomization('colors', 'background', e.target.value)}
-                                        placeholder="#ffffff"
-                                        className="w-32"
-                                    />
-                                    <div
-                                        className="w-32 h-8 rounded border"
-                                        style={{ backgroundColor: colors.background || '#ffffff' }}
-                                    />
+                                    <Label className="text-sm font-medium text-muted-foreground">{__('Basic Colors', 'wish-cart')}</Label>
+                                    {groupedColors.basic.map((option) => {
+                                        const currentColor = getCurrentColor(option.key);
+                                        const isSelected = selectedColorKey === option.key;
+                                        return (
+                                            <div
+                                                key={option.key}
+                                                onClick={() => setSelectedColorKey(option.key)}
+                                                className={`p-3 rounded-lg border-2 cursor-pointer transition-all ${
+                                                    isSelected
+                                                        ? 'border-primary bg-primary/5 shadow-sm'
+                                                        : 'border-gray-200 hover:border-gray-300 hover:bg-gray-50'
+                                                }`}
+                                            >
+                                                <div className="flex items-center justify-between gap-3">
+                                                    <div className="flex items-center gap-3 flex-1 min-w-0">
+                                                        <div
+                                                            className="w-8 h-8 rounded border-2 border-gray-200 flex-shrink-0"
+                                                            style={{ backgroundColor: currentColor }}
+                                                        />
+                                                        <Label className="text-sm font-medium cursor-pointer flex-shrink-0">
+                                                            {option.label}
+                                                        </Label>
+                                                    </div>
+                                                </div>
+                                                <div className="mt-2">
+                                                    <Input
+                                                        type="text"
+                                                        value={currentColor}
+                                                        onChange={(e) => handleHexInputChange(option.key, e.target.value)}
+                                                        onClick={(e) => e.stopPropagation()}
+                                                        placeholder={option.default}
+                                                        className="h-8 text-xs font-mono"
+                                                    />
+                                                </div>
+                                            </div>
+                                        );
+                                    })}
+                                </div>
+
+                                {/* Hover Colors */}
+                                <div className="space-y-2 pt-2 border-t">
+                                    <Label className="text-sm font-medium text-muted-foreground">{__('Hover Colors', 'wish-cart')}</Label>
+                                    {groupedColors.hover.map((option) => {
+                                        const currentColor = getCurrentColor(option.key);
+                                        const isSelected = selectedColorKey === option.key;
+                                        return (
+                                            <div
+                                                key={option.key}
+                                                onClick={() => setSelectedColorKey(option.key)}
+                                                className={`p-3 rounded-lg border-2 cursor-pointer transition-all ${
+                                                    isSelected
+                                                        ? 'border-primary bg-primary/5 shadow-sm'
+                                                        : 'border-gray-200 hover:border-gray-300 hover:bg-gray-50'
+                                                }`}
+                                            >
+                                                <div className="flex items-center justify-between gap-3">
+                                                    <div className="flex items-center gap-3 flex-1 min-w-0">
+                                                        <div
+                                                            className="w-8 h-8 rounded border-2 border-gray-200 flex-shrink-0"
+                                                            style={{ backgroundColor: currentColor }}
+                                                        />
+                                                        <Label className="text-sm font-medium cursor-pointer flex-shrink-0">
+                                                            {option.label}
+                                                        </Label>
+                                                    </div>
+                                                </div>
+                                                <div className="mt-2">
+                                                    <Input
+                                                        type="text"
+                                                        value={currentColor}
+                                                        onChange={(e) => handleHexInputChange(option.key, e.target.value)}
+                                                        onClick={(e) => e.stopPropagation()}
+                                                        placeholder={option.default}
+                                                        className="h-8 text-xs font-mono"
+                                                    />
+                                                </div>
+                                            </div>
+                                        );
+                                    })}
+                                </div>
+
+                                {/* Active Colors */}
+                                <div className="space-y-2 pt-2 border-t">
+                                    <Label className="text-sm font-medium text-muted-foreground">{__('Active Colors', 'wish-cart')}</Label>
+                                    {groupedColors.active.map((option) => {
+                                        const currentColor = getCurrentColor(option.key);
+                                        const isSelected = selectedColorKey === option.key;
+                                        return (
+                                            <div
+                                                key={option.key}
+                                                onClick={() => setSelectedColorKey(option.key)}
+                                                className={`p-3 rounded-lg border-2 cursor-pointer transition-all ${
+                                                    isSelected
+                                                        ? 'border-primary bg-primary/5 shadow-sm'
+                                                        : 'border-gray-200 hover:border-gray-300 hover:bg-gray-50'
+                                                }`}
+                                            >
+                                                <div className="flex items-center justify-between gap-3">
+                                                    <div className="flex items-center gap-3 flex-1 min-w-0">
+                                                        <div
+                                                            className="w-8 h-8 rounded border-2 border-gray-200 flex-shrink-0"
+                                                            style={{ backgroundColor: currentColor }}
+                                                        />
+                                                        <Label className="text-sm font-medium cursor-pointer flex-shrink-0">
+                                                            {option.label}
+                                                        </Label>
+                                                    </div>
+                                                </div>
+                                                <div className="mt-2">
+                                                    <Input
+                                                        type="text"
+                                                        value={currentColor}
+                                                        onChange={(e) => handleHexInputChange(option.key, e.target.value)}
+                                                        onClick={(e) => e.stopPropagation()}
+                                                        placeholder={option.default}
+                                                        className="h-8 text-xs font-mono"
+                                                    />
+                                                </div>
+                                            </div>
+                                        );
+                                    })}
+                                </div>
+
+                                {/* Focus Colors */}
+                                <div className="space-y-2 pt-2 border-t">
+                                    <Label className="text-sm font-medium text-muted-foreground">{__('Focus Colors', 'wish-cart')}</Label>
+                                    {groupedColors.focus.map((option) => {
+                                        const currentColor = getCurrentColor(option.key);
+                                        const isSelected = selectedColorKey === option.key;
+                                        return (
+                                            <div
+                                                key={option.key}
+                                                onClick={() => setSelectedColorKey(option.key)}
+                                                className={`p-3 rounded-lg border-2 cursor-pointer transition-all ${
+                                                    isSelected
+                                                        ? 'border-primary bg-primary/5 shadow-sm'
+                                                        : 'border-gray-200 hover:border-gray-300 hover:bg-gray-50'
+                                                }`}
+                                            >
+                                                <div className="flex items-center justify-between gap-3">
+                                                    <div className="flex items-center gap-3 flex-1 min-w-0">
+                                                        <div
+                                                            className="w-8 h-8 rounded border-2 border-gray-200 flex-shrink-0"
+                                                            style={{ backgroundColor: currentColor }}
+                                                        />
+                                                        <Label className="text-sm font-medium cursor-pointer flex-shrink-0">
+                                                            {option.label}
+                                                        </Label>
+                                                    </div>
+                                                </div>
+                                                <div className="mt-2">
+                                                    <Input
+                                                        type="text"
+                                                        value={currentColor}
+                                                        onChange={(e) => handleHexInputChange(option.key, e.target.value)}
+                                                        onClick={(e) => e.stopPropagation()}
+                                                        placeholder={option.default}
+                                                        className="h-8 text-xs font-mono"
+                                                    />
+                                                </div>
+                                            </div>
+                                        );
+                                    })}
                                 </div>
                             </div>
-                        </div>
 
-                        {/* Text Color */}
-                        <div className="space-y-2">
-                            <Label htmlFor="color_text">{__('Text Color', 'wish-cart')}</Label>
-                            <div className="flex items-start gap-4">
-                                <Sketch
-                                    style={{ maxWidth: '250px' }}
-                                    color={colors.text || '#374151'}
-                                    onChange={(color) => updateButtonCustomization('colors', 'text', color.hex)}
-                                    presetColors={[
-                                        '#ffffff', '#f3f4f6', '#e5e7eb', '#d1d5db', '#9ca3af',
-                                        '#6b7280', '#374151', '#1f2937', '#111827', '#000000',
-                                    ]}
-                                />
-                                <div className="space-y-2">
-                                    <Input
-                                        type="text"
-                                        value={colors.text || '#374151'}
-                                        onChange={(e) => updateButtonCustomization('colors', 'text', e.target.value)}
-                                        placeholder="#374151"
-                                        className="w-32"
-                                    />
-                                    <div
-                                        className="w-32 h-8 rounded border"
-                                        style={{ backgroundColor: colors.text || '#374151' }}
-                                    />
-                                </div>
-                            </div>
-                        </div>
-
-                        {/* Border Color */}
-                        <div className="space-y-2">
-                            <Label htmlFor="color_border">{__('Border Color', 'wish-cart')}</Label>
-                            <div className="flex items-start gap-4">
-                                <Sketch
-                                    style={{ maxWidth: '250px' }}
-                                    color={colors.border || 'rgba(107, 114, 128, 0.3)'}
-                                    onChange={(color) => updateButtonCustomization('colors', 'border', color.hex)}
-                                    presetColors={[
-                                        '#ffffff', '#f3f4f6', '#e5e7eb', '#d1d5db', '#9ca3af',
-                                        '#6b7280', '#374151', '#1f2937', '#111827', '#000000',
-                                    ]}
-                                />
-                                <div className="space-y-2">
-                                    <Input
-                                        type="text"
-                                        value={colors.border || 'rgba(107, 114, 128, 0.3)'}
-                                        onChange={(e) => updateButtonCustomization('colors', 'border', e.target.value)}
-                                        placeholder="rgba(107, 114, 128, 0.3)"
-                                        className="w-32"
-                                    />
-                                    <div
-                                        className="w-32 h-8 rounded border"
-                                        style={{ backgroundColor: colors.border || 'rgba(107, 114, 128, 0.3)' }}
-                                    />
-                                </div>
-                            </div>
-                        </div>
-
-                        {/* Hover Background Color */}
-                        <div className="space-y-2">
-                            <Label htmlFor="color_hover_background">{__('Hover Background Color', 'wish-cart')}</Label>
-                            <div className="flex items-start gap-4">
-                                <Sketch
-                                    style={{ maxWidth: '250px' }}
-                                    color={colors.hoverBackground || '#f3f4f6'}
-                                    onChange={(color) => updateButtonCustomization('colors', 'hoverBackground', color.hex)}
-                                    presetColors={[
-                                        '#ffffff', '#f3f4f6', '#e5e7eb', '#d1d5db', '#9ca3af',
-                                        '#6b7280', '#374151', '#1f2937', '#111827', '#000000',
-                                    ]}
-                                />
-                                <div className="space-y-2">
-                                    <Input
-                                        type="text"
-                                        value={colors.hoverBackground || '#f3f4f6'}
-                                        onChange={(e) => updateButtonCustomization('colors', 'hoverBackground', e.target.value)}
-                                        placeholder="#f3f4f6"
-                                        className="w-32"
-                                    />
-                                    <div
-                                        className="w-32 h-8 rounded border"
-                                        style={{ backgroundColor: colors.hoverBackground || '#f3f4f6' }}
-                                    />
-                                </div>
-                            </div>
-                        </div>
-
-                        {/* Hover Text Color */}
-                        <div className="space-y-2">
-                            <Label htmlFor="color_hover_text">{__('Hover Text Color', 'wish-cart')}</Label>
-                            <div className="flex items-start gap-4">
-                                <Sketch
-                                    style={{ maxWidth: '250px' }}
-                                    color={colors.hoverText || '#374151'}
-                                    onChange={(color) => updateButtonCustomization('colors', 'hoverText', color.hex)}
-                                    presetColors={[
-                                        '#ffffff', '#f3f4f6', '#e5e7eb', '#d1d5db', '#9ca3af',
-                                        '#6b7280', '#374151', '#1f2937', '#111827', '#000000',
-                                    ]}
-                                />
-                                <div className="space-y-2">
-                                    <Input
-                                        type="text"
-                                        value={colors.hoverText || '#374151'}
-                                        onChange={(e) => updateButtonCustomization('colors', 'hoverText', e.target.value)}
-                                        placeholder="#374151"
-                                        className="w-32"
-                                    />
-                                    <div
-                                        className="w-32 h-8 rounded border"
-                                        style={{ backgroundColor: colors.hoverText || '#374151' }}
-                                    />
-                                </div>
-                            </div>
-                        </div>
-
-                        {/* Active Background Color */}
-                        <div className="space-y-2">
-                            <Label htmlFor="color_active_background">{__('Active Background Color', 'wish-cart')}</Label>
-                            <div className="flex items-start gap-4">
-                                <Sketch
-                                    style={{ maxWidth: '250px' }}
-                                    color={colors.activeBackground || '#fef2f2'}
-                                    onChange={(color) => updateButtonCustomization('colors', 'activeBackground', color.hex)}
-                                    presetColors={[
-                                        '#fef2f2', '#fee2e2', '#fecaca', '#fca5a5', '#ef4444',
-                                        '#dc2626', '#b91c1c', '#991b1b', '#7f1d1d', '#ffffff',
-                                    ]}
-                                />
-                                <div className="space-y-2">
-                                    <Input
-                                        type="text"
-                                        value={colors.activeBackground || '#fef2f2'}
-                                        onChange={(e) => updateButtonCustomization('colors', 'activeBackground', e.target.value)}
-                                        placeholder="#fef2f2"
-                                        className="w-32"
-                                    />
-                                    <div
-                                        className="w-32 h-8 rounded border"
-                                        style={{ backgroundColor: colors.activeBackground || '#fef2f2' }}
-                                    />
-                                </div>
-                            </div>
-                        </div>
-
-                        {/* Active Text Color */}
-                        <div className="space-y-2">
-                            <Label htmlFor="color_active_text">{__('Active Text Color', 'wish-cart')}</Label>
-                            <div className="flex items-start gap-4">
-                                <Sketch
-                                    style={{ maxWidth: '250px' }}
-                                    color={colors.activeText || '#991b1b'}
-                                    onChange={(color) => updateButtonCustomization('colors', 'activeText', color.hex)}
-                                    presetColors={[
-                                        '#fef2f2', '#fee2e2', '#fecaca', '#fca5a5', '#ef4444',
-                                        '#dc2626', '#b91c1c', '#991b1b', '#7f1d1d', '#ffffff',
-                                    ]}
-                                />
-                                <div className="space-y-2">
-                                    <Input
-                                        type="text"
-                                        value={colors.activeText || '#991b1b'}
-                                        onChange={(e) => updateButtonCustomization('colors', 'activeText', e.target.value)}
-                                        placeholder="#991b1b"
-                                        className="w-32"
-                                    />
-                                    <div
-                                        className="w-32 h-8 rounded border"
-                                        style={{ backgroundColor: colors.activeText || '#991b1b' }}
-                                    />
-                                </div>
-                            </div>
-                        </div>
-
-                        {/* Active Border Color */}
-                        <div className="space-y-2">
-                            <Label htmlFor="color_active_border">{__('Active Border Color', 'wish-cart')}</Label>
-                            <div className="flex items-start gap-4">
-                                <Sketch
-                                    style={{ maxWidth: '250px' }}
-                                    color={colors.activeBorder || 'rgba(220, 38, 38, 0.4)'}
-                                    onChange={(color) => updateButtonCustomization('colors', 'activeBorder', color.hex)}
-                                    presetColors={[
-                                        '#fef2f2', '#fee2e2', '#fecaca', '#fca5a5', '#ef4444',
-                                        '#dc2626', '#b91c1c', '#991b1b', '#7f1d1d', '#ffffff',
-                                    ]}
-                                />
-                                <div className="space-y-2">
-                                    <Input
-                                        type="text"
-                                        value={colors.activeBorder || 'rgba(220, 38, 38, 0.4)'}
-                                        onChange={(e) => updateButtonCustomization('colors', 'activeBorder', e.target.value)}
-                                        placeholder="rgba(220, 38, 38, 0.4)"
-                                        className="w-32"
-                                    />
-                                    <div
-                                        className="w-32 h-8 rounded border"
-                                        style={{ backgroundColor: colors.activeBorder || 'rgba(220, 38, 38, 0.4)' }}
-                                    />
-                                </div>
-                            </div>
-                        </div>
-
-                        {/* Focus Border Color */}
-                        <div className="space-y-2">
-                            <Label htmlFor="color_focus_border">{__('Focus Border Color', 'wish-cart')}</Label>
-                            <div className="flex items-start gap-4">
-                                <Sketch
-                                    style={{ maxWidth: '250px' }}
-                                    color={colors.focusBorder || '#3b82f6'}
-                                    onChange={(color) => updateButtonCustomization('colors', 'focusBorder', color.hex)}
-                                    presetColors={[
-                                        '#dbeafe', '#bfdbfe', '#93c5fd', '#60a5fa', '#3b82f6',
-                                        '#2563eb', '#1d4ed8', '#1e40af', '#1e3a8a', '#172554',
-                                    ]}
-                                />
-                                <div className="space-y-2">
-                                    <Input
-                                        type="text"
-                                        value={colors.focusBorder || '#3b82f6'}
-                                        onChange={(e) => updateButtonCustomization('colors', 'focusBorder', e.target.value)}
-                                        placeholder="#3b82f6"
-                                        className="w-32"
-                                    />
-                                    <div
-                                        className="w-32 h-8 rounded border"
-                                        style={{ backgroundColor: colors.focusBorder || '#3b82f6' }}
-                                    />
+                            {/* Right Column - Color Picker */}
+                            <div className="lg:col-span-2">
+                                <div className="sticky top-4">
+                                    <div className="bg-gray-50 rounded-lg p-6 border border-gray-200">
+                                        <div className="space-y-4">
+                                            <div>
+                                                <Label className="text-base font-semibold mb-2 block">
+                                                    {colorOptions.find(opt => opt.key === selectedColorKey)?.label || __('Select a color option', 'wish-cart')}
+                                                </Label>
+                                                <p className="text-sm text-muted-foreground">
+                                                    {__('Click a color option on the left to edit it', 'wish-cart')}
+                                                </p>
+                                            </div>
+                                            <div className="flex justify-center">
+                                                <Sketch
+                                                    style={{ maxWidth: '100%' }}
+                                                    color={getCurrentColor(selectedColorKey)}
+                                                    onChange={handleColorChange}
+                                                    presetColors={[
+                                                        '#ffffff', '#f3f4f6', '#e5e7eb', '#d1d5db', '#9ca3af',
+                                                        '#6b7280', '#374151', '#1f2937', '#111827', '#000000',
+                                                        '#fef2f2', '#fee2e2', '#fecaca', '#fca5a5', '#ef4444',
+                                                        '#dc2626', '#b91c1c', '#991b1b', '#7f1d1d',
+                                                        '#dbeafe', '#bfdbfe', '#93c5fd', '#60a5fa', '#3b82f6',
+                                                        '#2563eb', '#1d4ed8', '#1e40af', '#1e3a8a', '#172554',
+                                                    ]}
+                                                />
+                                            </div>
+                                            <div className="pt-4 border-t">
+                                                <div className="flex items-center gap-4">
+                                                    <div className="flex-1">
+                                                        <Label className="text-sm font-medium mb-1 block">{__('Current Color', 'wish-cart')}</Label>
+                                                        <Input
+                                                            type="text"
+                                                            value={getCurrentColor(selectedColorKey)}
+                                                            onChange={(e) => handleHexInputChange(selectedColorKey, e.target.value)}
+                                                            className="font-mono"
+                                                        />
+                                                    </div>
+                                                    <div>
+                                                        <Label className="text-sm font-medium mb-1 block">{__('Preview', 'wish-cart')}</Label>
+                                                        <div
+                                                            className="w-16 h-16 rounded-lg border-2 border-gray-300"
+                                                            style={{ backgroundColor: getCurrentColor(selectedColorKey) }}
+                                                        />
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
                         </div>
