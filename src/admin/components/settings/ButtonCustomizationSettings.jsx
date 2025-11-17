@@ -1,9 +1,10 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Button } from "@/components/ui/button";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { __ } from '@wordpress/i18n';
 import { Heart, Star, Bookmark, ShoppingCart, X } from 'lucide-react';
 import { Sketch } from '@uiw/react-color';
@@ -11,12 +12,56 @@ import { Sketch } from '@uiw/react-color';
 const ButtonCustomizationSettings = ({ settings, updateSettings }) => {
     const wishlistSettings = settings.wishlist || {};
     const buttonCustomization = wishlistSettings.button_customization || {};
-    const colors = buttonCustomization.colors || {};
+    
+    // New structure: general, product_page, product_listing
+    const general = buttonCustomization.general || { textColor: '', font: 'default', fontSize: '12px' };
+    const productPage = buttonCustomization.product_page || {
+        backgroundColor: '#ebe9eb',
+        backgroundHoverColor: '#dad8da',
+        buttonTextColor: '#515151',
+        buttonTextHoverColor: '#686868',
+        textColor: '#007acc',
+        textHoverColor: '#686868',
+        font: 'default',
+        fontSize: '16px',
+        iconSize: '16px',
+        borderRadius: '3px'
+    };
+    const productListing = buttonCustomization.product_listing || {
+        backgroundColor: '#ebe9eb',
+        backgroundHoverColor: '#dad8da',
+        buttonTextColor: '#515151',
+        buttonTextHoverColor: '#515151',
+        textColor: '#007acc',
+        textHoverColor: '#686868',
+        font: 'default',
+        fontSize: '16px',
+        iconSize: '16px',
+        borderRadius: '3px'
+    };
+    
+    // Keep existing icon and labels
     const icon = buttonCustomization.icon || { type: 'predefined', value: 'heart', customUrl: '' };
     const labels = buttonCustomization.labels || { add: '', saved: '' };
 
-    // State to track which color option is currently being edited
-    const [selectedColorKey, setSelectedColorKey] = useState('background');
+    // State for color pickers
+    const [selectedColorPicker, setSelectedColorPicker] = useState(null);
+
+    // Font options
+    const fontOptions = [
+        { value: 'default', label: __('Use Default Font', 'wish-cart') },
+        { value: 'Arial', label: 'Arial' },
+        { value: 'Helvetica', label: 'Helvetica' },
+        { value: 'Times New Roman', label: 'Times New Roman' },
+        { value: 'Georgia', label: 'Georgia' },
+        { value: 'Verdana', label: 'Verdana' },
+        { value: 'Courier New', label: 'Courier New' },
+        { value: 'Tahoma', label: 'Tahoma' },
+        { value: 'Trebuchet MS', label: 'Trebuchet MS' },
+        { value: 'Comic Sans MS', label: 'Comic Sans MS' },
+        { value: 'Impact', label: 'Impact' },
+        { value: 'Lucida Console', label: 'Lucida Console' },
+    ];
 
     const updateButtonCustomization = (section, key, value) => {
         const currentCustomization = buttonCustomization || {};
@@ -55,39 +100,154 @@ const ButtonCustomizationSettings = ({ settings, updateSettings }) => {
         { value: 'bookmark', label: __('Bookmark', 'wish-cart'), component: Bookmark },
     ];
 
-    // Define all color options with their labels and default values
-    const colorOptions = [
-        { key: 'background', label: __('Background Color', 'wish-cart'), default: '#ffffff', group: 'basic' },
-        { key: 'text', label: __('Text Color', 'wish-cart'), default: '#374151', group: 'basic' },
-        { key: 'border', label: __('Border Color', 'wish-cart'), default: 'rgba(107, 114, 128, 0.3)', group: 'basic' },
-        { key: 'hoverBackground', label: __('Hover Background Color', 'wish-cart'), default: '#f3f4f6', group: 'hover' },
-        { key: 'hoverText', label: __('Hover Text Color', 'wish-cart'), default: '#374151', group: 'hover' },
-        { key: 'activeBackground', label: __('Active Background Color', 'wish-cart'), default: '#fef2f2', group: 'active' },
-        { key: 'activeText', label: __('Active Text Color', 'wish-cart'), default: '#991b1b', group: 'active' },
-        { key: 'activeBorder', label: __('Active Border Color', 'wish-cart'), default: 'rgba(220, 38, 38, 0.4)', group: 'active' },
-        { key: 'focusBorder', label: __('Focus Border Color', 'wish-cart'), default: '#3b82f6', group: 'focus' },
-    ];
+    // Color input component with picker
+    const ColorInput = ({ label, value, onChange, colorPickerId }) => {
+        const isPickerOpen = selectedColorPicker === colorPickerId;
+        const currentColor = value || '#ffffff';
+        const pickerContainerRef = useRef(null);
 
-    const getCurrentColor = (key) => {
-        return colors[key] || colorOptions.find(opt => opt.key === key)?.default || '#ffffff';
+        // Close picker when clicking outside
+        useEffect(() => {
+            const handleClickOutside = (event) => {
+                if (pickerContainerRef.current && !pickerContainerRef.current.contains(event.target)) {
+                    if (isPickerOpen) {
+                        setSelectedColorPicker(null);
+                    }
+                }
+            };
+
+            if (isPickerOpen) {
+                document.addEventListener('mousedown', handleClickOutside);
+            }
+
+            return () => {
+                document.removeEventListener('mousedown', handleClickOutside);
+            };
+        }, [isPickerOpen]);
+
+        return (
+            <div className="space-y-2">
+                <Label className="text-sm">{label}</Label>
+                <div className="flex items-center gap-2">
+                    <div className="relative" ref={pickerContainerRef}>
+                        <div
+                            className="w-10 h-10 rounded border-2 border-gray-200 cursor-pointer"
+                            style={{ backgroundColor: currentColor }}
+                            onClick={() => setSelectedColorPicker(isPickerOpen ? null : colorPickerId)}
+                        />
+                        {isPickerOpen && (
+                            <div className="absolute z-50 mt-2">
+                                <Sketch
+                                    color={currentColor}
+                                    onChange={(color) => {
+                                        onChange(color.hex);
+                                    }}
+                                />
+                            </div>
+                        )}
+                    </div>
+                    <Input
+                        type="text"
+                        value={currentColor}
+                        onChange={(e) => onChange(e.target.value)}
+                        placeholder="#ffffff"
+                        className="flex-1 font-mono text-sm"
+                    />
+                </div>
+            </div>
+        );
     };
 
-    const handleColorChange = (color) => {
-        updateButtonCustomization('colors', selectedColorKey, color.hex);
-    };
-
-    const handleHexInputChange = (key, value) => {
-        updateButtonCustomization('colors', key, value);
-        if (key === selectedColorKey) {
-            // Update selected color if this is the currently selected one
-        }
-    };
-
-    const groupedColors = {
-        basic: colorOptions.filter(opt => opt.group === 'basic'),
-        hover: colorOptions.filter(opt => opt.group === 'hover'),
-        active: colorOptions.filter(opt => opt.group === 'active'),
-        focus: colorOptions.filter(opt => opt.group === 'focus'),
+    // Button section component (reusable for product_page and product_listing)
+    const ButtonSection = ({ title, sectionKey, settings: sectionSettings }) => {
+        return (
+            <div className="space-y-4 border-t pt-6">
+                <Label className="text-base font-semibold">{title}</Label>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <ColorInput
+                        label={__('Background Color', 'wish-cart')}
+                        value={sectionSettings.backgroundColor}
+                        onChange={(value) => updateButtonCustomization(sectionKey, 'backgroundColor', value)}
+                        colorPickerId={`${sectionKey}-bg`}
+                    />
+                    <ColorInput
+                        label={__('Background Hover Color', 'wish-cart')}
+                        value={sectionSettings.backgroundHoverColor}
+                        onChange={(value) => updateButtonCustomization(sectionKey, 'backgroundHoverColor', value)}
+                        colorPickerId={`${sectionKey}-bg-hover`}
+                    />
+                    <ColorInput
+                        label={__('Button Text Color', 'wish-cart')}
+                        value={sectionSettings.buttonTextColor}
+                        onChange={(value) => updateButtonCustomization(sectionKey, 'buttonTextColor', value)}
+                        colorPickerId={`${sectionKey}-btn-text`}
+                    />
+                    <ColorInput
+                        label={__('Button Text Hover Color', 'wish-cart')}
+                        value={sectionSettings.buttonTextHoverColor}
+                        onChange={(value) => updateButtonCustomization(sectionKey, 'buttonTextHoverColor', value)}
+                        colorPickerId={`${sectionKey}-btn-text-hover`}
+                    />
+                    <ColorInput
+                        label={__('Text Color', 'wish-cart')}
+                        value={sectionSettings.textColor}
+                        onChange={(value) => updateButtonCustomization(sectionKey, 'textColor', value)}
+                        colorPickerId={`${sectionKey}-text`}
+                    />
+                    <ColorInput
+                        label={__('Text Hover Color', 'wish-cart')}
+                        value={sectionSettings.textHoverColor}
+                        onChange={(value) => updateButtonCustomization(sectionKey, 'textHoverColor', value)}
+                        colorPickerId={`${sectionKey}-text-hover`}
+                    />
+                    <div className="space-y-2">
+                        <Label className="text-sm">{__('Font', 'wish-cart')}</Label>
+                        <Select
+                            value={sectionSettings.font || 'default'}
+                            onValueChange={(value) => updateButtonCustomization(sectionKey, 'font', value)}
+                        >
+                            <SelectTrigger>
+                                <SelectValue placeholder={__('Select font', 'wish-cart')} />
+                            </SelectTrigger>
+                            <SelectContent>
+                                {fontOptions.map((font) => (
+                                    <SelectItem key={font.value} value={font.value}>
+                                        {font.label}
+                                    </SelectItem>
+                                ))}
+                            </SelectContent>
+                        </Select>
+                    </div>
+                    <div className="space-y-2">
+                        <Label className="text-sm">{__('Font Size', 'wish-cart')}</Label>
+                        <Input
+                            type="text"
+                            value={sectionSettings.fontSize || ''}
+                            onChange={(e) => updateButtonCustomization(sectionKey, 'fontSize', e.target.value)}
+                            placeholder="16px"
+                        />
+                    </div>
+                    <div className="space-y-2">
+                        <Label className="text-sm">{__('Icon Size', 'wish-cart')}</Label>
+                        <Input
+                            type="text"
+                            value={sectionSettings.iconSize || ''}
+                            onChange={(e) => updateButtonCustomization(sectionKey, 'iconSize', e.target.value)}
+                            placeholder="16px"
+                        />
+                    </div>
+                    <div className="space-y-2">
+                        <Label className="text-sm">{__('Border Radius', 'wish-cart')}</Label>
+                        <Input
+                            type="text"
+                            value={sectionSettings.borderRadius || ''}
+                            onChange={(e) => updateButtonCustomization(sectionKey, 'borderRadius', e.target.value)}
+                            placeholder="3px"
+                        />
+                    </div>
+                </div>
+            </div>
+        );
     };
 
     return (
@@ -103,185 +263,59 @@ const ButtonCustomizationSettings = ({ settings, updateSettings }) => {
                     </CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-6">
-                    {/* Colors Section - Two Column Layout */}
-                    <div className="space-y-6">
-                        <div className="flex items-center justify-between">
-                            <Label className="text-base font-semibold">{__('Colors', 'wish-cart')}</Label>
-                        </div>
-
-                        <div className="space-y-4 max-w-2xl">
-                            {/* Color Options List */}
+                    {/* General Settings Section */}
                             <div className="space-y-4">
-                                {/* Basic Colors */}
+                        <Label className="text-base font-semibold">{__('General Settings', 'wish-cart')}</Label>
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                            <ColorInput
+                                label={__('Text Color', 'wish-cart')}
+                                value={general.textColor}
+                                onChange={(value) => updateButtonCustomization('general', 'textColor', value)}
+                                colorPickerId="general-text"
+                            />
                                 <div className="space-y-2">
-                                    <Label className="text-sm font-medium text-muted-foreground">{__('Basic Colors', 'wish-cart')}</Label>
-                                    {groupedColors.basic.map((option) => {
-                                        const currentColor = getCurrentColor(option.key);
-                                        const isSelected = selectedColorKey === option.key;
-                                        return (
-                                            <div
-                                                key={option.key}
-                                                onClick={() => setSelectedColorKey(option.key)}
-                                                className={`p-3 rounded-lg border-2 cursor-pointer transition-all ${
-                                                    isSelected
-                                                        ? 'border-primary bg-primary/5 shadow-sm'
-                                                        : 'border-gray-200 hover:border-gray-300 hover:bg-gray-50'
-                                                }`}
-                                            >
-                                                <div className="flex items-center justify-between gap-3">
-                                                    <div className="flex items-center gap-3 flex-1 min-w-0">
-                                                        <div
-                                                            className="w-8 h-8 rounded border-2 border-gray-200 flex-shrink-0"
-                                                            style={{ backgroundColor: currentColor }}
-                                                        />
-                                                        <Label className="text-sm font-medium cursor-pointer flex-shrink-0">
-                                                            {option.label}
-                                                        </Label>
+                                <Label className="text-sm">{__('Font', 'wish-cart')}</Label>
+                                <Select
+                                    value={general.font || 'default'}
+                                    onValueChange={(value) => updateButtonCustomization('general', 'font', value)}
+                                >
+                                    <SelectTrigger>
+                                        <SelectValue placeholder={__('Select font', 'wish-cart')} />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        {fontOptions.map((font) => (
+                                            <SelectItem key={font.value} value={font.value}>
+                                                {font.label}
+                                            </SelectItem>
+                                        ))}
+                                    </SelectContent>
+                                </Select>
                                                     </div>
-                                                </div>
-                                                <div className="mt-2">
+                            <div className="space-y-2">
+                                <Label className="text-sm">{__('Select Font Size', 'wish-cart')}</Label>
                                                     <Input
                                                         type="text"
-                                                        value={currentColor}
-                                                        onChange={(e) => handleHexInputChange(option.key, e.target.value)}
-                                                        onClick={(e) => e.stopPropagation()}
-                                                        placeholder={option.default}
-                                                        className="h-8 text-xs font-mono"
-                                                    />
-                                                </div>
-                                            </div>
-                                        );
-                                    })}
-                                </div>
-
-                                {/* Hover Colors */}
-                                <div className="space-y-2 pt-2 border-t">
-                                    <Label className="text-sm font-medium text-muted-foreground">{__('Hover Colors', 'wish-cart')}</Label>
-                                    {groupedColors.hover.map((option) => {
-                                        const currentColor = getCurrentColor(option.key);
-                                        const isSelected = selectedColorKey === option.key;
-                                        return (
-                                            <div
-                                                key={option.key}
-                                                onClick={() => setSelectedColorKey(option.key)}
-                                                className={`p-3 rounded-lg border-2 cursor-pointer transition-all ${
-                                                    isSelected
-                                                        ? 'border-primary bg-primary/5 shadow-sm'
-                                                        : 'border-gray-200 hover:border-gray-300 hover:bg-gray-50'
-                                                }`}
-                                            >
-                                                <div className="flex items-center justify-between gap-3">
-                                                    <div className="flex items-center gap-3 flex-1 min-w-0">
-                                                        <div
-                                                            className="w-8 h-8 rounded border-2 border-gray-200 flex-shrink-0"
-                                                            style={{ backgroundColor: currentColor }}
-                                                        />
-                                                        <Label className="text-sm font-medium cursor-pointer flex-shrink-0">
-                                                            {option.label}
-                                                        </Label>
-                                                    </div>
-                                                </div>
-                                                <div className="mt-2">
-                                                    <Input
-                                                        type="text"
-                                                        value={currentColor}
-                                                        onChange={(e) => handleHexInputChange(option.key, e.target.value)}
-                                                        onClick={(e) => e.stopPropagation()}
-                                                        placeholder={option.default}
-                                                        className="h-8 text-xs font-mono"
-                                                    />
-                                                </div>
-                                            </div>
-                                        );
-                                    })}
-                                </div>
-
-                                {/* Active Colors */}
-                                <div className="space-y-2 pt-2 border-t">
-                                    <Label className="text-sm font-medium text-muted-foreground">{__('Active Colors', 'wish-cart')}</Label>
-                                    {groupedColors.active.map((option) => {
-                                        const currentColor = getCurrentColor(option.key);
-                                        const isSelected = selectedColorKey === option.key;
-                                        return (
-                                            <div
-                                                key={option.key}
-                                                onClick={() => setSelectedColorKey(option.key)}
-                                                className={`p-3 rounded-lg border-2 cursor-pointer transition-all ${
-                                                    isSelected
-                                                        ? 'border-primary bg-primary/5 shadow-sm'
-                                                        : 'border-gray-200 hover:border-gray-300 hover:bg-gray-50'
-                                                }`}
-                                            >
-                                                <div className="flex items-center justify-between gap-3">
-                                                    <div className="flex items-center gap-3 flex-1 min-w-0">
-                                                        <div
-                                                            className="w-8 h-8 rounded border-2 border-gray-200 flex-shrink-0"
-                                                            style={{ backgroundColor: currentColor }}
-                                                        />
-                                                        <Label className="text-sm font-medium cursor-pointer flex-shrink-0">
-                                                            {option.label}
-                                                        </Label>
-                                                    </div>
-                                                </div>
-                                                <div className="mt-2">
-                                                    <Input
-                                                        type="text"
-                                                        value={currentColor}
-                                                        onChange={(e) => handleHexInputChange(option.key, e.target.value)}
-                                                        onClick={(e) => e.stopPropagation()}
-                                                        placeholder={option.default}
-                                                        className="h-8 text-xs font-mono"
-                                                    />
-                                                </div>
-                                            </div>
-                                        );
-                                    })}
-                                </div>
-
-                                {/* Focus Colors */}
-                                <div className="space-y-2 pt-2 border-t">
-                                    <Label className="text-sm font-medium text-muted-foreground">{__('Focus Colors', 'wish-cart')}</Label>
-                                    {groupedColors.focus.map((option) => {
-                                        const currentColor = getCurrentColor(option.key);
-                                        const isSelected = selectedColorKey === option.key;
-                                        return (
-                                            <div
-                                                key={option.key}
-                                                onClick={() => setSelectedColorKey(option.key)}
-                                                className={`p-3 rounded-lg border-2 cursor-pointer transition-all ${
-                                                    isSelected
-                                                        ? 'border-primary bg-primary/5 shadow-sm'
-                                                        : 'border-gray-200 hover:border-gray-300 hover:bg-gray-50'
-                                                }`}
-                                            >
-                                                <div className="flex items-center justify-between gap-3">
-                                                    <div className="flex items-center gap-3 flex-1 min-w-0">
-                                                        <div
-                                                            className="w-8 h-8 rounded border-2 border-gray-200 flex-shrink-0"
-                                                            style={{ backgroundColor: currentColor }}
-                                                        />
-                                                        <Label className="text-sm font-medium cursor-pointer flex-shrink-0">
-                                                            {option.label}
-                                                        </Label>
-                                                    </div>
-                                                </div>
-                                                <div className="mt-2">
-                                                    <Input
-                                                        type="text"
-                                                        value={currentColor}
-                                                        onChange={(e) => handleHexInputChange(option.key, e.target.value)}
-                                                        onClick={(e) => e.stopPropagation()}
-                                                        placeholder={option.default}
-                                                        className="h-8 text-xs font-mono"
-                                                    />
-                                                </div>
-                                            </div>
-                                        );
-                                    })}
-                                </div>
+                                    value={general.fontSize || ''}
+                                    onChange={(e) => updateButtonCustomization('general', 'fontSize', e.target.value)}
+                                    placeholder="12px"
+                                />
                             </div>
                         </div>
                     </div>
+
+                    {/* Product Page Button Section */}
+                    <ButtonSection
+                        title={__('"Add To Wishlist" Product Page Button', 'wish-cart')}
+                        sectionKey="product_page"
+                        settings={productPage}
+                    />
+
+                    {/* Product Listing Button Section */}
+                    <ButtonSection
+                        title={__('"Add To Wishlist" Product Listing Button', 'wish-cart')}
+                        sectionKey="product_listing"
+                        settings={productListing}
+                    />
 
                     {/* Icon Section */}
                     <div className="space-y-4 border-t pt-4">
@@ -404,4 +438,3 @@ const ButtonCustomizationSettings = ({ settings, updateSettings }) => {
 };
 
 export default ButtonCustomizationSettings;
-
