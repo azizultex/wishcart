@@ -47,3 +47,8 @@
   --input: 217.2 32.6% 17.5%;
   --ring: 212.7 26.8% 83.9%;
 }
+
+/* Ensure admin shell sits nicely within the WordPress admin canvas */
+.wishcart-admin-shell {
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+}

@@ -13,7 +13,10 @@ import {
     HelpCircle,
     ExternalLink,
     CheckCircle2,
-    XCircle
+    XCircle,
+    LifeBuoy,
+    ShieldCheck,
+    Wrench
 } from 'lucide-react';
 
 import WishlistSettings from './WishlistSettings';
@@ -36,7 +39,7 @@ const SettingsApp = () => {
 
     const [isSaving, setIsSaving] = useState(false);
     const [saveMessage, setSaveMessage] = useState('');
-    const [activeTab, setActiveTab] = useState("wishlist");
+    const [activeTab, setActiveTab] = useState("settings");
 
     useEffect(() => {
         // Load settings from WordPress on mount
@@ -145,70 +148,216 @@ const SettingsApp = () => {
         }));
     };
 
+    const pluginLogo = `${WishCartSettings.pluginUrl}assets/images/icons/menu-icon.svg`;
+
     return (
         <>
-            <div className="container mx-auto p-6">
-                <Card className="mb-6">
-                    <CardHeader>
-                        <div className="flex justify-between items-start">
-                            <div>
-                                <CardTitle className="text-2xl">{__('WishCart Settings', 'wish-cart')}</CardTitle>
-                                <CardDescription>
-                                    {__('Configure your wishlist settings', 'wish-cart')}
-                                </CardDescription>
+            <div className="wishcart-admin-shell min-h-[70vh] bg-slate-50 py-6">
+                <div className="mx-auto max-w-6xl px-4 lg:px-6 space-y-6">
+                    <header className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+                        <div className="flex items-center gap-3">
+                            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary/5">
+                                <img
+                                    src={pluginLogo}
+                                    alt={__('WishCart logo', 'wish-cart')}
+                                    className="h-6 w-6"
+                                />
                             </div>
-                            <div className="space-x-3">
-                                <a href="https://wishcart.chat/support"
-                                   target="_blank"
-                                   rel="noopener noreferrer"
-                                   className={buttonVariants({ variant: "default" })}
+                            <div>
+                                <h1 className="text-xl font-semibold tracking-tight text-slate-900">
+                                    {__('WishCart', 'wish-cart')}
+                                </h1>
+                                <p className="flex items-center gap-2 text-sm text-slate-500">
+                                    <span>{__('Wishlist & engagement tools for your store', 'wish-cart')}</span>
+                                    <span className="inline-flex items-center rounded-full border border-emerald-200 bg-emerald-50 px-2 py-0.5 text-[11px] font-medium uppercase tracking-wide text-emerald-700">
+                                        {__('Free', 'wish-cart')}
+                                    </span>
+                                </p>
+                            </div>
+                        </div>
+                        <div className="flex items-center gap-3">
+                            <div className="flex items-center gap-2 rounded-full bg-emerald-50 px-3 py-1 text-xs font-medium text-emerald-700">
+                                <span className="h-2 w-2 rounded-full bg-emerald-500" />
+                                <span>{__('You are connected.', 'wish-cart')}</span>
+                            </div>
+                            <div className="hidden sm:flex items-center gap-2">
+                                <a
+                                    href="https://wishcart.chat/support"
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className={buttonVariants({ variant: "outline", size: "sm" })}
                                 >
-                                    <HelpCircle className="w-4 h-4 mr-2" />
-                                    {__('Need Help?', 'wish-cart')}
+                                    <HelpCircle className="mr-2 h-4 w-4" />
+                                    {__('Support', 'wish-cart')}
                                 </a>
-
-                                <a href="https://wishcart.chat/docs"
-                                   target="_blank"
-                                   rel="noopener noreferrer"
-                                   className={buttonVariants({ variant: "outline" })}
+                                <a
+                                    href="https://wishcart.chat/docs"
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className={buttonVariants({ variant: "ghost", size: "sm" })}
                                 >
-                                    <ExternalLink className="w-4 h-4 mr-2" />
-                                    {__('Documentation', 'wish-cart')}
+                                    <ExternalLink className="mr-2 h-4 w-4" />
+                                    {__('Docs', 'wish-cart')}
                                 </a>
                             </div>
                         </div>
-                    </CardHeader>
-                </Card>
-                {saveMessage && (
-                    <Alert className="mb-6">
-                        <AlertDescription>{saveMessage}</AlertDescription>
-                    </Alert>
-                )}
+                    </header>
 
-                <Tabs defaultValue="wishlist" className="w-full">
-                    <TabsList className="mb-4">
-                        <TabsTrigger value="wishlist" className="flex items-center gap-2">
-                            <Heart className="w-4 h-4" />
-                            {__('Wishlist', 'wish-cart')}
-                        </TabsTrigger>
-                    </TabsList>
+                    {saveMessage && (
+                        <Alert className="border-amber-200 bg-amber-50">
+                            <AlertDescription>{saveMessage}</AlertDescription>
+                        </Alert>
+                    )}
 
-                    <TabsContent value="wishlist">
-                        <WishlistSettings
-                            settings={settings}
-                            updateSettings={updateSettings}
-                        />
-                    </TabsContent>
+                    <Card className="shadow-sm border-slate-200">
+                        <CardHeader className="border-b border-slate-100 pb-3">
+                            <CardTitle className="text-base font-semibold">
+                                {__('WishCart dashboard', 'wish-cart')}
+                            </CardTitle>
+                            <CardDescription>
+                                {__('Manage wishlist behavior, tools, and plugin information.', 'wish-cart')}
+                            </CardDescription>
+                        </CardHeader>
+                        <CardContent className="pt-4">
+                            <Tabs
+                                value={activeTab}
+                                onValueChange={setActiveTab}
+                                className="w-full"
+                            >
+                                <TabsList className="mb-4 bg-slate-50 flex flex-wrap">
+                                    <TabsTrigger value="settings" className="flex items-center gap-2">
+                                        <Heart className="w-4 h-4" />
+                                        {__('Settings', 'wish-cart')}
+                                    </TabsTrigger>
+                                    <TabsTrigger value="tools" className="flex items-center gap-2">
+                                        <Wrench className="w-4 h-4" />
+                                        {__('Tools', 'wish-cart')}
+                                    </TabsTrigger>
+                                    <TabsTrigger value="support" className="flex items-center gap-2">
+                                        <LifeBuoy className="w-4 h-4" />
+                                        {__('Support', 'wish-cart')}
+                                    </TabsTrigger>
+                                    <TabsTrigger value="license" className="flex items-center gap-2">
+                                        <ShieldCheck className="w-4 h-4" />
+                                        {__('License', 'wish-cart')}
+                                    </TabsTrigger>
+                                </TabsList>
 
-                </Tabs>
+                                <TabsContent value="settings" className="space-y-6">
+                                    <WishlistSettings
+                                        settings={settings}
+                                        updateSettings={updateSettings}
+                                    />
+                                </TabsContent>
 
-                <div className="mt-6 flex justify-end">
-                    <Button
-                        onClick={saveSettings}
-                        disabled={isSaving}
-                    >
-                        {isSaving ? __('Saving...', 'wish-cart') : __('Save Settings', 'wish-cart')}
-                    </Button>
+                                <TabsContent value="tools" className="space-y-4">
+                                    <p className="text-sm text-muted-foreground">
+                                        {__('Quick links to wishlist-related tools and pages.', 'wish-cart')}
+                                    </p>
+                                    <div className="grid gap-4 md:grid-cols-2">
+                                        <Card className="border-dashed">
+                                            <CardHeader>
+                                                <CardTitle className="text-sm">
+                                                    {__('Wishlist page', 'wish-cart')}
+                                                </CardTitle>
+                                                <CardDescription>
+                                                    {__('Preview the public wishlist page in a new tab.', 'wish-cart')}
+                                                </CardDescription>
+                                            </CardHeader>
+                                            <CardContent>
+                                                <Button
+                                                    variant="outline"
+                                                    size="sm"
+                                                    asChild
+                                                >
+                                                    <a
+                                                        href={WishCartSettings.pluginUrl}
+                                                        target="_blank"
+                                                        rel="noopener noreferrer"
+                                                    >
+                                                        <ExternalLink className="mr-2 h-4 w-4" />
+                                                        {__('Open wishlist page', 'wish-cart')}
+                                                    </a>
+                                                </Button>
+                                            </CardContent>
+                                        </Card>
+                                    </div>
+                                </TabsContent>
+
+                                <TabsContent value="support" className="space-y-4">
+                                    <p className="text-sm text-muted-foreground">
+                                        {__('Need help? Get in touch with our team or browse documentation.', 'wish-cart')}
+                                    </p>
+                                    <div className="flex flex-wrap gap-3">
+                                        <Button
+                                            asChild
+                                        >
+                                            <a
+                                                href="https://wishcart.chat/support"
+                                                target="_blank"
+                                                rel="noopener noreferrer"
+                                            >
+                                                <LifeBuoy className="mr-2 h-4 w-4" />
+                                                {__('Contact support', 'wish-cart')}
+                                            </a>
+                                        </Button>
+                                        <Button
+                                            variant="outline"
+                                            asChild
+                                        >
+                                            <a
+                                                href="https://wishcart.chat/docs"
+                                                target="_blank"
+                                                rel="noopener noreferrer"
+                                            >
+                                                <ExternalLink className="mr-2 h-4 w-4" />
+                                                {__('View docs', 'wish-cart')}
+                                            </a>
+                                        </Button>
+                                    </div>
+                                </TabsContent>
+
+                                <TabsContent value="license" className="space-y-4">
+                                    <p className="text-sm text-muted-foreground">
+                                        {__('You are currently using the free version of WishCart. All core wishlist features are included.', 'wish-cart')}
+                                    </p>
+                                    <Card>
+                                        <CardHeader>
+                                            <CardTitle className="text-sm">
+                                                {__('Upgrade options', 'wish-cart')}
+                                            </CardTitle>
+                                            <CardDescription>
+                                                {__('Unlock advanced analytics and automation when available.', 'wish-cart')}
+                                            </CardDescription>
+                                        </CardHeader>
+                                        <CardContent>
+                                            <Button
+                                                variant="outline"
+                                                asChild
+                                            >
+                                                <a
+                                                    href="https://wishcart.chat"
+                                                    target="_blank"
+                                                    rel="noopener noreferrer"
+                                                >
+                                                    {__('Visit website', 'wish-cart')}
+                                                </a>
+                                            </Button>
+                                        </CardContent>
+                                    </Card>
+                                </TabsContent>
+                            </Tabs>
+
+                            <div className="mt-6 flex justify-end border-t border-slate-100 pt-4">
+                                <Button
+                                    onClick={saveSettings}
+                                    disabled={isSaving}
+                                >
+                                    {isSaving ? __('Saving...', 'wish-cart') : __('Save Settings', 'wish-cart')}
+                                </Button>
+                            </div>
+                        </CardContent>
+                    </Card>
                 </div>
             </div>
             <Toaster />
