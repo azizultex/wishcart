@@ -109,9 +109,9 @@ const ButtonCustomizationSettings = ({ settings, updateSettings }) => {
                             <Label className="text-base font-semibold">{__('Colors', 'wish-cart')}</Label>
                         </div>
 
-                        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                            {/* Left Column - Color Options List */}
-                            <div className="lg:col-span-1 space-y-4">
+                        <div className="space-y-4 max-w-2xl">
+                            {/* Color Options List */}
+                            <div className="space-y-4">
                                 {/* Basic Colors */}
                                 <div className="space-y-2">
                                     <Label className="text-sm font-medium text-muted-foreground">{__('Basic Colors', 'wish-cart')}</Label>
@@ -278,59 +278,6 @@ const ButtonCustomizationSettings = ({ settings, updateSettings }) => {
                                             </div>
                                         );
                                     })}
-                                </div>
-                            </div>
-
-                            {/* Right Column - Color Picker */}
-                            <div className="lg:col-span-2">
-                                <div className="sticky top-4">
-                                    <div className="bg-gray-50 rounded-lg p-6 border border-gray-200">
-                                        <div className="space-y-4">
-                                            <div>
-                                                <Label className="text-base font-semibold mb-2 block">
-                                                    {colorOptions.find(opt => opt.key === selectedColorKey)?.label || __('Select a color option', 'wish-cart')}
-                                                </Label>
-                                                <p className="text-sm text-muted-foreground">
-                                                    {__('Click a color option on the left to edit it', 'wish-cart')}
-                                                </p>
-                                            </div>
-                                            <div className="flex justify-center">
-                                                <Sketch
-                                                    style={{ maxWidth: '100%' }}
-                                                    color={getCurrentColor(selectedColorKey)}
-                                                    onChange={handleColorChange}
-                                                    presetColors={[
-                                                        '#ffffff', '#f3f4f6', '#e5e7eb', '#d1d5db', '#9ca3af',
-                                                        '#6b7280', '#374151', '#1f2937', '#111827', '#000000',
-                                                        '#fef2f2', '#fee2e2', '#fecaca', '#fca5a5', '#ef4444',
-                                                        '#dc2626', '#b91c1c', '#991b1b', '#7f1d1d',
-                                                        '#dbeafe', '#bfdbfe', '#93c5fd', '#60a5fa', '#3b82f6',
-                                                        '#2563eb', '#1d4ed8', '#1e40af', '#1e3a8a', '#172554',
-                                                    ]}
-                                                />
-                                            </div>
-                                            <div className="pt-4 border-t">
-                                                <div className="flex items-center gap-4">
-                                                    <div className="flex-1">
-                                                        <Label className="text-sm font-medium mb-1 block">{__('Current Color', 'wish-cart')}</Label>
-                                                        <Input
-                                                            type="text"
-                                                            value={getCurrentColor(selectedColorKey)}
-                                                            onChange={(e) => handleHexInputChange(selectedColorKey, e.target.value)}
-                                                            className="font-mono"
-                                                        />
-                                                    </div>
-                                                    <div>
-                                                        <Label className="text-sm font-medium mb-1 block">{__('Preview', 'wish-cart')}</Label>
-                                                        <div
-                                                            className="w-16 h-16 rounded-lg border-2 border-gray-300"
-                                                            style={{ backgroundColor: getCurrentColor(selectedColorKey) }}
-                                                        />
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
                                 </div>
                             </div>
                         </div>
