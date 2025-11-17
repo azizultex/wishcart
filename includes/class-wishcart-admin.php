@@ -243,6 +243,61 @@ class WISHCART_Admin {
             },
         ));
 
+        register_rest_route('wishcart/v1', '/wishlist/users', array(
+            'methods' => 'GET',
+            'callback' => array($this, 'wishlist_get_users'),
+            'permission_callback' => '__return_true', // Public endpoint
+        ));
+
+        // Multiple wishlists endpoints
+        register_rest_route('wishcart/v1', '/wishlists', array(
+            'methods' => 'GET',
+            'callback' => array($this, 'wishlists_get'),
+            'permission_callback' => '__return_true', // Public endpoint
+        ));
+
+        register_rest_route('wishcart/v1', '/wishlists', array(
+            'methods' => 'POST',
+            'callback' => array($this, 'wishlists_create'),
+            'permission_callback' => '__return_true', // Public endpoint
+        ));
+
+        register_rest_route('wishcart/v1', '/wishlists/(?P<id>\d+)', array(
+            'methods' => 'PUT',
+            'callback' => array($this, 'wishlists_update'),
+            'permission_callback' => '__return_true', // Public endpoint
+            'args' => array(
+                'id' => array(
+                    'required' => true,
+                    'type' => 'integer',
+                ),
+            ),
+        ));
+
+        register_rest_route('wishcart/v1', '/wishlists/(?P<id>\d+)', array(
+            'methods' => 'DELETE',
+            'callback' => array($this, 'wishlists_delete'),
+            'permission_callback' => '__return_true', // Public endpoint
+            'args' => array(
+                'id' => array(
+                    'required' => true,
+                    'type' => 'integer',
+                ),
+            ),
+        ));
+
+        register_rest_route('wishcart/v1', '/wishlist/share/(?P<share_code>[a-zA-Z0-9]+)', array(
+            'methods' => 'GET',
+            'callback' => array($this, 'wishlist_get_by_share_code'),
+            'permission_callback' => '__return_true', // Public endpoint
+            'args' => array(
+                'share_code' => array(
+                    'required' => true,
+                    'type' => 'string',
+                ),
+            ),
+        ));
+
     }
 
     public function install_fluentcart() {
@@ -579,9 +634,10 @@ class WISHCART_Admin {
         $params = $request->get_json_params();
         $product_id = isset( $params['product_id'] ) ? intval( $params['product_id'] ) : 0;
         $session_id = isset( $params['session_id'] ) ? sanitize_text_field( wp_unslash( $params['session_id'] ) ) : null;
+        $wishlist_id = isset( $params['wishlist_id'] ) ? intval( $params['wishlist_id'] ) : null;
         
         // Handler will determine user_id or session_id automatically
-        $result = $handler->add_to_wishlist( $product_id, null, $session_id );
+        $result = $handler->add_to_wishlist( $product_id, null, $session_id, $wishlist_id );
 
         if ( is_wp_error( $result ) ) {
             return new WP_Error(
@@ -608,9 +664,10 @@ class WISHCART_Admin {
         $params = $request->get_json_params();
         $product_id = isset( $params['product_id'] ) ? intval( $params['product_id'] ) : 0;
         $session_id = isset( $params['session_id'] ) ? sanitize_text_field( wp_unslash( $params['session_id'] ) ) : null;
+        $wishlist_id = isset( $params['wishlist_id'] ) ? intval( $params['wishlist_id'] ) : null;
         
         // Handler will determine user_id or session_id automatically
-        $result = $handler->remove_from_wishlist( $product_id, null, $session_id );
+        $result = $handler->remove_from_wishlist( $product_id, null, $session_id, $wishlist_id );
 
         if ( is_wp_error( $result ) ) {
             return new WP_Error(
@@ -633,13 +690,108 @@ class WISHCART_Admin {
      * @return WP_REST_Response
      */
     public function wishlist_get( $request ) {
+        global $wpdb;
         $handler = new WISHCART_Wishlist_Handler();
         $session_id = $request->get_param( 'session_id' );
         $session_id = is_string( $session_id ) ? sanitize_text_field( wp_unslash( $session_id ) ) : null;
         
-        // Handler will determine user_id or session_id automatically
-        // Get wishlist items with dates
-        $wishlist_items = $handler->get_user_wishlist_with_dates( null, $session_id );
+        // Check for share_code first (highest priority)
+        $share_code = $request->get_param( 'share_code' );
+        $share_code = is_string( $share_code ) ? sanitize_text_field( $share_code ) : null;
+        
+        // Check for wishlist_id
+        $wishlist_id = $request->get_param( 'wishlist_id' );
+        $wishlist_id = ! empty( $wishlist_id ) ? intval( $wishlist_id ) : null;
+        
+        // Check if user_id is provided (for viewing other users' wishlists)
+        $requested_user_id = $request->get_param( 'user_id' );
+        $requested_user_id = ! empty( $requested_user_id ) ? intval( $requested_user_id ) : null;
+        
+        $wishlist_items = array();
+        $current_wishlist = null;
+        
+        // If share_code is provided, get wishlist by share code
+        if ( ! empty( $share_code ) ) {
+            $current_wishlist = $handler->get_wishlist_by_share_code( $share_code );
+            if ( $current_wishlist ) {
+                $wishlist_id = $current_wishlist['id'];
+            }
+        }
+        
+        // If wishlist_id is provided, fetch that wishlist's items
+        if ( $wishlist_id ) {
+            $table_name = $wpdb->prefix . 'wishcart_wishlist';
+            
+            $results = $wpdb->get_results(
+                $wpdb->prepare(
+                    "SELECT product_id, created_at FROM {$table_name} WHERE wishlist_id = %d ORDER BY created_at DESC",
+                    $wishlist_id
+                ),
+                ARRAY_A
+            );
+            
+            if ( $results ) {
+                foreach ( $results as $row ) {
+                    $wishlist_items[] = array(
+                        'product_id' => intval( $row['product_id'] ),
+                        'created_at' => $row['created_at'],
+                    );
+                }
+            }
+            
+            // Get wishlist info if not already retrieved
+            if ( ! $current_wishlist ) {
+                $current_wishlist = $handler->get_wishlist( $wishlist_id );
+            }
+        } elseif ( $requested_user_id ) {
+            // If user_id is provided, fetch that user's default wishlist
+            $table_name = $wpdb->prefix . 'wishcart_wishlist';
+            
+            $results = $wpdb->get_results(
+                $wpdb->prepare(
+                    "SELECT product_id, created_at FROM {$table_name} WHERE user_id = %d ORDER BY created_at DESC",
+                    $requested_user_id
+                ),
+                ARRAY_A
+            );
+            
+            if ( $results ) {
+                foreach ( $results as $row ) {
+                    $wishlist_items[] = array(
+                        'product_id' => intval( $row['product_id'] ),
+                        'created_at' => $row['created_at'],
+                    );
+                }
+            }
+        } else {
+            // Get default wishlist for current user/session
+            $default_wishlist = $handler->get_default_wishlist( null, $session_id );
+            if ( $default_wishlist ) {
+                $wishlist_id = $default_wishlist['id'];
+                $current_wishlist = $default_wishlist;
+                
+                $table_name = $wpdb->prefix . 'wishcart_wishlist';
+                $results = $wpdb->get_results(
+                    $wpdb->prepare(
+                        "SELECT product_id, created_at FROM {$table_name} WHERE wishlist_id = %d ORDER BY created_at DESC",
+                        $wishlist_id
+                    ),
+                    ARRAY_A
+                );
+                
+                if ( $results ) {
+                    foreach ( $results as $row ) {
+                        $wishlist_items[] = array(
+                            'product_id' => intval( $row['product_id'] ),
+                            'created_at' => $row['created_at'],
+                        );
+                    }
+                }
+            } else {
+                // Fallback to old method for backward compatibility
+                $wishlist_items = $handler->get_user_wishlist_with_dates( null, $session_id );
+            }
+        }
 
         // Get product details
         $products = array();
@@ -674,11 +826,18 @@ class WISHCART_Admin {
             }
         }
 
-        return rest_ensure_response( array(
+        $response_data = array(
             'success' => true,
             'products' => $products,
             'count' => count( $products ),
-        ) );
+        );
+
+        // Include wishlist info if available
+        if ( $current_wishlist ) {
+            $response_data['wishlist'] = $current_wishlist;
+        }
+
+        return rest_ensure_response( $response_data );
     }
 
     /**
@@ -743,6 +902,223 @@ class WISHCART_Admin {
         return rest_ensure_response( array(
             'success' => true,
             'message' => __( 'Wishlist synced successfully', 'wish-cart' ),
+        ) );
+    }
+
+    /**
+     * Get list of users with wishlist items
+     *
+     * @param WP_REST_Request $request Request object
+     * @return WP_REST_Response
+     */
+    public function wishlist_get_users( $request ) {
+        global $wpdb;
+        $table_name = $wpdb->prefix . 'wishcart_wishlist';
+        
+        // Get distinct user IDs that have wishlist items (excluding NULL and session-based entries)
+        $user_ids = $wpdb->get_results(
+            "SELECT DISTINCT user_id, COUNT(*) as wishlist_count 
+             FROM {$table_name} 
+             WHERE user_id IS NOT NULL 
+             GROUP BY user_id 
+             ORDER BY wishlist_count DESC",
+            ARRAY_A
+        );
+
+        $users = array();
+        foreach ( $user_ids as $row ) {
+            $user_id = intval( $row['user_id'] );
+            $user = get_userdata( $user_id );
+            
+            if ( $user ) {
+                $users[] = array(
+                    'id' => $user_id,
+                    'name' => $user->display_name,
+                    'wishlist_count' => intval( $row['wishlist_count'] ),
+                );
+            }
+        }
+
+        return rest_ensure_response( array(
+            'success' => true,
+            'users' => $users,
+            'count' => count( $users ),
+        ) );
+    }
+
+    /**
+     * Get user's wishlists
+     *
+     * @param WP_REST_Request $request Request object
+     * @return WP_REST_Response
+     */
+    public function wishlists_get( $request ) {
+        $handler = new WISHCART_Wishlist_Handler();
+        $wishlists = $handler->get_user_wishlists();
+        
+        return rest_ensure_response( array(
+            'success' => true,
+            'wishlists' => $wishlists,
+            'count' => count( $wishlists ),
+        ) );
+    }
+
+    /**
+     * Create new wishlist
+     *
+     * @param WP_REST_Request $request Request object
+     * @return WP_REST_Response
+     */
+    public function wishlists_create( $request ) {
+        $handler = new WISHCART_Wishlist_Handler();
+        $params = $request->get_json_params();
+        
+        $name = isset( $params['name'] ) ? sanitize_text_field( $params['name'] ) : 'New Wishlist';
+        $is_default = isset( $params['is_default'] ) ? (bool) $params['is_default'] : false;
+        
+        $result = $handler->create_wishlist( $name, null, null, $is_default );
+        
+        if ( is_wp_error( $result ) ) {
+            return new WP_Error(
+                $result->get_error_code(),
+                $result->get_error_message(),
+                array( 'status' => 400 )
+            );
+        }
+        
+        return rest_ensure_response( array(
+            'success' => true,
+            'wishlist' => $result,
+            'message' => __( 'Wishlist created successfully', 'wish-cart' ),
+        ) );
+    }
+
+    /**
+     * Update wishlist
+     *
+     * @param WP_REST_Request $request Request object
+     * @return WP_REST_Response
+     */
+    public function wishlists_update( $request ) {
+        $handler = new WISHCART_Wishlist_Handler();
+        $wishlist_id = intval( $request->get_param( 'id' ) );
+        $params = $request->get_json_params();
+        
+        $result = $handler->update_wishlist( $wishlist_id, $params );
+        
+        if ( is_wp_error( $result ) ) {
+            return new WP_Error(
+                $result->get_error_code(),
+                $result->get_error_message(),
+                array( 'status' => 400 )
+            );
+        }
+        
+        $wishlist = $handler->get_wishlist( $wishlist_id );
+        
+        return rest_ensure_response( array(
+            'success' => true,
+            'wishlist' => $wishlist,
+            'message' => __( 'Wishlist updated successfully', 'wish-cart' ),
+        ) );
+    }
+
+    /**
+     * Delete wishlist
+     *
+     * @param WP_REST_Request $request Request object
+     * @return WP_REST_Response
+     */
+    public function wishlists_delete( $request ) {
+        $handler = new WISHCART_Wishlist_Handler();
+        $wishlist_id = intval( $request->get_param( 'id' ) );
+        
+        $result = $handler->delete_wishlist( $wishlist_id );
+        
+        if ( is_wp_error( $result ) ) {
+            return new WP_Error(
+                $result->get_error_code(),
+                $result->get_error_message(),
+                array( 'status' => 400 )
+            );
+        }
+        
+        return rest_ensure_response( array(
+            'success' => true,
+            'message' => __( 'Wishlist deleted successfully', 'wish-cart' ),
+        ) );
+    }
+
+    /**
+     * Get wishlist by share code
+     *
+     * @param WP_REST_Request $request Request object
+     * @return WP_REST_Response
+     */
+    public function wishlist_get_by_share_code( $request ) {
+        global $wpdb;
+        $handler = new WISHCART_Wishlist_Handler();
+        $share_code = sanitize_text_field( $request->get_param( 'share_code' ) );
+        
+        $wishlist = $handler->get_wishlist_by_share_code( $share_code );
+        
+        if ( ! $wishlist ) {
+            return new WP_Error(
+                'not_found',
+                __( 'Wishlist not found', 'wish-cart' ),
+                array( 'status' => 404 )
+            );
+        }
+        
+        // Get wishlist items
+        $wishlist_id = $wishlist['id'];
+        $wishlist_items = $wpdb->get_results(
+            $wpdb->prepare(
+                "SELECT product_id, created_at FROM {$wpdb->prefix}wishcart_wishlist 
+                WHERE wishlist_id = %d ORDER BY created_at DESC",
+                $wishlist_id
+            ),
+            ARRAY_A
+        );
+        
+        // Get product details
+        $products = array();
+        foreach ( $wishlist_items as $item ) {
+            $product_id = $item['product_id'];
+            $created_at = $item['created_at'];
+            
+            $product = WISHCART_FluentCart_Helper::get_product( $product_id );
+            if ( $product ) {
+                $image_id = $product->get_image_id();
+                $image_url = $image_id ? wp_get_attachment_image_url( $image_id, 'medium' ) : '';
+                
+                // Format date added
+                $date_added = '';
+                if ( $created_at ) {
+                    $date_obj = new DateTime( $created_at );
+                    $date_added = $date_obj->format( 'F j, Y' );
+                }
+                
+                $products[] = array(
+                    'id' => $product_id,
+                    'name' => $product->get_name(),
+                    'price' => $product->get_price(),
+                    'regular_price' => $product->get_regular_price(),
+                    'sale_price' => $product->get_sale_price(),
+                    'is_on_sale' => $product->is_on_sale(),
+                    'image_url' => $image_url,
+                    'permalink' => get_permalink( $product_id ),
+                    'stock_status' => $product->get_stock_status(),
+                    'date_added' => $date_added,
+                );
+            }
+        }
+        
+        return rest_ensure_response( array(
+            'success' => true,
+            'wishlist' => $wishlist,
+            'products' => $products,
+            'count' => count( $products ),
         ) );
     }
 }

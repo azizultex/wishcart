@@ -26,6 +26,15 @@ class WISHCART_Wishlist_Shortcode {
      * @return string HTML output
      */
     public function render_wishlist( $atts ) {
+        $atts = shortcode_atts( array(
+            'share_code' => '',
+        ), $atts, 'wishcart_wishlist' );
+
+        // Get share code from query var if not in shortcode
+        if ( empty( $atts['share_code'] ) ) {
+            $atts['share_code'] = get_query_var( 'wishlist_share_code', '' );
+        }
+
         // Enqueue scripts and styles
         wp_enqueue_script(
             'wishcart-wishlist-frontend',
@@ -55,6 +64,7 @@ class WISHCART_Wishlist_Shortcode {
                 'sessionId' => $session_id,
                 'isLoggedIn' => is_user_logged_in(),
                 'userId' => get_current_user_id(),
+                'shareCode' => sanitize_text_field( $atts['share_code'] ),
             )
         );
 

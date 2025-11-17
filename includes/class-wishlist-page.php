@@ -15,6 +15,63 @@ if ( ! defined( 'ABSPATH' ) ) exit;
 class WISHCART_Wishlist_Page {
 
     /**
+     * Constructor - Initialize rewrite rules
+     */
+    public function __construct() {
+        add_action( 'init', array( $this, 'add_rewrite_rules' ) );
+        add_filter( 'query_vars', array( $this, 'add_query_vars' ) );
+        add_action( 'template_redirect', array( $this, 'handle_wishlist_share_code' ) );
+    }
+
+    /**
+     * Add rewrite rules for wishlist share codes
+     *
+     * @return void
+     */
+    public function add_rewrite_rules() {
+        $page_id = self::get_wishlist_page_id();
+        if ( ! $page_id ) {
+            return;
+        }
+
+        $page = get_post( $page_id );
+        if ( ! $page ) {
+            return;
+        }
+
+        $page_slug = $page->post_name;
+        add_rewrite_rule(
+            '^' . $page_slug . '/([^/]+)/?$',
+            'index.php?pagename=' . $page_slug . '&wishlist_share_code=$matches[1]',
+            'top'
+        );
+    }
+
+    /**
+     * Add query vars for wishlist share code
+     *
+     * @param array $vars Query vars
+     * @return array
+     */
+    public function add_query_vars( $vars ) {
+        $vars[] = 'wishlist_share_code';
+        return $vars;
+    }
+
+    /**
+     * Handle wishlist share code in URL
+     *
+     * @return void
+     */
+    public function handle_wishlist_share_code() {
+        $share_code = get_query_var( 'wishlist_share_code' );
+        if ( ! empty( $share_code ) ) {
+            // Share code will be passed to shortcode via global or filter
+            set_query_var( 'wishlist_share_code', $share_code );
+        }
+    }
+
+    /**
      * Create default wishlist page on activation
      *
      * @return int Page ID

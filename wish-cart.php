@@ -147,6 +147,9 @@ class WISHCART_Wishlist {
         // Initialize frontend handler
         new WISHCART_Wishlist_Frontend();
 
+        // Initialize wishlist page handler (for rewrite rules)
+        new WISHCART_Wishlist_Page();
+
         // Ensure database tables exist even after updates (without reactivation)
         // Safe to call: dbDelta is idempotent
         try { new WISHCART_Database(); } catch ( \Throwable $e ) {}
@@ -163,6 +166,9 @@ class WISHCART_Wishlist {
         
         // Create wishlist page
         WISHCART_Wishlist_Page::create_wishlist_page();
+        
+        // Flush rewrite rules to register new routes
+        flush_rewrite_rules();
     }
 
 }

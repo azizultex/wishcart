@@ -3,6 +3,42 @@
     margin: 0 auto;
     padding: 2rem 1rem;
 
+    .wishlist-selector {
+        margin-bottom: 1.5rem;
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        flex-wrap: wrap;
+
+        .wishlist-select-trigger {
+            min-width: 200px;
+            height: 40px;
+            border: 1px solid #d1d5db;
+            background: #fff;
+            border-radius: 4px;
+            font-size: 0.875rem;
+            padding: 0.5rem 0.75rem;
+            cursor: pointer;
+            transition: all 0.2s;
+
+            &:hover {
+                border-color: #9ca3af;
+            }
+
+            &:focus {
+                outline: none;
+                border-color: #3b82f6;
+                box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+            }
+        }
+
+        .create-wishlist-btn {
+            height: 40px;
+            padding: 0.5rem 1rem;
+            font-size: 0.875rem;
+        }
+    }
+
     .wishlist-header {
         margin-bottom: 1.5rem;
 
@@ -275,6 +311,66 @@
         }
     }
 
+    .share-section {
+        margin-top: 2rem;
+        padding-top: 1.5rem;
+        border-top: 1px solid #e5e7eb;
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        flex-wrap: wrap;
+
+        .share-label {
+            font-size: 0.875rem;
+            color: #000;
+            font-weight: 400;
+        }
+
+        .share-icons {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            flex-wrap: wrap;
+        }
+
+        .share-icon {
+            width: 32px;
+            height: 32px;
+            border: none;
+            background: transparent;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            padding: 0;
+            transition: all 0.2s;
+            border-radius: 4px;
+
+            &:hover {
+                background: #f3f4f6;
+            }
+
+            &:focus {
+                outline: none;
+                background: #f3f4f6;
+            }
+
+            .share-icon-text {
+                font-size: 1rem;
+                font-weight: 600;
+                color: #000;
+                line-height: 1;
+            }
+
+            .share-icon-svg {
+                width: 20px;
+                height: 20px;
+                color: #000;
+                stroke-width: 2;
+            }
+        }
+    }
+
     // Loading and empty states
     .container {
         &.mx-auto {
@@ -316,6 +412,17 @@
                 .bulk-action-btn {
                     width: 100%;
                 }
+            }
+        }
+
+        .share-section {
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 0.75rem;
+
+            .share-icons {
+                width: 100%;
+                justify-content: flex-start;
             }
         }
     }
