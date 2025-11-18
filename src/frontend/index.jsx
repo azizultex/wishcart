@@ -2,8 +2,10 @@ import React from 'react';
 import { createRoot } from 'react-dom/client';
 import WishlistButton from '../components/WishlistButton';
 import WishlistPage from '../components/WishlistPage';
+import SharedWishlistView from '../components/SharedWishlistView';
 import '../styles/WishlistButton.scss';
 import '../styles/WishlistPage.scss';
+import '../styles/SharedWishlistView.scss';
 
 const getSetting = (key, fallback) => {
     if (!window.WishCartWishlist || !(key in window.WishCartWishlist)) {
@@ -402,17 +404,32 @@ const mountWishlistPage = () => {
     }
 };
 
+// Mount shared wishlist view
+const mountSharedWishlistView = () => {
+    const container = document.getElementById('shared-wishlist-app');
+    
+    if (container) {
+        const shareToken = container.getAttribute('data-share-token') || window.WishCartShared?.shareToken;
+        if (shareToken) {
+            const root = createRoot(container);
+            root.render(<SharedWishlistView shareToken={shareToken} />);
+        }
+    }
+};
+
 // Initialize when DOM is ready
 if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', () => {
         initializeSessionId();
         mountWishlistButtons();
         mountWishlistPage();
+        mountSharedWishlistView();
     });
 } else {
     initializeSessionId();
     mountWishlistButtons();
     mountWishlistPage();
+    mountSharedWishlistView();
 }
 
 // Re-mount buttons when new content is loaded (for AJAX-loaded products)

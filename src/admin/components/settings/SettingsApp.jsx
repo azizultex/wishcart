@@ -17,12 +17,14 @@ import {
     LifeBuoy,
     ShieldCheck,
     Wrench,
-    Palette
+    Palette,
+    BarChart3
 } from 'lucide-react';
 
 import WishlistSettings from './WishlistSettings';
 import ButtonCustomizationSettings from './ButtonCustomizationSettings';
 import {buttonVariants} from "../../../components/ui/button";
+import { AnalyticsDashboard } from '../AnalyticsDashboard';
 
 
 const SettingsApp = () => {
@@ -235,6 +237,10 @@ const SettingsApp = () => {
                                         <Palette className="w-4 h-4" />
                                         {__('Button Customization', 'wish-cart')}
                                     </TabsTrigger>
+                                    <TabsTrigger value="analytics" className="flex items-center gap-2">
+                                        <BarChart3 className="w-4 h-4" />
+                                        {__('Analytics', 'wish-cart')}
+                                    </TabsTrigger>
                                     <TabsTrigger value="tools" className="flex items-center gap-2">
                                         <Wrench className="w-4 h-4" />
                                         {__('Tools', 'wish-cart')}
@@ -261,6 +267,10 @@ const SettingsApp = () => {
                                         settings={settings}
                                         updateSettings={updateSettings}
                                     />
+                                </TabsContent>
+
+                                <TabsContent value="analytics" className="space-y-6">
+                                    <AnalyticsDashboard />
                                 </TabsContent>
 
                                 <TabsContent value="tools" className="space-y-4">

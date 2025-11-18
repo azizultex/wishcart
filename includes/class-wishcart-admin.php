@@ -298,6 +298,103 @@ class WISHCART_Admin {
             ),
         ));
 
+        // Analytics endpoints
+        register_rest_route('wishcart/v1', '/analytics/overview', array(
+            'methods' => 'GET',
+            'callback' => array($this, 'analytics_get_overview'),
+            'permission_callback' => function () {
+                return current_user_can('manage_options');
+            },
+        ));
+
+        register_rest_route('wishcart/v1', '/analytics/popular', array(
+            'methods' => 'GET',
+            'callback' => array($this, 'analytics_get_popular_products'),
+            'permission_callback' => function () {
+                return current_user_can('manage_options');
+            },
+        ));
+
+        register_rest_route('wishcart/v1', '/analytics/conversion', array(
+            'methods' => 'GET',
+            'callback' => array($this, 'analytics_get_conversion'),
+            'permission_callback' => function () {
+                return current_user_can('manage_options');
+            },
+        ));
+
+        register_rest_route('wishcart/v1', '/analytics/product/(?P<product_id>\d+)', array(
+            'methods' => 'GET',
+            'callback' => array($this, 'analytics_get_product'),
+            'permission_callback' => function () {
+                return current_user_can('manage_options');
+            },
+        ));
+
+        // Sharing endpoints
+        register_rest_route('wishcart/v1', '/share/create', array(
+            'methods' => 'POST',
+            'callback' => array($this, 'share_create'),
+            'permission_callback' => '__return_true',
+        ));
+
+        register_rest_route('wishcart/v1', '/share/(?P<share_token>[a-zA-Z0-9]+)/stats', array(
+            'methods' => 'GET',
+            'callback' => array($this, 'share_get_stats'),
+            'permission_callback' => '__return_true',
+        ));
+
+        register_rest_route('wishcart/v1', '/share/(?P<share_token>[a-zA-Z0-9]+)/click', array(
+            'methods' => 'POST',
+            'callback' => array($this, 'share_track_click'),
+            'permission_callback' => '__return_true',
+        ));
+
+        // Public share view endpoint (no authentication required)
+        register_rest_route('wishcart/v1', '/share/(?P<share_token>[a-zA-Z0-9]+)/view', array(
+            'methods' => 'GET',
+            'callback' => array($this, 'share_view_wishlist'),
+            'permission_callback' => '__return_true',
+        ));
+
+        // Notification endpoints
+        register_rest_route('wishcart/v1', '/notifications/subscribe', array(
+            'methods' => 'POST',
+            'callback' => array($this, 'notifications_subscribe'),
+            'permission_callback' => '__return_true',
+        ));
+
+        register_rest_route('wishcart/v1', '/notifications', array(
+            'methods' => 'GET',
+            'callback' => array($this, 'notifications_get'),
+            'permission_callback' => function () {
+                return is_user_logged_in();
+            },
+        ));
+
+        register_rest_route('wishcart/v1', '/notifications/stats', array(
+            'methods' => 'GET',
+            'callback' => array($this, 'notifications_get_stats'),
+            'permission_callback' => function () {
+                return current_user_can('manage_options');
+            },
+        ));
+
+        // Activity endpoints
+        register_rest_route('wishcart/v1', '/activity/wishlist/(?P<wishlist_id>\d+)', array(
+            'methods' => 'GET',
+            'callback' => array($this, 'activity_get_wishlist'),
+            'permission_callback' => '__return_true',
+        ));
+
+        register_rest_route('wishcart/v1', '/activity/recent', array(
+            'methods' => 'GET',
+            'callback' => array($this, 'activity_get_recent'),
+            'permission_callback' => function () {
+                return current_user_can('manage_options');
+            },
+        ));
+
     }
 
     public function install_fluentcart() {
@@ -1120,6 +1217,429 @@ class WISHCART_Admin {
             'products' => $products,
             'count' => count( $products ),
         ) );
+    }
+
+    /**
+     * Get analytics overview
+     *
+     * @param WP_REST_Request $request Request object
+     * @return WP_REST_Response
+     */
+    public function analytics_get_overview($request) {
+        $analytics = new WISHCART_Analytics_Handler();
+        $overview = $analytics->get_overview();
+        
+        return rest_ensure_response(array(
+            'success' => true,
+            'data' => $overview,
+        ));
+    }
+
+    /**
+     * Get popular products analytics
+     *
+     * @param WP_REST_Request $request Request object
+     * @return WP_REST_Response
+     */
+    public function analytics_get_popular_products($request) {
+        $analytics = new WISHCART_Analytics_Handler();
+        $limit = $request->get_param('limit') ? intval($request->get_param('limit')) : 10;
+        $order_by = $request->get_param('order_by') ? sanitize_text_field($request->get_param('order_by')) : 'wishlist_count';
+        
+        $products = $analytics->get_popular_products($limit, $order_by);
+        
+        return rest_ensure_response(array(
+            'success' => true,
+            'products' => $products,
+            'count' => count($products),
+        ));
+    }
+
+    /**
+     * Get conversion funnel analytics
+     *
+     * @param WP_REST_Request $request Request object
+     * @return WP_REST_Response
+     */
+    public function analytics_get_conversion($request) {
+        $analytics = new WISHCART_Analytics_Handler();
+        $funnel = $analytics->get_conversion_funnel();
+        
+        return rest_ensure_response(array(
+            'success' => true,
+            'data' => $funnel,
+        ));
+    }
+
+    /**
+     * Get product analytics
+     *
+     * @param WP_REST_Request $request Request object
+     * @return WP_REST_Response
+     */
+    public function analytics_get_product($request) {
+        $analytics = new WISHCART_Analytics_Handler();
+        $product_id = intval($request->get_param('product_id'));
+        $variation_id = $request->get_param('variation_id') ? intval($request->get_param('variation_id')) : 0;
+        
+        $data = $analytics->get_product_analytics($product_id, $variation_id);
+        
+        if (!$data) {
+            return new WP_Error('not_found', __('Analytics data not found', 'wish-cart'), array('status' => 404));
+        }
+        
+        return rest_ensure_response(array(
+            'success' => true,
+            'data' => $data,
+        ));
+    }
+
+    /**
+     * Create share
+     *
+     * @param WP_REST_Request $request Request object
+     * @return WP_REST_Response
+     */
+    public function share_create($request) {
+        $sharing = new WISHCART_Sharing_Handler();
+        $params = $request->get_json_params();
+        
+        $wishlist_id = isset($params['wishlist_id']) ? intval($params['wishlist_id']) : 0;
+        $share_type = isset($params['share_type']) ? sanitize_text_field($params['share_type']) : 'link';
+        
+        $options = array();
+        if (isset($params['shared_with_email'])) {
+            $options['shared_with_email'] = sanitize_email($params['shared_with_email']);
+        }
+        if (isset($params['share_message'])) {
+            $options['share_message'] = sanitize_textarea_field($params['share_message']);
+        }
+        if (isset($params['expiration_days'])) {
+            $options['expiration_days'] = intval($params['expiration_days']);
+        }
+        
+        $result = $sharing->create_share($wishlist_id, $share_type, $options);
+        
+        if (is_wp_error($result)) {
+            return new WP_Error(
+                $result->get_error_code(),
+                $result->get_error_message(),
+                array('status' => 400)
+            );
+        }
+        
+        return rest_ensure_response(array(
+            'success' => true,
+            'share' => $result,
+            'share_url' => $sharing->get_share_url($result['share_token'], $share_type),
+        ));
+    }
+
+    /**
+     * Get share statistics
+     *
+     * @param WP_REST_Request $request Request object
+     * @return WP_REST_Response
+     */
+    public function share_get_stats($request) {
+        $sharing = new WISHCART_Sharing_Handler();
+        $share_token = $request->get_param('share_token');
+        
+        $share = $sharing->get_share_by_token($share_token);
+        if (!$share) {
+            return new WP_Error('not_found', __('Share not found', 'wish-cart'), array('status' => 404));
+        }
+        
+        $stats = $sharing->get_share_statistics($share['wishlist_id']);
+        
+        return rest_ensure_response(array(
+            'success' => true,
+            'share' => $share,
+            'stats' => $stats,
+        ));
+    }
+
+    /**
+     * Track share click
+     *
+     * @param WP_REST_Request $request Request object
+     * @return WP_REST_Response
+     */
+    public function share_track_click($request) {
+        $sharing = new WISHCART_Sharing_Handler();
+        $share_token = $request->get_param('share_token');
+        
+        $share = $sharing->get_share_by_token($share_token);
+        if (!$share) {
+            return new WP_Error('not_found', __('Share not found', 'wish-cart'), array('status' => 404));
+        }
+        
+        $sharing->track_share_click($share['share_id']);
+        
+        return rest_ensure_response(array(
+            'success' => true,
+            'message' => __('Click tracked', 'wish-cart'),
+        ));
+    }
+
+    /**
+     * View shared wishlist publicly
+     * 
+     * @param WP_REST_Request $request Request object
+     * @return WP_REST_Response
+     */
+    public function share_view_wishlist($request) {
+        global $wpdb;
+        
+        $share_token = $request->get_param('share_token');
+        $sharing = new WISHCART_Sharing_Handler();
+        
+        // Get share by token
+        $share = $sharing->get_share_by_token($share_token);
+        if (!$share) {
+            return new WP_Error('not_found', __('Shared wishlist not found or has expired', 'wish-cart'), array('status' => 404));
+        }
+        
+        // Get wishlist details
+        $wishlists_table = $wpdb->prefix . 'fc_wishlists';
+        $wishlist = $wpdb->get_row(
+            $wpdb->prepare(
+                "SELECT * FROM {$wishlists_table} WHERE id = %d AND status = 'active'",
+                $share['wishlist_id']
+            ),
+            ARRAY_A
+        );
+        
+        if (!$wishlist) {
+            return new WP_Error('not_found', __('Wishlist not found', 'wish-cart'), array('status' => 404));
+        }
+        
+        // Check privacy status - only public and shared wishlists can be viewed via share link
+        if ($wishlist['privacy_status'] === 'private') {
+            return new WP_Error('forbidden', __('This wishlist is private', 'wish-cart'), array('status' => 403));
+        }
+        
+        // Get wishlist items with product details
+        $items_table = $wpdb->prefix . 'fc_wishlist_items';
+        $items = $wpdb->get_results(
+            $wpdb->prepare(
+                "SELECT * FROM {$items_table} WHERE wishlist_id = %d AND status = 'active' ORDER BY position ASC, date_added DESC",
+                $share['wishlist_id']
+            ),
+            ARRAY_A
+        );
+        
+        // Enrich items with product data
+        $products = array();
+        foreach ($items as $item) {
+            $product_id = $item['product_id'];
+            $product = WISHCART_FluentCart_Helper::get_product($product_id);
+            
+            if (!$product) {
+                continue;
+            }
+            
+            $product_data = array(
+                'id' => $product_id,
+                'name' => $product->get_name(),
+                'permalink' => get_permalink($product_id),
+                'price' => $product->get_price(),
+                'regular_price' => $product->get_regular_price(),
+                'sale_price' => $product->get_sale_price(),
+                'is_on_sale' => $product->is_on_sale(),
+                'stock_status' => $product->get_stock_status(),
+                'image_url' => wp_get_attachment_url($product->get_image_id()),
+                'quantity' => $item['quantity'],
+                'notes' => $item['notes'],
+                'date_added' => $item['date_added'],
+                'variation_id' => $item['variation_id'],
+            );
+            
+            // If it's a variation, get variation details
+            if ($item['variation_id'] && $item['variation_id'] > 0) {
+                $variation = WISHCART_FluentCart_Helper::get_product($item['variation_id']);
+                if ($variation) {
+                    // For variations, update prices
+                    $product_data['price'] = $variation->get_price();
+                    $product_data['regular_price'] = $variation->get_regular_price();
+                    $product_data['sale_price'] = $variation->get_sale_price();
+                }
+            }
+            
+            $products[] = $product_data;
+        }
+        
+        // Track click
+        $sharing->track_share_click($share['share_id']);
+        
+        // Log activity
+        if (class_exists('WISHCART_Activity_Logger')) {
+            $logger = new WISHCART_Activity_Logger();
+            $session_id = isset($_COOKIE['wishcart_session']) ? sanitize_text_field($_COOKIE['wishcart_session']) : null;
+            $ip_address = isset($_SERVER['REMOTE_ADDR']) ? sanitize_text_field($_SERVER['REMOTE_ADDR']) : null;
+            $user_agent = isset($_SERVER['HTTP_USER_AGENT']) ? sanitize_text_field($_SERVER['HTTP_USER_AGENT']) : null;
+            $referrer = isset($_SERVER['HTTP_REFERER']) ? esc_url_raw($_SERVER['HTTP_REFERER']) : null;
+            
+            $logger->log(
+                $share['wishlist_id'],
+                null,
+                $session_id,
+                'viewed',
+                $share['share_id'],
+                'share',
+                array(
+                    'share_token' => $share_token,
+                    'share_type' => $share['share_type'],
+                    'ip_address' => $ip_address,
+                    'user_agent' => $user_agent,
+                    'referrer_url' => $referrer
+                )
+            );
+        }
+        
+        // Get owner info (optional based on settings)
+        $owner_name = null;
+        if ($wishlist['user_id']) {
+            $user = get_userdata($wishlist['user_id']);
+            if ($user) {
+                $owner_name = $user->display_name;
+            }
+        }
+        
+        return rest_ensure_response(array(
+            'success' => true,
+            'wishlist' => array(
+                'id' => $wishlist['id'],
+                'name' => $wishlist['wishlist_name'],
+                'description' => $wishlist['description'],
+                'privacy_status' => $wishlist['privacy_status'],
+                'owner_name' => $owner_name,
+                'date_created' => $wishlist['dateadded'],
+            ),
+            'products' => $products,
+            'share_info' => array(
+                'share_type' => $share['share_type'],
+                'share_message' => $share['share_message'],
+                'click_count' => $share['click_count'],
+            ),
+        ));
+    }
+
+    /**
+     * Subscribe to notifications
+     *
+     * @param WP_REST_Request $request Request object
+     * @return WP_REST_Response
+     */
+    public function notifications_subscribe($request) {
+        $notifications = new WISHCART_Notifications_Handler();
+        $params = $request->get_json_params();
+        
+        $notification_type = isset($params['notification_type']) ? sanitize_text_field($params['notification_type']) : '';
+        $email_to = isset($params['email']) ? sanitize_email($params['email']) : '';
+        
+        $data = array(
+            'product_id' => isset($params['product_id']) ? intval($params['product_id']) : null,
+            'wishlist_id' => isset($params['wishlist_id']) ? intval($params['wishlist_id']) : null,
+            'user_id' => is_user_logged_in() ? get_current_user_id() : null,
+        );
+        
+        $result = $notifications->queue_notification($notification_type, $email_to, $data);
+        
+        if (is_wp_error($result)) {
+            return new WP_Error(
+                $result->get_error_code(),
+                $result->get_error_message(),
+                array('status' => 400)
+            );
+        }
+        
+        return rest_ensure_response(array(
+            'success' => true,
+            'message' => __('Subscription created', 'wish-cart'),
+            'notification_id' => $result,
+        ));
+    }
+
+    /**
+     * Get user notifications
+     *
+     * @param WP_REST_Request $request Request object
+     * @return WP_REST_Response
+     */
+    public function notifications_get($request) {
+        if (!is_user_logged_in()) {
+            return new WP_Error('not_logged_in', __('User must be logged in', 'wish-cart'), array('status' => 401));
+        }
+        
+        $notifications = new WISHCART_Notifications_Handler();
+        $user_id = get_current_user_id();
+        $status = $request->get_param('status');
+        
+        $user_notifications = $notifications->get_user_notifications($user_id, $status);
+        
+        return rest_ensure_response(array(
+            'success' => true,
+            'notifications' => $user_notifications,
+            'count' => count($user_notifications),
+        ));
+    }
+
+    /**
+     * Get notification statistics
+     *
+     * @param WP_REST_Request $request Request object
+     * @return WP_REST_Response
+     */
+    public function notifications_get_stats($request) {
+        $notifications = new WISHCART_Notifications_Handler();
+        $stats = $notifications->get_statistics();
+        
+        return rest_ensure_response(array(
+            'success' => true,
+            'stats' => $stats,
+        ));
+    }
+
+    /**
+     * Get wishlist activity
+     *
+     * @param WP_REST_Request $request Request object
+     * @return WP_REST_Response
+     */
+    public function activity_get_wishlist($request) {
+        $logger = new WISHCART_Activity_Logger();
+        $wishlist_id = intval($request->get_param('wishlist_id'));
+        $limit = $request->get_param('limit') ? intval($request->get_param('limit')) : 50;
+        $offset = $request->get_param('offset') ? intval($request->get_param('offset')) : 0;
+        
+        $activities = $logger->get_wishlist_activities($wishlist_id, $limit, $offset);
+        
+        return rest_ensure_response(array(
+            'success' => true,
+            'activities' => $activities,
+            'count' => count($activities),
+        ));
+    }
+
+    /**
+     * Get recent activities
+     *
+     * @param WP_REST_Request $request Request object
+     * @return WP_REST_Response
+     */
+    public function activity_get_recent($request) {
+        $logger = new WISHCART_Activity_Logger();
+        $limit = $request->get_param('limit') ? intval($request->get_param('limit')) : 20;
+        $activity_type = $request->get_param('type');
+        
+        $activities = $logger->get_recent_activities($limit, $activity_type);
+        
+        return rest_ensure_response(array(
+            'success' => true,
+            'activities' => $activities,
+            'count' => count($activities),
+        ));
     }
 }
 

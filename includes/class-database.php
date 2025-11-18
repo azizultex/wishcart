@@ -1,10 +1,10 @@
 <?php
 if ( ! defined( 'ABSPATH' ) ) exit;
 /**
- * Database handling class for AISK plugin
+ * Database handling class for WishCart plugin
  *
  * @category WordPress
- * @package  AISK
+ * @package  WishCart
  * @author   WishCart Team <support@wishcart.chat>
  * @license  GPL-2.0+ https://www.gnu.org/licenses/gpl-2.0.html
  * @link     https://wishcart.chat
@@ -14,13 +14,12 @@ if ( ! defined( 'ABSPATH' ) ) exit;
  * WISHCART_Database Class
  *
  * @category WordPress
- * @package  AISK
+ * @package  WishCart
  * @author   WishCart Team <support@wishcart.chat>
  * @license  GPL-2.0+ https://www.gnu.org/licenses/gpl-2.0.html
  * @link     https://wishcart.chat
  */
 class WISHCART_Database {
-
 
     private $wpdb;
     private $table_prefix;
@@ -41,9 +40,9 @@ class WISHCART_Database {
     }
 
     /**
-     * Create required database tables
+     * Create required database tables (7-table structure)
      *
-     * @since 1.0.0
+     * @since 2.0.0
      *
      * @return void
      */
@@ -51,181 +50,191 @@ class WISHCART_Database {
 		$charset_collate = $this->wpdb->get_charset_collate();
 		$this->log_debug('create_tables: start');
 
-        // Wishlists metadata table (for multiple wishlists)
-        $sql_wishlists = "CREATE TABLE IF NOT EXISTS {$this->table_prefix}wishcart_wishlists (
-            id bigint(20) NOT NULL AUTO_INCREMENT,
-            user_id bigint(20) DEFAULT NULL,
-            session_id varchar(50) DEFAULT NULL,
-            name varchar(255) DEFAULT 'Default wishlist',
-            share_code varchar(50) NOT NULL,
+        // 1. Main Wishlists Table (fc_wishlists)
+        $sql_wishlists = "CREATE TABLE IF NOT EXISTS {$this->table_prefix}fc_wishlists (
+            id bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT,
+            wishlist_token varchar(64) NOT NULL UNIQUE,
+            user_id bigint(20) UNSIGNED NULL DEFAULT NULL,
+            session_id varchar(255) NULL DEFAULT NULL,
+            wishlist_name varchar(255) NOT NULL DEFAULT 'My Wishlist',
+            wishlist_slug varchar(255) NOT NULL,
+            description text NULL,
+            privacy_status enum('public', 'shared', 'private') DEFAULT 'private',
             is_default tinyint(1) DEFAULT 0,
-            created_at datetime DEFAULT CURRENT_TIMESTAMP,
-            updated_at datetime DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+            expiration_date datetime NULL DEFAULT NULL,
+            dateadded datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+            date_modified datetime NULL ON UPDATE CURRENT_TIMESTAMP,
+            menu_order int(11) NOT NULL DEFAULT 0,
+            wishlist_type varchar(50) DEFAULT 'wishlist',
+            status varchar(20) DEFAULT 'active',
             PRIMARY KEY (id),
-            KEY user_id (user_id),
-            KEY session_id (session_id),
-            UNIQUE KEY share_code (share_code)
-        ) $charset_collate;";
+            KEY user_id_idx (user_id),
+            KEY session_id_idx (session_id),
+            KEY wishlist_token_idx (wishlist_token),
+            KEY privacy_status_idx (privacy_status),
+            KEY is_default_idx (is_default),
+            KEY status_idx (status),
+            KEY wishlist_slug_idx (wishlist_slug)
+        ) ENGINE=InnoDB $charset_collate;";
 
-        // Wishlist items table (modified to support wishlist_id)
-        $sql_wishlist = "CREATE TABLE IF NOT EXISTS {$this->table_prefix}wishcart_wishlist (
-            id bigint(20) NOT NULL AUTO_INCREMENT,
-            user_id bigint(20) DEFAULT NULL,
-            session_id varchar(50) DEFAULT NULL,
-            wishlist_id bigint(20) DEFAULT NULL,
-            product_id bigint(20) NOT NULL,
-            created_at datetime DEFAULT CURRENT_TIMESTAMP,
-            PRIMARY KEY (id),
-            KEY user_id (user_id),
-            KEY session_id (session_id),
-            KEY product_id (product_id),
-            KEY wishlist_id (wishlist_id),
-            UNIQUE KEY user_product_wishlist (user_id, product_id, wishlist_id),
-            UNIQUE KEY session_product_wishlist (session_id, product_id, wishlist_id)
-        ) $charset_collate;";
+        // 2. Wishlist Items Table (fc_wishlist_items)
+        $sql_wishlist_items = "CREATE TABLE IF NOT EXISTS {$this->table_prefix}fc_wishlist_items (
+            item_id bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT,
+            wishlist_id bigint(20) UNSIGNED NOT NULL,
+            product_id bigint(20) UNSIGNED NOT NULL,
+            variation_id bigint(20) UNSIGNED NULL DEFAULT 0,
+            variation_data longtext NULL,
+            quantity int(11) NOT NULL DEFAULT 1,
+            date_added datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+            position int(11) DEFAULT 0,
+            original_price decimal(19,4) NULL,
+            original_currency varchar(10) NULL,
+            on_sale tinyint(1) DEFAULT 0,
+            notes text NULL,
+            user_id bigint(20) UNSIGNED NULL,
+            date_added_to_cart datetime NULL,
+            cart_item_key varchar(255) NULL,
+            custom_attributes text NULL,
+            status varchar(20) DEFAULT 'active',
+            PRIMARY KEY (item_id),
+            UNIQUE KEY wishlist_product_unique (wishlist_id, product_id, variation_id),
+            KEY wishlist_id_idx (wishlist_id),
+            KEY product_id_idx (product_id),
+            KEY variation_id_idx (variation_id),
+            KEY date_added_idx (date_added),
+            KEY user_id_idx (user_id),
+            KEY status_idx (status)
+        ) ENGINE=InnoDB $charset_collate;";
+
+        // 3. Wishlist Shares Table (fc_wishlist_shares)
+        $sql_wishlist_shares = "CREATE TABLE IF NOT EXISTS {$this->table_prefix}fc_wishlist_shares (
+            share_id bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT,
+            wishlist_id bigint(20) UNSIGNED NOT NULL,
+            share_token varchar(64) UNIQUE,
+            share_type enum('link', 'email', 'facebook', 'twitter', 'pinterest', 'whatsapp', 'instagram', 'other') NOT NULL,
+            shared_by_user_id bigint(20) UNSIGNED NULL,
+            shared_with_email varchar(255) NULL,
+            share_key varchar(255) NULL,
+            share_title varchar(255) NULL,
+            share_message text NULL,
+            click_count int(11) DEFAULT 0,
+            conversion_count int(11) DEFAULT 0,
+            date_created datetime DEFAULT CURRENT_TIMESTAMP,
+            date_expires datetime NULL,
+            last_clicked datetime NULL,
+            status varchar(20) DEFAULT 'active',
+            PRIMARY KEY (share_id),
+            KEY wishlist_id_idx (wishlist_id),
+            KEY share_token_idx (share_token),
+            KEY share_type_idx (share_type),
+            KEY shared_by_user_idx (shared_by_user_id),
+            KEY status_idx (status)
+        ) ENGINE=InnoDB $charset_collate;";
+
+        // 4. Wishlist Analytics Table (fc_wishlist_analytics)
+        $sql_wishlist_analytics = "CREATE TABLE IF NOT EXISTS {$this->table_prefix}fc_wishlist_analytics (
+            analytics_id bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT,
+            product_id bigint(20) UNSIGNED NOT NULL,
+            variation_id bigint(20) UNSIGNED NULL DEFAULT 0,
+            wishlist_count int(11) DEFAULT 0,
+            click_count int(11) DEFAULT 0,
+            add_to_cart_count int(11) DEFAULT 0,
+            purchase_count int(11) DEFAULT 0,
+            share_count int(11) DEFAULT 0,
+            first_added_date datetime NULL,
+            last_added_date datetime NULL,
+            last_purchased_date datetime NULL,
+            average_days_in_wishlist decimal(10,2) DEFAULT 0,
+            conversion_rate decimal(5,2) DEFAULT 0,
+            date_updated datetime DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+            PRIMARY KEY (analytics_id),
+            UNIQUE KEY product_variation_unique (product_id, variation_id),
+            KEY product_id_idx (product_id),
+            KEY wishlist_count_idx (wishlist_count),
+            KEY conversion_rate_idx (conversion_rate)
+        ) ENGINE=InnoDB $charset_collate;";
+
+        // 5. Wishlist Notifications Table (fc_wishlist_notifications)
+        $sql_wishlist_notifications = "CREATE TABLE IF NOT EXISTS {$this->table_prefix}fc_wishlist_notifications (
+            notification_id bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT,
+            user_id bigint(20) UNSIGNED NULL,
+            wishlist_id bigint(20) UNSIGNED NULL,
+            product_id bigint(20) UNSIGNED NULL,
+            notification_type enum('price_drop', 'back_in_stock', 'promotional', 'reminder', 'share_notification', 'estimate_request') NOT NULL,
+            email_to varchar(255) NOT NULL,
+            email_subject varchar(255) NULL,
+            email_content longtext NULL,
+            trigger_data text NULL,
+            scheduled_date datetime NULL,
+            sent_date datetime NULL,
+            opened_date datetime NULL,
+            clicked_date datetime NULL,
+            status enum('pending', 'sent', 'failed', 'cancelled') DEFAULT 'pending',
+            attempts int(3) DEFAULT 0,
+            error_message text NULL,
+            date_created datetime DEFAULT CURRENT_TIMESTAMP,
+            PRIMARY KEY (notification_id),
+            KEY user_id_idx (user_id),
+            KEY wishlist_id_idx (wishlist_id),
+            KEY product_id_idx (product_id),
+            KEY notification_type_idx (notification_type),
+            KEY status_idx (status),
+            KEY scheduled_date_idx (scheduled_date)
+        ) ENGINE=InnoDB $charset_collate;";
+
+        // 6. Wishlist Activities Table (fc_wishlist_activities)
+        $sql_wishlist_activities = "CREATE TABLE IF NOT EXISTS {$this->table_prefix}fc_wishlist_activities (
+            activity_id bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT,
+            wishlist_id bigint(20) UNSIGNED NULL,
+            user_id bigint(20) UNSIGNED NULL,
+            session_id varchar(255) NULL,
+            activity_type enum('created', 'added_item', 'removed_item', 'moved_item', 'shared', 'viewed', 'renamed', 'deleted', 'purchased', 'updated') NOT NULL,
+            object_id bigint(20) UNSIGNED NULL,
+            object_type varchar(50) NULL,
+            activity_data text NULL,
+            ip_address varchar(45) NULL,
+            user_agent text NULL,
+            referrer_url text NULL,
+            date_created datetime DEFAULT CURRENT_TIMESTAMP,
+            PRIMARY KEY (activity_id),
+            KEY wishlist_id_idx (wishlist_id),
+            KEY user_id_idx (user_id),
+            KEY activity_type_idx (activity_type),
+            KEY date_created_idx (date_created)
+        ) ENGINE=InnoDB $charset_collate;";
+
+        // 7. Guest Users Table (fc_wishlist_guest_users)
+        $sql_wishlist_guest_users = "CREATE TABLE IF NOT EXISTS {$this->table_prefix}fc_wishlist_guest_users (
+            guest_id bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT,
+            session_id varchar(255) NOT NULL UNIQUE,
+            guest_email varchar(255) NULL,
+            guest_name varchar(255) NULL,
+            ip_address varchar(45) NULL,
+            user_agent text NULL,
+            wishlist_data longtext NULL,
+            conversion_user_id bigint(20) UNSIGNED NULL,
+            date_created datetime DEFAULT CURRENT_TIMESTAMP,
+            date_expires datetime NULL,
+            last_activity datetime NULL,
+            PRIMARY KEY (guest_id),
+            KEY session_id_idx (session_id),
+            KEY guest_email_idx (guest_email),
+            KEY date_expires_idx (date_expires),
+            KEY conversion_user_id_idx (conversion_user_id)
+        ) ENGINE=InnoDB $charset_collate;";
 
         include_once ABSPATH . 'wp-admin/includes/upgrade.php';
 
         dbDelta($sql_wishlists);
-        dbDelta($sql_wishlist);
-		
-		// Migrate existing data if needed
-		$this->migrate_existing_data();
+        dbDelta($sql_wishlist_items);
+        dbDelta($sql_wishlist_shares);
+        dbDelta($sql_wishlist_analytics);
+        dbDelta($sql_wishlist_notifications);
+        dbDelta($sql_wishlist_activities);
+        dbDelta($sql_wishlist_guest_users);
 		
 		$this->log_debug('create_tables: end');
     }
-
-	/**
-	 * Migrate existing wishlist data to new structure
-	 *
-	 * @return void
-	 */
-	private function migrate_existing_data() {
-		$wishlists_table = $this->table_prefix . 'wishcart_wishlists';
-		$wishlist_table = $this->table_prefix . 'wishcart_wishlist';
-		
-		// Check if migration already done
-		$migration_done = get_option( 'wishcart_wishlists_migrated', false );
-		if ( $migration_done ) {
-			return;
-		}
-		
-		// Check if wishlist_id column exists
-		$column_exists = $this->wpdb->get_results(
-			$this->wpdb->prepare(
-				"SELECT COLUMN_NAME FROM INFORMATION_SCHEMA.COLUMNS 
-				WHERE TABLE_SCHEMA = %s AND TABLE_NAME = %s AND COLUMN_NAME = 'wishlist_id'",
-				DB_NAME,
-				$wishlist_table
-			)
-		);
-		
-		// Add wishlist_id column if it doesn't exist
-		if ( empty( $column_exists ) ) {
-			$this->wpdb->query(
-				"ALTER TABLE {$wishlist_table} 
-				ADD COLUMN wishlist_id bigint(20) DEFAULT NULL AFTER session_id,
-				ADD KEY wishlist_id (wishlist_id),
-				DROP INDEX IF EXISTS user_product,
-				DROP INDEX IF EXISTS session_product,
-				ADD UNIQUE KEY user_product_wishlist (user_id, product_id, wishlist_id),
-				ADD UNIQUE KEY session_product_wishlist (session_id, product_id, wishlist_id)"
-			);
-		}
-		
-		// Get all unique user_id and session_id combinations
-		$users = $this->wpdb->get_results(
-			"SELECT DISTINCT user_id, session_id 
-			FROM {$wishlist_table} 
-			WHERE (user_id IS NOT NULL OR session_id IS NOT NULL)"
-		);
-		
-		foreach ( $users as $user ) {
-			$user_id = $user->user_id;
-			$session_id = $user->session_id;
-			
-			// Check if default wishlist already exists
-			$existing_wishlist = $this->wpdb->get_row(
-				$this->wpdb->prepare(
-					"SELECT id FROM {$wishlists_table} 
-					WHERE user_id = %s AND session_id = %s AND is_default = 1",
-					$user_id,
-					$session_id
-				)
-			);
-			
-			if ( ! $existing_wishlist ) {
-				// Create default wishlist
-				$share_code = $this->generate_unique_share_code();
-				$this->wpdb->insert(
-					$wishlists_table,
-					array(
-						'user_id' => $user_id,
-						'session_id' => $session_id,
-						'name' => 'Default wishlist',
-						'share_code' => $share_code,
-						'is_default' => 1,
-					),
-					array( '%d', '%s', '%s', '%s', '%d' )
-				);
-				
-				$wishlist_id = $this->wpdb->insert_id;
-				
-				// Update existing items to use this wishlist_id
-				if ( $user_id ) {
-					$this->wpdb->update(
-						$wishlist_table,
-						array( 'wishlist_id' => $wishlist_id ),
-						array( 'user_id' => $user_id, 'wishlist_id' => null ),
-						array( '%d' ),
-						array( '%d', '%s' )
-					);
-				} else {
-					$this->wpdb->update(
-						$wishlist_table,
-						array( 'wishlist_id' => $wishlist_id ),
-						array( 'session_id' => $session_id, 'wishlist_id' => null ),
-						array( '%d' ),
-						array( '%s', '%s' )
-					);
-				}
-			}
-		}
-		
-		// Mark migration as done
-		update_option( 'wishcart_wishlists_migrated', true );
-	}
-	
-	/**
-	 * Generate unique share code
-	 *
-	 * @return string
-	 */
-	private function generate_unique_share_code() {
-		$wishlists_table = $this->table_prefix . 'wishcart_wishlists';
-		$max_attempts = 10;
-		$attempt = 0;
-		
-		do {
-			// Generate 6-character alphanumeric code
-			$code = strtolower( wp_generate_password( 6, false ) );
-			$exists = $this->wpdb->get_var(
-				$this->wpdb->prepare(
-					"SELECT COUNT(*) FROM {$wishlists_table} WHERE share_code = %s",
-					$code
-				)
-			);
-			$attempt++;
-		} while ( $exists > 0 && $attempt < $max_attempts );
-		
-		if ( $attempt >= $max_attempts ) {
-			// Fallback: use timestamp-based code
-			$code = 'w' . substr( md5( time() . wp_rand() ), 0, 5 );
-		}
-		
-		return $code;
-    }
-
 
 	/**
 	 * Lightweight debug logger
@@ -236,7 +245,7 @@ class WISHCART_Database {
 	private function log_debug($message) {
 		if (defined('WP_DEBUG') && WP_DEBUG) {
 			// phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log -- Debug logging is properly guarded
-			error_log('[AISK DB] ' . $message);
+			error_log('[WishCart DB] ' . $message);
 		}
 	}
 }

@@ -94,6 +94,7 @@ class WISHCART_Wishlist {
         // Initialize components
         add_action('init', [ $this, 'init' ]);
         register_activation_hook(__FILE__, [ $this, 'activate' ]);
+        register_deactivation_hook(__FILE__, [ __CLASS__, 'deactivate' ]);
 
         // Load required files
         $this->load_dependencies();
@@ -108,6 +109,59 @@ class WISHCART_Wishlist {
         // Clear FluentCart detection cache when plugins are activated/deactivated
         add_action('activated_plugin', [ $this, 'clear_fluentcart_cache' ]);
         add_action('deactivated_plugin', [ $this, 'clear_fluentcart_cache' ]);
+        
+        // Add custom cron schedules
+        add_filter('cron_schedules', [ 'WISHCART_Cron_Handler', 'add_cron_schedules' ]);
+        
+        // Initialize cron handler
+        new WISHCART_Cron_Handler();
+        
+        // Add rewrite rules for share pages
+        $this->add_share_rewrite_rules();
+    }
+    
+    /**
+     * Add rewrite rules for share pages
+     *
+     * @return void
+     */
+    public function add_share_rewrite_rules() {
+        // Add rewrite tag for share token
+        add_rewrite_tag('%wishcart_share_token%', '([a-zA-Z0-9]+)');
+        
+        // Add rewrite rule for /wishlist/share/{token}
+        add_rewrite_rule(
+            '^wishlist/share/([a-zA-Z0-9]+)/?$',
+            'index.php?wishcart_share_token=$matches[1]',
+            'top'
+        );
+        
+        // Add query var
+        add_filter('query_vars', function($vars) {
+            $vars[] = 'wishcart_share_token';
+            return $vars;
+        });
+        
+        // Hook into template_redirect to handle share page display
+        add_action('template_redirect', [ $this, 'handle_share_page' ]);
+    }
+    
+    /**
+     * Handle share page display
+     *
+     * @return void
+     */
+    public function handle_share_page() {
+        $share_token = get_query_var('wishcart_share_token');
+        
+        if (!empty($share_token)) {
+            // Load share page handler if exists
+            if (class_exists('WISHCART_Share_Page_Handler')) {
+                $handler = new WISHCART_Share_Page_Handler();
+                $handler->display_shared_wishlist($share_token);
+                exit;
+            }
+        }
     }
 
     /**
@@ -133,12 +187,27 @@ class WISHCART_Wishlist {
      * @return void
      */
     private function load_dependencies() {
+        // Core classes
         include_once WISHCART_PLUGIN_DIR . 'includes/class-database.php';
+        include_once WISHCART_PLUGIN_DIR . 'includes/class-database-migration.php';
         include_once WISHCART_PLUGIN_DIR . 'includes/class-fluentcart-helper.php';
+        
+        // Handler classes
         include_once WISHCART_PLUGIN_DIR . 'includes/class-wishlist-handler.php';
+        include_once WISHCART_PLUGIN_DIR . 'includes/class-analytics-handler.php';
+        include_once WISHCART_PLUGIN_DIR . 'includes/class-sharing-handler.php';
+        include_once WISHCART_PLUGIN_DIR . 'includes/class-notifications-handler.php';
+        include_once WISHCART_PLUGIN_DIR . 'includes/class-activity-logger.php';
+        include_once WISHCART_PLUGIN_DIR . 'includes/class-guest-handler.php';
+        include_once WISHCART_PLUGIN_DIR . 'includes/class-cron-handler.php';
+        
+        // Frontend classes
         include_once WISHCART_PLUGIN_DIR . 'includes/class-wishlist-frontend.php';
         include_once WISHCART_PLUGIN_DIR . 'includes/class-wishlist-page.php';
+        include_once WISHCART_PLUGIN_DIR . 'includes/class-share-page-handler.php';
         include_once WISHCART_PLUGIN_DIR . 'includes/shortcodes/class-wishlist-shortcode.php';
+        
+        // Admin class
         include_once WISHCART_PLUGIN_DIR . 'includes/class-wishcart-admin.php';
 
         // Initialize admin/API class so REST routes register for all requests
@@ -167,7 +236,26 @@ class WISHCART_Wishlist {
         // Create wishlist page
         WISHCART_Wishlist_Page::create_wishlist_page();
         
+        // Schedule cron events
+        WISHCART_Cron_Handler::schedule_events();
+        
+        // Add rewrite rules before flushing
+        $this->add_share_rewrite_rules();
+        
         // Flush rewrite rules to register new routes
+        flush_rewrite_rules();
+    }
+
+    /**
+     * Handle plugin deactivation
+     *
+     * @return void
+     */
+    public static function deactivate() {
+        // Unschedule cron events
+        WISHCART_Cron_Handler::unschedule_events();
+        
+        // Flush rewrite rules
         flush_rewrite_rules();
     }
 
