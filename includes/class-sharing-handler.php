@@ -260,7 +260,8 @@ class WISHCART_Sharing_Handler {
      * @return string Share URL
      */
     public function get_share_url($share_token, $share_type = 'link') {
-        $base_url = home_url('/wishlist/share/' . $share_token);
+        // Use the new shared wishlist page URL with query parameter
+        $base_url = WISHCART_Shared_Wishlist_Page::get_share_url($share_token);
         
         switch ($share_type) {
             case 'facebook':

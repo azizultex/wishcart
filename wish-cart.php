@@ -115,53 +115,6 @@ class WISHCART_Wishlist {
         
         // Initialize cron handler
         new WISHCART_Cron_Handler();
-        
-        // Add rewrite rules for share pages
-        $this->add_share_rewrite_rules();
-    }
-    
-    /**
-     * Add rewrite rules for share pages
-     *
-     * @return void
-     */
-    public function add_share_rewrite_rules() {
-        // Add rewrite tag for share token
-        add_rewrite_tag('%wishcart_share_token%', '([a-zA-Z0-9]+)');
-        
-        // Add rewrite rule for /wishlist/share/{token}
-        add_rewrite_rule(
-            '^wishlist/share/([a-zA-Z0-9]+)/?$',
-            'index.php?wishcart_share_token=$matches[1]',
-            'top'
-        );
-        
-        // Add query var
-        add_filter('query_vars', function($vars) {
-            $vars[] = 'wishcart_share_token';
-            return $vars;
-        });
-        
-        // Hook into template_redirect to handle share page display
-        add_action('template_redirect', [ $this, 'handle_share_page' ]);
-    }
-    
-    /**
-     * Handle share page display
-     *
-     * @return void
-     */
-    public function handle_share_page() {
-        $share_token = get_query_var('wishcart_share_token');
-        
-        if (!empty($share_token)) {
-            // Load share page handler if exists
-            if (class_exists('WISHCART_Share_Page_Handler')) {
-                $handler = new WISHCART_Share_Page_Handler();
-                $handler->display_shared_wishlist($share_token);
-                exit;
-            }
-        }
     }
 
     /**
@@ -204,8 +157,10 @@ class WISHCART_Wishlist {
         // Frontend classes
         include_once WISHCART_PLUGIN_DIR . 'includes/class-wishlist-frontend.php';
         include_once WISHCART_PLUGIN_DIR . 'includes/class-wishlist-page.php';
+        include_once WISHCART_PLUGIN_DIR . 'includes/class-shared-wishlist-page.php';
         include_once WISHCART_PLUGIN_DIR . 'includes/class-share-page-handler.php';
         include_once WISHCART_PLUGIN_DIR . 'includes/shortcodes/class-wishlist-shortcode.php';
+        include_once WISHCART_PLUGIN_DIR . 'includes/shortcodes/class-shared-wishlist-shortcode.php';
         
         // Admin class
         include_once WISHCART_PLUGIN_DIR . 'includes/class-wishcart-admin.php';
@@ -236,11 +191,11 @@ class WISHCART_Wishlist {
         // Create wishlist page
         WISHCART_Wishlist_Page::create_wishlist_page();
         
+        // Create shared wishlist page
+        WISHCART_Shared_Wishlist_Page::create_shared_page();
+        
         // Schedule cron events
         WISHCART_Cron_Handler::schedule_events();
-        
-        // Add rewrite rules before flushing
-        $this->add_share_rewrite_rules();
         
         // Flush rewrite rules to register new routes
         flush_rewrite_rules();

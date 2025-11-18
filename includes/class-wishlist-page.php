@@ -236,6 +236,7 @@ class WISHCART_Wishlist_Page {
             'button_position'      => 'bottom',
             'custom_css'           => '',
             'wishlist_page_id'     => intval( $page_id ),
+            'shared_wishlist_page_id' => 0,
             'guest_cookie_expiry'  => 30,
             'button_customization' => array(
                 'colors' => array(

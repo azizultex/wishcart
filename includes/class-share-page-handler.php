@@ -38,7 +38,7 @@ class WISHCART_Share_Page_Handler {
         get_header();
         
         ?>
-        <div id="wishcart-shared-wishlist-root" class="wishcart-shared-page">
+        <div id="wishcart-shared-wishlist-root_xxxxxxxx" class="wishcart-shared-page">
             <div class="wishcart-shared-container">
                 <!-- React will mount here -->
                 <div id="shared-wishlist-app" data-share-token="<?php echo esc_attr($share_token); ?>"></div>

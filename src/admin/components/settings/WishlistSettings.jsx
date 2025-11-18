@@ -16,6 +16,7 @@ const WishlistSettings = ({ settings, updateSettings }) => {
         button_position: 'bottom',
         custom_css: '',
         wishlist_page_id: 0,
+        shared_wishlist_page_id: 0,
         guest_cookie_expiry: 30,
         button_customization: {
             colors: {
@@ -200,6 +201,31 @@ const WishlistSettings = ({ settings, updateSettings }) => {
                         </Select>
                         <p className="text-sm text-muted-foreground">
                             {__('Select the page where the wishlist will be displayed. Make sure the page contains the [wishcart_wishlist] shortcode.', 'wish-cart')}
+                        </p>
+                    </div>
+
+                    {/* Shareable Page */}
+                    <div className="space-y-2">
+                        <Label htmlFor="shared_wishlist_page">{__('Shareable Page', 'wish-cart')}</Label>
+                        <Select
+                            value={String(wishlistSettings.shared_wishlist_page_id || 0)}
+                            onValueChange={(value) => updateWishlistSetting('shared_wishlist_page_id', parseInt(value, 10))}
+                            disabled={!wishlistSettings.enabled || loadingPages}
+                        >
+                            <SelectTrigger id="shared_wishlist_page">
+                                <SelectValue placeholder={__('Select a page', 'wish-cart')} />
+                            </SelectTrigger>
+                            <SelectContent>
+                                <SelectItem value="0">{__('-- Select Page --', 'wish-cart')}</SelectItem>
+                                {wishlistPages.map((page) => (
+                                    <SelectItem key={page.id} value={String(page.id)}>
+                                        {page.title.rendered}
+                                    </SelectItem>
+                                ))}
+                            </SelectContent>
+                        </Select>
+                        <p className="text-sm text-muted-foreground">
+                            {__('Select the page where shared wishlists will be displayed. Make sure the page contains the [wishcart_shared_wishlist] shortcode.', 'wish-cart')}
                         </p>
                     </div>
 
