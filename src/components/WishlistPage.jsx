@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Heart, Trash2, ShoppingCart, Check, X, Twitter, Mail, MessageCircle, Link2 } from 'lucide-react';
 import { Card, CardContent } from './ui/card';
 import { Button } from './ui/button';
@@ -18,6 +18,10 @@ const WishlistPage = () => {
     const [wishlists, setWishlists] = useState([]);
     const [currentWishlist, setCurrentWishlist] = useState(null);
     const [isLoadingWishlists, setIsLoadingWishlists] = useState(false);
+    
+    // Track if wishlist has been loaded to prevent infinite loops
+    const hasLoadedRef = useRef(false);
+    const loadedWishlistIdRef = useRef(null);
 
     // Get session ID from cookie
     const getSessionId = () => {
@@ -65,6 +69,9 @@ const WishlistPage = () => {
                         if (data.wishlist) {
                             setCurrentWishlist(data.wishlist);
                             setProducts(data.products || []);
+                            // Mark as loaded to prevent second useEffect from running
+                            hasLoadedRef.current = true;
+                            loadedWishlistIdRef.current = data.wishlist.id || data.wishlist.share_code;
                         }
                     }
                 } catch (error) {
@@ -116,6 +123,12 @@ const WishlistPage = () => {
                 return;
             }
 
+            // Skip if viewing shared wishlist (already loaded in first effect)
+            const shareCode = window.WishCartWishlist?.shareCode;
+            if (shareCode && hasLoadedRef.current) {
+                return;
+            }
+
             // If no current wishlist but we have wishlists, wait for wishlists to load
             if (!currentWishlist && wishlists.length === 0 && isLoadingWishlists) {
                 return;
@@ -137,6 +150,7 @@ const WishlistPage = () => {
                     if (response.ok) {
                         const data = await response.json();
                         setProducts(data.products || []);
+                        hasLoadedRef.current = true;
                     }
                 } catch (error) {
                     console.error('Error loading wishlist:', error);
@@ -148,6 +162,12 @@ const WishlistPage = () => {
 
             if (!currentWishlist) {
                 setIsLoading(false);
+                return;
+            }
+
+            // Check if wishlist ID has changed - if not, skip API call
+            const currentWishlistId = currentWishlist.id || currentWishlist.share_code;
+            if (hasLoadedRef.current && loadedWishlistIdRef.current === currentWishlistId) {
                 return;
             }
 
@@ -180,8 +200,17 @@ const WishlistPage = () => {
                     const data = await response.json();
                     setProducts(data.products || []);
                     if (data.wishlist) {
-                        setCurrentWishlist(data.wishlist);
+                        // Only update currentWishlist if the wishlist ID actually changed
+                        const newWishlistId = data.wishlist.id || data.wishlist.share_code;
+                        if (newWishlistId !== currentWishlistId) {
+                            setCurrentWishlist(data.wishlist);
+                            loadedWishlistIdRef.current = newWishlistId;
+                        } else {
+                            // Same wishlist, just update the ref to mark as loaded
+                            loadedWishlistIdRef.current = newWishlistId;
+                        }
                     }
+                    hasLoadedRef.current = true;
                 }
             } catch (error) {
                 console.error('Error loading wishlist:', error);
@@ -191,7 +220,7 @@ const WishlistPage = () => {
         };
 
         loadWishlist();
-    }, [currentWishlist]);
+    }, [currentWishlist, wishlists, isLoadingWishlists]);
 
     // Remove product from wishlist
     const removeProduct = async (productId) => {
@@ -514,6 +543,12 @@ const WishlistPage = () => {
     const handleWishlistSelect = (wishlistId) => {
         const wishlist = wishlists.find(w => w.id.toString() === wishlistId.toString());
         if (wishlist) {
+            // Reset refs when switching to a different wishlist
+            const newWishlistId = wishlist.id || wishlist.share_code;
+            if (loadedWishlistIdRef.current !== newWishlistId) {
+                hasLoadedRef.current = false;
+                loadedWishlistIdRef.current = null;
+            }
             setCurrentWishlist(wishlist);
         }
     };
@@ -554,6 +589,9 @@ const WishlistPage = () => {
                     const wishlistsData = await wishlistsResponse.json();
                     setWishlists(wishlistsData.wishlists || []);
                     if (data.wishlist) {
+                        // Reset refs for new wishlist
+                        hasLoadedRef.current = false;
+                        loadedWishlistIdRef.current = null;
                         setCurrentWishlist(data.wishlist);
                     }
                 }
