@@ -782,7 +782,7 @@ const WishlistPage = () => {
                         <SelectContent>
                             {wishlists.map((wishlist) => (
                                 <SelectItem key={wishlist.id} value={wishlist.id.toString()}>
-                                    {wishlist.name} {wishlist.is_default ? '(Default)' : ''}
+                                    {wishlist.wishlist_name} {wishlist.is_default ? '(Default)' : ''}
                                 </SelectItem>
                             ))}
                         </SelectContent>
