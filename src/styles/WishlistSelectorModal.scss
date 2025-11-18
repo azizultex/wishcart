@@ -1,0 +1,314 @@
+// Wishlist Selector Modal Styles
+.wishcart-modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(0, 0, 0, 0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 9999;
+    padding: 1rem;
+    animation: fadeIn 0.2s ease-in-out;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
+}
+
+.wishcart-modal {
+    background: white;
+    border-radius: 8px;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+    width: 100%;
+    max-width: 500px;
+    max-height: 90vh;
+    display: flex;
+    flex-direction: column;
+    animation: slideUp 0.3s ease-out;
+}
+
+@keyframes slideUp {
+    from {
+        transform: translateY(20px);
+        opacity: 0;
+    }
+    to {
+        transform: translateY(0);
+        opacity: 1;
+    }
+}
+
+.wishcart-modal-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 1.5rem;
+    border-bottom: 1px solid #e5e7eb;
+
+    h2 {
+        margin: 0;
+        font-size: 1.25rem;
+        font-weight: 600;
+        color: #111827;
+    }
+}
+
+.wishcart-modal-close {
+    background: none;
+    border: none;
+    padding: 0.5rem;
+    cursor: pointer;
+    color: #6b7280;
+    border-radius: 4px;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    &:hover {
+        background-color: #f3f4f6;
+        color: #111827;
+    }
+
+    &:focus {
+        outline: 2px solid #3b82f6;
+        outline-offset: 2px;
+    }
+}
+
+.wishcart-modal-body {
+    padding: 1.5rem;
+    overflow-y: auto;
+    flex: 1;
+}
+
+.wishcart-modal-error {
+    background-color: #fee2e2;
+    border: 1px solid #fecaca;
+    color: #991b1b;
+    padding: 0.75rem 1rem;
+    border-radius: 6px;
+    margin-bottom: 1rem;
+    font-size: 0.875rem;
+}
+
+.wishcart-modal-loading {
+    text-align: center;
+    padding: 2rem;
+    color: #6b7280;
+}
+
+.wishcart-wishlists-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    margin-bottom: 1rem;
+}
+
+.wishcart-wishlist-item {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 1rem;
+    border: 2px solid #e5e7eb;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.2s;
+
+    &:hover {
+        border-color: #d1d5db;
+        background-color: #f9fafb;
+    }
+
+    &.selected {
+        border-color: #3b82f6;
+        background-color: #eff6ff;
+    }
+
+    &:focus-within {
+        outline: 2px solid #3b82f6;
+        outline-offset: 2px;
+    }
+}
+
+.wishcart-wishlist-radio {
+    width: 20px;
+    height: 20px;
+    border: 2px solid #d1d5db;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    transition: all 0.2s;
+
+    .wishcart-wishlist-item.selected & {
+        border-color: #3b82f6;
+        background-color: #3b82f6;
+        color: white;
+    }
+}
+
+.wishcart-wishlist-info {
+    flex: 1;
+}
+
+.wishcart-wishlist-name {
+    font-weight: 500;
+    color: #111827;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.wishcart-default-badge {
+    display: inline-block;
+    padding: 0.125rem 0.5rem;
+    background-color: #dbeafe;
+    color: #1e40af;
+    border-radius: 9999px;
+    font-size: 0.75rem;
+    font-weight: 500;
+}
+
+.wishcart-create-new-button {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    padding: 0.75rem 1rem;
+    border: 2px dashed #d1d5db;
+    border-radius: 8px;
+    background: white;
+    color: #6b7280;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s;
+
+    &:hover {
+        border-color: #9ca3af;
+        color: #374151;
+        background-color: #f9fafb;
+    }
+
+    &:focus {
+        outline: 2px solid #3b82f6;
+        outline-offset: 2px;
+    }
+}
+
+.wishcart-create-new-form {
+    label {
+        display: block;
+        font-weight: 500;
+        color: #374151;
+        margin-bottom: 0.5rem;
+        font-size: 0.875rem;
+    }
+
+    input[type="text"] {
+        width: 100%;
+        padding: 0.75rem 1rem;
+        border: 2px solid #d1d5db;
+        border-radius: 6px;
+        font-size: 1rem;
+        transition: all 0.2s;
+        margin-bottom: 1rem;
+
+        &:focus {
+            outline: none;
+            border-color: #3b82f6;
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+        }
+
+        &::placeholder {
+            color: #9ca3af;
+        }
+    }
+}
+
+.wishcart-back-button {
+    width: 100%;
+    padding: 0.75rem 1rem;
+    border: 1px solid #d1d5db;
+    border-radius: 6px;
+    background: white;
+    color: #374151;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s;
+
+    &:hover {
+        background-color: #f3f4f6;
+    }
+
+    &:focus {
+        outline: 2px solid #3b82f6;
+        outline-offset: 2px;
+    }
+}
+
+.wishcart-modal-footer {
+    display: flex;
+    gap: 0.75rem;
+    padding: 1.5rem;
+    border-top: 1px solid #e5e7eb;
+    background-color: #f9fafb;
+
+    button {
+        flex: 1;
+    }
+}
+
+// Responsive styles
+@media (max-width: 640px) {
+    .wishcart-modal-overlay {
+        padding: 0;
+        align-items: flex-end;
+    }
+
+    .wishcart-modal {
+        max-width: 100%;
+        max-height: 95vh;
+        border-bottom-left-radius: 0;
+        border-bottom-right-radius: 0;
+        animation: slideUpMobile 0.3s ease-out;
+    }
+
+    @keyframes slideUpMobile {
+        from {
+            transform: translateY(100%);
+        }
+        to {
+            transform: translateY(0);
+        }
+    }
+
+    .wishcart-modal-header,
+    .wishcart-modal-body,
+    .wishcart-modal-footer {
+        padding: 1rem;
+    }
+
+    .wishcart-wishlist-item {
+        padding: 0.875rem;
+    }
+
+    .wishcart-modal-footer {
+        flex-direction: column-reverse;
+
+        button {
+            width: 100%;
+        }
+    }
+}
+

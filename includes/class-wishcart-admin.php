@@ -744,9 +744,24 @@ class WISHCART_Admin {
             );
         }
 
+        // Get wishlist information to return
+        $user_id = is_user_logged_in() ? get_current_user_id() : null;
+        $wishlist_info = null;
+        
+        if ($wishlist_id) {
+            $wishlist_info = $handler->get_wishlist($wishlist_id);
+        } else {
+            // Get default wishlist
+            $default_wishlist = $handler->get_default_wishlist($user_id, $session_id);
+            if ($default_wishlist) {
+                $wishlist_info = $default_wishlist;
+            }
+        }
+
         return rest_ensure_response( array(
             'success' => true,
             'message' => __( 'Product added to wishlist', 'wish-cart' ),
+            'wishlist' => $wishlist_info,
         ) );
     }
 
@@ -1051,7 +1066,10 @@ class WISHCART_Admin {
      */
     public function wishlists_get( $request ) {
         $handler = new WISHCART_Wishlist_Handler();
-        $wishlists = $handler->get_user_wishlists();
+        $session_id = $request->get_param( 'session_id' );
+        $session_id = is_string( $session_id ) ? sanitize_text_field( wp_unslash( $session_id ) ) : null;
+        
+        $wishlists = $handler->get_user_wishlists( null, $session_id );
         
         return rest_ensure_response( array(
             'success' => true,
@@ -1072,8 +1090,9 @@ class WISHCART_Admin {
         
         $name = isset( $params['name'] ) ? sanitize_text_field( $params['name'] ) : 'New Wishlist';
         $is_default = isset( $params['is_default'] ) ? (bool) $params['is_default'] : false;
+        $session_id = isset( $params['session_id'] ) ? sanitize_text_field( $params['session_id'] ) : null;
         
-        $result = $handler->create_wishlist( $name, null, null, $is_default );
+        $result = $handler->create_wishlist( $name, null, $session_id, $is_default );
         
         if ( is_wp_error( $result ) ) {
             return new WP_Error(

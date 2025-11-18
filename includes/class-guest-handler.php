@@ -182,6 +182,111 @@ class WISHCART_Guest_Handler {
     }
 
     /**
+     * Get all wishlists for a guest user
+     *
+     * @param string $session_id Session ID
+     * @return array Array of wishlists
+     */
+    public function get_guest_wishlists($session_id) {
+        if (empty($session_id)) {
+            return array();
+        }
+
+        $wishlists_table = $this->wpdb->prefix . 'fc_wishlists';
+        
+        $wishlists = $this->wpdb->get_results(
+            $this->wpdb->prepare(
+                "SELECT * FROM {$wishlists_table} WHERE session_id = %s AND status = 'active' ORDER BY is_default DESC, dateadded DESC",
+                $session_id
+            ),
+            ARRAY_A
+        );
+
+        return $wishlists ? $wishlists : array();
+    }
+
+    /**
+     * Update wishlist data for guest
+     * Stores array of wishlist IDs in the wishlist_data JSON field
+     *
+     * @param string $session_id Session ID
+     * @param array $wishlist_ids Array of wishlist IDs
+     * @return bool|WP_Error Success or error
+     */
+    public function update_guest_wishlist_data($session_id, $wishlist_ids = null) {
+        if (empty($session_id)) {
+            return new WP_Error('invalid_session', __('Invalid session ID', 'wish-cart'));
+        }
+
+        // If no wishlist_ids provided, fetch from database
+        if ($wishlist_ids === null) {
+            $wishlists = $this->get_guest_wishlists($session_id);
+            $wishlist_ids = array_column($wishlists, 'id');
+        }
+
+        // Ensure it's an array
+        if (!is_array($wishlist_ids)) {
+            $wishlist_ids = array($wishlist_ids);
+        }
+
+        // Create wishlist data structure
+        $wishlist_data = array(
+            'wishlist_ids' => $wishlist_ids,
+            'count' => count($wishlist_ids),
+            'last_updated' => current_time('mysql'),
+        );
+
+        // Update guest record
+        $result = $this->wpdb->update(
+            $this->guest_users_table,
+            array(
+                'wishlist_data' => wp_json_encode($wishlist_data),
+                'last_activity' => current_time('mysql'),
+            ),
+            array('session_id' => $session_id),
+            array('%s', '%s'),
+            array('%s')
+        );
+
+        if (false === $result) {
+            return new WP_Error('db_error', __('Failed to update wishlist data', 'wish-cart'));
+        }
+
+        return true;
+    }
+
+    /**
+     * Add wishlist to guest's wishlist data
+     *
+     * @param string $session_id Session ID
+     * @param int $wishlist_id Wishlist ID to add
+     * @return bool|WP_Error Success or error
+     */
+    public function add_wishlist_to_guest($session_id, $wishlist_id) {
+        if (empty($session_id) || empty($wishlist_id)) {
+            return new WP_Error('invalid_params', __('Invalid parameters', 'wish-cart'));
+        }
+
+        // Get current wishlist data
+        $guest = $this->get_guest_by_session($session_id);
+        
+        $wishlist_ids = array();
+        if ($guest && !empty($guest['wishlist_data'])) {
+            $data = json_decode($guest['wishlist_data'], true);
+            if (isset($data['wishlist_ids']) && is_array($data['wishlist_ids'])) {
+                $wishlist_ids = $data['wishlist_ids'];
+            }
+        }
+
+        // Add new wishlist if not already present
+        if (!in_array($wishlist_id, $wishlist_ids)) {
+            $wishlist_ids[] = intval($wishlist_id);
+        }
+
+        return $this->update_guest_wishlist_data($session_id, $wishlist_ids);
+    }
+
+    /**
      * Convert guest to registered user
      *
      * @param string $session_id Guest session ID

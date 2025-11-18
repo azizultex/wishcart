@@ -2,11 +2,13 @@ import React, { useState, useEffect } from 'react';
 import { Heart, Star, Bookmark } from 'lucide-react';
 import { __ } from '@wordpress/i18n';
 import { cn } from '../lib/utils';
+import WishlistSelectorModal from './WishlistSelectorModal';
 
 const WishlistButton = ({ productId, className, customStyles, position = 'bottom' }) => {
     const [isInWishlist, setIsInWishlist] = useState(false);
     const [isLoading, setIsLoading] = useState(true);
     const [isAdding, setIsAdding] = useState(false);
+    const [isModalOpen, setIsModalOpen] = useState(false);
 
     // Get session ID from cookie or create one
     const getSessionId = () => {
@@ -78,35 +80,48 @@ const WishlistButton = ({ productId, className, customStyles, position = 'bottom
             return;
         }
 
-        setIsAdding(true);
+        // If product is already in wishlist, remove it
+        if (isInWishlist) {
+            setIsAdding(true);
+            try {
+                const sessionId = getSessionId();
+                const url = `${window.WishCartWishlist.apiUrl}wishlist/remove`;
+                
+                const response = await fetch(url, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-WP-Nonce': window.WishCartWishlist.nonce,
+                    },
+                    body: JSON.stringify({
+                        product_id: productId,
+                        session_id: sessionId,
+                    }),
+                });
 
-        try {
-            const sessionId = getSessionId();
-            const endpoint = isInWishlist ? 'wishlist/remove' : 'wishlist/add';
-            const url = `${window.WishCartWishlist.apiUrl}${endpoint}`;
-            
-            const response = await fetch(url, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-WP-Nonce': window.WishCartWishlist.nonce,
-                },
-                body: JSON.stringify({
-                    product_id: productId,
-                    session_id: sessionId,
-                }),
-            });
-
-            if (response.ok) {
-                setIsInWishlist(!isInWishlist);
-            } else {
-                const error = await response.json();
-                console.error('Error toggling wishlist:', error);
+                if (response.ok) {
+                    setIsInWishlist(false);
+                } else {
+                    const error = await response.json();
+                    console.error('Error removing from wishlist:', error);
+                }
+            } catch (error) {
+                console.error('Error removing from wishlist:', error);
+            } finally {
+                setIsAdding(false);
             }
-        } catch (error) {
-            console.error('Error toggling wishlist:', error);
-        } finally {
-            setIsAdding(false);
+        } else {
+            // If not in wishlist, open modal to select wishlist
+            setIsModalOpen(true);
+        }
+    };
+
+    // Handle successful addition from modal
+    const handleModalSuccess = (data) => {
+        setIsInWishlist(true);
+        // Optional: Show a success message
+        if (data && data.message) {
+            console.log(data.message);
         }
     };
 
@@ -223,19 +238,26 @@ const WishlistButton = ({ productId, className, customStyles, position = 'bottom
     }
 
     return (
-        <button
-            type="button"
-            onClick={toggleWishlist}
-            disabled={isAdding}
-            className={cn(
-                "wishcart-wishlist-button",
-                isInWishlist && "wishcart-wishlist-button--active",
-                position && `wishcart-placement-${position}`,
-                className
-            )}
-            style={buildButtonStyles()}
-            data-position={position}
-            aria-label={srLabel}
+        <>
+            <WishlistSelectorModal
+                isOpen={isModalOpen}
+                onClose={() => setIsModalOpen(false)}
+                productId={productId}
+                onSuccess={handleModalSuccess}
+            />
+            <button
+                type="button"
+                onClick={toggleWishlist}
+                disabled={isAdding}
+                className={cn(
+                    "wishcart-wishlist-button",
+                    isInWishlist && "wishcart-wishlist-button--active",
+                    position && `wishcart-placement-${position}`,
+                    className
+                )}
+                style={buildButtonStyles()}
+                data-position={position}
+                aria-label={srLabel}
             onMouseEnter={(e) => {
                 if (isInWishlist) {
                     if (colors.activeBackground) {
@@ -303,7 +325,8 @@ const WishlistButton = ({ productId, className, customStyles, position = 'bottom
                 getIconComponent()
             )}
             <span className="wishcart-wishlist-button__label">{buttonLabel}</span>
-        </button>
+            </button>
+        </>
     );
 };
 

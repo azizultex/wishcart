@@ -134,10 +134,11 @@ const WishlistPage = () => {
                 return;
             }
 
-            // Load user's own wishlists
+            // Load user's own wishlists (including guest users)
             setIsLoadingWishlists(true);
             try {
-                const url = `${window.WishCartWishlist.apiUrl}wishlists`;
+                const sessionId = getSessionId();
+                const url = `${window.WishCartWishlist.apiUrl}wishlists${sessionId ? `?session_id=${sessionId}` : ''}`;
                 const response = await fetch(url, {
                     headers: {
                         'X-WP-Nonce': window.WishCartWishlist.nonce,

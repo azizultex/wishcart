@@ -206,6 +206,11 @@ class WISHCART_Wishlist_Handler {
         // Log activity
         $this->log_activity($wishlist_id, 'created', null, 'wishlist');
 
+        // Update guest user tracking if this is a guest
+        if (!empty($session_id) && empty($user_id)) {
+            $this->update_guest_tracking($session_id, $wishlist_id);
+        }
+
         return $this->get_wishlist($wishlist_id);
     }
 
@@ -582,6 +587,11 @@ class WISHCART_Wishlist_Handler {
         // Clear cache
         $this->clear_wishlist_cache($user_id, $session_id);
 
+        // Update guest user tracking if this is a guest
+        if (!empty($session_id) && empty($user_id)) {
+            $this->update_guest_tracking($session_id, $wishlist_id);
+        }
+
         return true;
     }
 
@@ -876,6 +886,31 @@ class WISHCART_Wishlist_Handler {
         if (class_exists('WISHCART_Analytics_Handler')) {
             $analytics = new WISHCART_Analytics_Handler();
             $analytics->track_event($product_id, $variation_id, $action);
+        }
+    }
+
+    /**
+     * Update guest user tracking
+     * Creates or updates guest record in wp_fc_wishlist_guest_users table
+     *
+     * @param string $session_id Session ID
+     * @param int $wishlist_id Wishlist ID to add to guest tracking
+     * @return void
+     */
+    private function update_guest_tracking($session_id, $wishlist_id) {
+        if (empty($session_id) || empty($wishlist_id)) {
+            return;
+        }
+
+        // Use guest handler if available
+        if (class_exists('WISHCART_Guest_Handler')) {
+            $guest_handler = new WISHCART_Guest_Handler();
+            
+            // Create or update guest record
+            $guest_handler->create_or_update_guest($session_id);
+            
+            // Add wishlist to guest's wishlist data
+            $guest_handler->add_wishlist_to_guest($session_id, $wishlist_id);
         }
     }
 
