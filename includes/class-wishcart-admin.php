@@ -807,6 +807,14 @@ class WISHCART_Admin {
         $session_id = $request->get_param( 'session_id' );
         $session_id = is_string( $session_id ) ? sanitize_text_field( wp_unslash( $session_id ) ) : null;
         
+        // If session_id not provided in query, try to read from cookie
+        if ( empty( $session_id ) && ! is_user_logged_in() ) {
+            $cookie_name = 'wishcart_session_id';
+            if ( isset( $_COOKIE[ $cookie_name ] ) && ! empty( $_COOKIE[ $cookie_name ] ) ) {
+                $session_id = sanitize_text_field( wp_unslash( $_COOKIE[ $cookie_name ] ) );
+            }
+        }
+        
         // Check for share_code first (highest priority)
         $share_code = $request->get_param( 'share_code' );
         $share_code = is_string( $share_code ) ? sanitize_text_field( $share_code ) : null;
@@ -832,11 +840,11 @@ class WISHCART_Admin {
         
         // If wishlist_id is provided, fetch that wishlist's items
         if ( $wishlist_id ) {
-            $table_name = $wpdb->prefix . 'wishcart_wishlist';
+            $items_table = $wpdb->prefix . 'fc_wishlist_items';
             
             $results = $wpdb->get_results(
                 $wpdb->prepare(
-                    "SELECT product_id, created_at FROM {$table_name} WHERE wishlist_id = %d ORDER BY created_at DESC",
+                    "SELECT product_id, date_added FROM {$items_table} WHERE wishlist_id = %d AND status = 'active' ORDER BY position ASC, date_added DESC",
                     $wishlist_id
                 ),
                 ARRAY_A
@@ -846,7 +854,7 @@ class WISHCART_Admin {
                 foreach ( $results as $row ) {
                     $wishlist_items[] = array(
                         'product_id' => intval( $row['product_id'] ),
-                        'created_at' => $row['created_at'],
+                        'created_at' => $row['date_added'],
                     );
                 }
             }
@@ -856,23 +864,31 @@ class WISHCART_Admin {
                 $current_wishlist = $handler->get_wishlist( $wishlist_id );
             }
         } elseif ( $requested_user_id ) {
-            // If user_id is provided, fetch that user's default wishlist
-            $table_name = $wpdb->prefix . 'wishcart_wishlist';
-            
-            $results = $wpdb->get_results(
-                $wpdb->prepare(
-                    "SELECT product_id, created_at FROM {$table_name} WHERE user_id = %d ORDER BY created_at DESC",
-                    $requested_user_id
-                ),
-                ARRAY_A
-            );
-            
-            if ( $results ) {
-                foreach ( $results as $row ) {
-                    $wishlist_items[] = array(
-                        'product_id' => intval( $row['product_id'] ),
-                        'created_at' => $row['created_at'],
-                    );
+            // If user_id is provided, get that user's default wishlist and fetch its items
+            $user_default_wishlist = $handler->get_default_wishlist( $requested_user_id, null );
+            if ( $user_default_wishlist && isset( $user_default_wishlist['id'] ) ) {
+                $items_table = $wpdb->prefix . 'fc_wishlist_items';
+                
+                $results = $wpdb->get_results(
+                    $wpdb->prepare(
+                        "SELECT product_id, date_added FROM {$items_table} WHERE wishlist_id = %d AND status = 'active' ORDER BY position ASC, date_added DESC",
+                        $user_default_wishlist['id']
+                    ),
+                    ARRAY_A
+                );
+                
+                if ( $results ) {
+                    foreach ( $results as $row ) {
+                        $wishlist_items[] = array(
+                            'product_id' => intval( $row['product_id'] ),
+                            'created_at' => $row['date_added'],
+                        );
+                    }
+                }
+                
+                // Set current wishlist for response
+                if ( ! $current_wishlist ) {
+                    $current_wishlist = $user_default_wishlist;
                 }
             }
         } else {
@@ -882,10 +898,10 @@ class WISHCART_Admin {
                 $wishlist_id = $default_wishlist['id'];
                 $current_wishlist = $default_wishlist;
                 
-                $table_name = $wpdb->prefix . 'wishcart_wishlist';
+                $items_table = $wpdb->prefix . 'fc_wishlist_items';
                 $results = $wpdb->get_results(
                     $wpdb->prepare(
-                        "SELECT product_id, created_at FROM {$table_name} WHERE wishlist_id = %d ORDER BY created_at DESC",
+                        "SELECT product_id, date_added FROM {$items_table} WHERE wishlist_id = %d AND status = 'active' ORDER BY position ASC, date_added DESC",
                         $wishlist_id
                     ),
                     ARRAY_A
@@ -895,7 +911,7 @@ class WISHCART_Admin {
                     foreach ( $results as $row ) {
                         $wishlist_items[] = array(
                             'product_id' => intval( $row['product_id'] ),
-                            'created_at' => $row['created_at'],
+                            'created_at' => $row['date_added'],
                         );
                     }
                 }
@@ -1069,6 +1085,14 @@ class WISHCART_Admin {
         $session_id = $request->get_param( 'session_id' );
         $session_id = is_string( $session_id ) ? sanitize_text_field( wp_unslash( $session_id ) ) : null;
         
+        // If session_id not provided in query, try to read from cookie
+        if ( empty( $session_id ) && ! is_user_logged_in() ) {
+            $cookie_name = 'wishcart_session_id';
+            if ( isset( $_COOKIE[ $cookie_name ] ) && ! empty( $_COOKIE[ $cookie_name ] ) ) {
+                $session_id = sanitize_text_field( wp_unslash( $_COOKIE[ $cookie_name ] ) );
+            }
+        }
+        
         $wishlists = $handler->get_user_wishlists( null, $session_id );
         
         return rest_ensure_response( array(
@@ -1091,6 +1115,14 @@ class WISHCART_Admin {
         $name = isset( $params['name'] ) ? sanitize_text_field( $params['name'] ) : 'New Wishlist';
         $is_default = isset( $params['is_default'] ) ? (bool) $params['is_default'] : false;
         $session_id = isset( $params['session_id'] ) ? sanitize_text_field( $params['session_id'] ) : null;
+        
+        // If session_id not provided in request body, try to read from cookie
+        if ( empty( $session_id ) && ! is_user_logged_in() ) {
+            $cookie_name = 'wishcart_session_id';
+            if ( isset( $_COOKIE[ $cookie_name ] ) && ! empty( $_COOKIE[ $cookie_name ] ) ) {
+                $session_id = sanitize_text_field( wp_unslash( $_COOKIE[ $cookie_name ] ) );
+            }
+        }
         
         $result = $handler->create_wishlist( $name, null, $session_id, $is_default );
         

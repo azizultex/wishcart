@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { Heart, Trash2, ShoppingCart, Check, X, Twitter, Mail, MessageCircle, Link2, Grid, List } from 'lucide-react';
 import { Card, CardContent } from './ui/card';
 import { Button } from './ui/button';
@@ -167,16 +167,16 @@ const WishlistPage = () => {
         loadWishlists();
     }, []);
 
-    // Load wishlist products
-    useEffect(() => {
-        const loadWishlist = async () => {
+    // Shared helper to load wishlist products
+    const loadWishlist = useCallback(
+        async (wishlistOverride = null, { forceReload = false } = {}) => {
             if (!window.WishCartWishlist) {
                 setIsLoading(false);
                 return;
             }
 
             // Skip if viewing shared wishlist (already loaded in first effect)
-            // IMPORTANT: If shareCode exists, completely skip this useEffect to prevent session_id fallback
+            // IMPORTANT: If shareCode exists, completely skip this loader to prevent session_id fallback
             const shareCode = window.WishCartWishlist?.shareCode;
             if (shareCode) {
                 // Share code exists - first useEffect will handle loading
@@ -184,13 +184,15 @@ const WishlistPage = () => {
                 return;
             }
 
+            const activeWishlist = wishlistOverride || currentWishlist;
+
             // If no current wishlist but we have wishlists, wait for wishlists to load
-            if (!currentWishlist && wishlists.length === 0 && isLoadingWishlists) {
+            if (!activeWishlist && wishlists.length === 0 && isLoadingWishlists) {
                 return;
             }
 
             // If no wishlists exist, try to load using old method for backward compatibility
-            if (!currentWishlist && wishlists.length === 0) {
+            if (!activeWishlist && wishlists.length === 0) {
                 setIsLoading(true);
                 try {
                     const sessionId = getSessionId();
@@ -215,14 +217,14 @@ const WishlistPage = () => {
                 return;
             }
 
-            if (!currentWishlist) {
+            if (!activeWishlist) {
                 setIsLoading(false);
                 return;
             }
 
-            // Check if wishlist ID has changed - if not, skip API call
-            const currentWishlistId = currentWishlist.id || currentWishlist.share_code;
-            if (hasLoadedRef.current && loadedWishlistIdRef.current === currentWishlistId) {
+            // Check if wishlist ID has changed - if not, skip API call unless forced
+            const currentWishlistId = activeWishlist.id || activeWishlist.share_code;
+            if (!forceReload && hasLoadedRef.current && loadedWishlistIdRef.current === currentWishlistId) {
                 return;
             }
 
@@ -233,10 +235,10 @@ const WishlistPage = () => {
                 const params = new URLSearchParams();
                 
                 // Use share_code if available, otherwise use wishlist_id
-                if (currentWishlist.share_code) {
-                    params.append('share_code', currentWishlist.share_code);
-                } else if (currentWishlist.id) {
-                    params.append('wishlist_id', currentWishlist.id);
+                if (activeWishlist.share_code) {
+                    params.append('share_code', activeWishlist.share_code);
+                } else if (activeWishlist.id) {
+                    params.append('wishlist_id', activeWishlist.id);
                 } else if (sessionId) {
                     params.append('session_id', sessionId);
                 }
@@ -264,6 +266,9 @@ const WishlistPage = () => {
                             // Same wishlist, just update the ref to mark as loaded
                             loadedWishlistIdRef.current = newWishlistId;
                         }
+                    } else {
+                        // No wishlist info returned; still mark as loaded for this ID
+                        loadedWishlistIdRef.current = currentWishlistId;
                     }
                     hasLoadedRef.current = true;
                 }
@@ -272,10 +277,14 @@ const WishlistPage = () => {
             } finally {
                 setIsLoading(false);
             }
-        };
+        },
+        [currentWishlist, wishlists, isLoadingWishlists]
+    );
 
+    // Load wishlist products on relevant state changes
+    useEffect(() => {
         loadWishlist();
-    }, [currentWishlist, wishlists, isLoadingWishlists]);
+    }, [loadWishlist]);
 
     // Remove product from wishlist
     const removeProduct = async (productId) => {
@@ -607,6 +616,28 @@ const WishlistPage = () => {
         }
     };
 
+    // Handle wishlist selection
+    const handleWishlistSelect = (wishlistId) => {
+        const wishlist = wishlists.find(w => w.id.toString() === wishlistId.toString());
+        if (wishlist) {
+            // Reset refs when switching to a different wishlist
+            const newWishlistId = wishlist.id || wishlist.share_code;
+            if (loadedWishlistIdRef.current !== newWishlistId) {
+                hasLoadedRef.current = false;
+                loadedWishlistIdRef.current = null;
+            }
+
+            // Clear any existing selection when switching lists
+            setSelectedIds(new Set());
+
+            // Update current wishlist state
+            setCurrentWishlist(wishlist);
+
+            // Explicitly reload products for the newly selected wishlist
+            loadWishlist(wishlist, { forceReload: true });
+        }
+    };
+
     if (isLoading) {
         return (
             <div className="wishcart-wishlist-page container mx-auto px-4 py-8">
@@ -638,39 +669,7 @@ const WishlistPage = () => {
         );
     }
 
-    // Show empty state only if there's no error and products array is empty
-    if (products.length === 0 && !error) {
-        return (
-            <div className="wishcart-wishlist-page container mx-auto px-4 py-8">
-                <Card>
-                    <CardContent className="flex flex-col items-center justify-center min-h-[400px] py-12">
-                        <Heart className="w-16 h-16 mb-4 text-gray-300" />
-                        <h1 className="text-2xl font-bold mb-2">Your wishlist is empty</h1>
-                        <p className="text-gray-600 mb-6">Start adding products to your wishlist!</p>
-                        <Button onClick={() => window.location.href = '/'}>
-                            Continue Shopping
-                        </Button>
-                    </CardContent>
-                </Card>
-            </div>
-        );
-    }
-
     const allSelected = products.length > 0 && selectedIds.size === products.length;
-
-    // Handle wishlist selection
-    const handleWishlistSelect = (wishlistId) => {
-        const wishlist = wishlists.find(w => w.id.toString() === wishlistId.toString());
-        if (wishlist) {
-            // Reset refs when switching to a different wishlist
-            const newWishlistId = wishlist.id || wishlist.share_code;
-            if (loadedWishlistIdRef.current !== newWishlistId) {
-                hasLoadedRef.current = false;
-                loadedWishlistIdRef.current = null;
-            }
-            setCurrentWishlist(wishlist);
-        }
-    };
 
     // Handle privacy change
     const handlePrivacyChange = async (newPrivacy) => {
@@ -842,6 +841,19 @@ const WishlistPage = () => {
                 </div>
             </div>
 
+            {products.length === 0 ? (
+                <Card>
+                    <CardContent className="flex flex-col items-center justify-center min-h-[400px] py-12">
+                        <Heart className="w-16 h-16 mb-4 text-gray-300" />
+                        <h1 className="text-2xl font-bold mb-2">Your wishlist is empty</h1>
+                        <p className="text-gray-600 mb-6">Start adding products to your wishlist!</p>
+                        <Button onClick={() => window.location.href = '/'}>
+                            Continue Shopping
+                        </Button>
+                    </CardContent>
+                </Card>
+            ) : (
+                <>
             {viewMode === 'table' ? (
             <div className="wishlist-table-wrapper">
                 <table className="wishlist-table">
@@ -1123,6 +1135,8 @@ const WishlistPage = () => {
                     </button>
                     </div>
                 </div>
+            )}
+                </>
             )}
         </div>
     );

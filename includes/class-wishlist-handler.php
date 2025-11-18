@@ -115,20 +115,51 @@ class WISHCART_Wishlist_Handler {
     public function get_or_create_session_id() {
         $cookie_name = 'wishcart_session_id';
         
-        // Check if session ID exists in cookie
+        // Check if session ID exists in cookie (check multiple sources)
         if ( isset( $_COOKIE[ $cookie_name ] ) && ! empty( $_COOKIE[ $cookie_name ] ) ) {
-            return sanitize_text_field( wp_unslash( $_COOKIE[ $cookie_name ] ) );
+            $existing_id = sanitize_text_field( wp_unslash( $_COOKIE[ $cookie_name ] ) );
+            // Only return if it's not empty after sanitization
+            if ( ! empty( $existing_id ) ) {
+                return $existing_id;
+            }
         }
 
-        // Generate new session ID
-        $session_id = wp_generate_password( 32, false );
+        // Also check if there's a session ID in the request headers (for REST API)
+        // Some setups might send cookies in headers
+        if ( function_exists( 'getallheaders' ) ) {
+            $headers = getallheaders();
+            if ( $headers && isset( $headers['Cookie'] ) ) {
+                $cookies = explode( ';', $headers['Cookie'] );
+                foreach ( $cookies as $cookie ) {
+                    $cookie = trim( $cookie );
+                    if ( strpos( $cookie, $cookie_name . '=' ) === 0 ) {
+                        $value = substr( $cookie, strlen( $cookie_name ) + 1 );
+                        if ( ! empty( $value ) ) {
+                            $session_id = sanitize_text_field( $value );
+                            if ( ! empty( $session_id ) ) {
+                                // Update $_COOKIE for future use
+                                $_COOKIE[ $cookie_name ] = $session_id;
+                                return $session_id;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        // Generate new session ID only if none exists
+        // Use format compatible with frontend (wc_ prefix for consistency)
+        $session_id = 'wc_' . wp_generate_password( 32, false );
         
         // Set cookie (30 days expiry by default)
+        // Note: HttpOnly set to false so JavaScript can read it for API requests
         $settings = get_option( 'wishcart_settings', [] );
         $expiry_days = isset( $settings['wishlist']['guest_cookie_expiry'] ) ? intval( $settings['wishlist']['guest_cookie_expiry'] ) : 30;
         $expiry = time() + ( $expiry_days * DAY_IN_SECONDS );
         
-        setcookie( $cookie_name, $session_id, $expiry, '/', '', is_ssl(), true );
+        // Set HttpOnly to false so JavaScript can access the cookie
+        // This is necessary for the frontend to read and send the session_id in API requests
+        setcookie( $cookie_name, $session_id, $expiry, '/', '', is_ssl(), false );
         $_COOKIE[ $cookie_name ] = $session_id;
         
         return $session_id;
