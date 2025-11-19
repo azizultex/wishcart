@@ -153,6 +153,11 @@ class WISHCART_Wishlist {
         include_once WISHCART_PLUGIN_DIR . 'includes/class-activity-logger.php';
         include_once WISHCART_PLUGIN_DIR . 'includes/class-guest-handler.php';
         include_once WISHCART_PLUGIN_DIR . 'includes/class-cron-handler.php';
+        include_once WISHCART_PLUGIN_DIR . 'includes/class-cart-tracking.php';
+        
+        // FluentCRM integration classes
+        include_once WISHCART_PLUGIN_DIR . 'includes/class-fluentcrm-integration.php';
+        include_once WISHCART_PLUGIN_DIR . 'includes/class-crm-campaign-handler.php';
         
         // Frontend classes
         include_once WISHCART_PLUGIN_DIR . 'includes/class-wishlist-frontend.php';
@@ -173,6 +178,21 @@ class WISHCART_Wishlist {
 
         // Initialize wishlist page handler (for rewrite rules)
         new WISHCART_Wishlist_Page();
+        
+        // Initialize FluentCRM integration if available
+        if (class_exists('WISHCART_FluentCRM_Integration')) {
+            new WISHCART_FluentCRM_Integration();
+        }
+        
+        // Initialize CRM campaign handler
+        if (class_exists('WISHCART_CRM_Campaign_Handler')) {
+            new WISHCART_CRM_Campaign_Handler();
+        }
+
+        // Initialize cart and purchase tracking
+        if (class_exists('WISHCART_Cart_Tracking')) {
+            new WISHCART_Cart_Tracking();
+        }
 
         // Ensure database tables exist even after updates (without reactivation)
         // Safe to call: dbDelta is idempotent

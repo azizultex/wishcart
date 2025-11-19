@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { X, Plus, Check } from 'lucide-react';
 import { Button } from './ui/button';
+import GuestEmailModal from './GuestEmailModal';
 import '../styles/WishlistSelectorModal.scss';
 
 const WishlistSelectorModal = ({ isOpen, onClose, productId, onSuccess }) => {
@@ -11,6 +12,8 @@ const WishlistSelectorModal = ({ isOpen, onClose, productId, onSuccess }) => {
     const [newWishlistName, setNewWishlistName] = useState('');
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [error, setError] = useState(null);
+    const [showEmailModal, setShowEmailModal] = useState(false);
+    const [guestEmail, setGuestEmail] = useState(null);
 
     // Get session ID from cookie
     const getSessionId = () => {
@@ -33,13 +36,67 @@ const WishlistSelectorModal = ({ isOpen, onClose, productId, onSuccess }) => {
         return null;
     };
 
+    // Check if user needs to provide email
+    const checkEmailRequirement = async () => {
+        // If user is logged in, no email needed
+        if (window.WishCartWishlist?.isLoggedIn) {
+            return false;
+        }
+
+        // Check localStorage first
+        const storedEmail = localStorage.getItem('wishcart_guest_email');
+        if (storedEmail) {
+            setGuestEmail(storedEmail);
+            return false;
+        }
+
+        // Check if email exists in database via API
+        try {
+            const sessionId = getSessionId();
+            if (!sessionId) {
+                return true; // Need email if no session
+            }
+
+            const url = `${window.WishCartWishlist.apiUrl}guest/check-email?session_id=${sessionId}`;
+            const response = await fetch(url, {
+                headers: {
+                    'X-WP-Nonce': window.WishCartWishlist.nonce,
+                },
+            });
+
+            if (response.ok) {
+                const data = await response.json();
+                if (data.has_email && data.email) {
+                    setGuestEmail(data.email);
+                    localStorage.setItem('wishcart_guest_email', data.email);
+                    return false;
+                }
+            }
+        } catch (err) {
+            console.error('Error checking email:', err);
+        }
+
+        return true; // Need to collect email
+    };
+
     // Load wishlists when modal opens
     useEffect(() => {
         if (isOpen) {
-            loadWishlists();
-            setIsCreatingNew(false);
-            setNewWishlistName('');
-            setError(null);
+            const initModal = async () => {
+                const needsEmail = await checkEmailRequirement();
+                if (needsEmail) {
+                    setShowEmailModal(true);
+                } else {
+                    loadWishlists();
+                }
+                setIsCreatingNew(false);
+                setNewWishlistName('');
+                setError(null);
+            };
+            initModal();
+        } else {
+            setShowEmailModal(false);
+            setGuestEmail(null);
         }
     }, [isOpen]);
 
@@ -132,17 +189,24 @@ const WishlistSelectorModal = ({ isOpen, onClose, productId, onSuccess }) => {
             const sessionId = getSessionId();
             const url = `${window.WishCartWishlist.apiUrl}wishlist/add`;
             
+            const requestBody = {
+                product_id: productId,
+                wishlist_id: wishlistId,
+                session_id: sessionId,
+            };
+
+            // Include email if available and user is not logged in
+            if (!window.WishCartWishlist?.isLoggedIn && guestEmail) {
+                requestBody.guest_email = guestEmail;
+            }
+            
             const response = await fetch(url, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                     'X-WP-Nonce': window.WishCartWishlist.nonce,
                 },
-                body: JSON.stringify({
-                    product_id: productId,
-                    wishlist_id: wishlistId,
-                    session_id: sessionId,
-                }),
+                body: JSON.stringify(requestBody),
             });
 
             if (response.ok) {
@@ -171,7 +235,30 @@ const WishlistSelectorModal = ({ isOpen, onClose, productId, onSuccess }) => {
         }
     };
 
+    const handleEmailSubmitted = (email) => {
+        setGuestEmail(email);
+        setShowEmailModal(false);
+        loadWishlists();
+    };
+
+    const handleEmailModalClose = () => {
+        // If user closes email modal without submitting, still proceed to wishlist selection
+        setShowEmailModal(false);
+        loadWishlists();
+    };
+
     if (!isOpen) return null;
+
+    // Show email modal first if needed
+    if (showEmailModal) {
+        return (
+            <GuestEmailModal
+                isOpen={showEmailModal}
+                onClose={handleEmailModalClose}
+                onEmailSubmitted={handleEmailSubmitted}
+            />
+        );
+    }
 
     return (
         <div className="wishcart-modal-overlay" onClick={onClose}>

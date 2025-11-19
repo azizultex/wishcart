@@ -172,6 +172,13 @@ class WISHCART_Database {
             status enum('pending', 'sent', 'failed', 'cancelled') DEFAULT 'pending',
             attempts int(3) DEFAULT 0,
             error_message text NULL,
+            crm_contact_id bigint(20) UNSIGNED NULL,
+            crm_campaign_id bigint(20) UNSIGNED NULL,
+            crm_email_id bigint(20) UNSIGNED NULL,
+            discount_code varchar(50) NULL,
+            discount_expires datetime NULL,
+            engagement_score decimal(5,2) NULL,
+            conversion_value decimal(19,4) NULL,
             date_created datetime DEFAULT CURRENT_TIMESTAMP,
             PRIMARY KEY (notification_id),
             KEY user_id_idx (user_id),
@@ -179,7 +186,9 @@ class WISHCART_Database {
             KEY product_id_idx (product_id),
             KEY notification_type_idx (notification_type),
             KEY status_idx (status),
-            KEY scheduled_date_idx (scheduled_date)
+            KEY scheduled_date_idx (scheduled_date),
+            KEY crm_contact_id_idx (crm_contact_id),
+            KEY crm_campaign_id_idx (crm_campaign_id)
         ) ENGINE=InnoDB $charset_collate;";
 
         // 6. Wishlist Activities Table (fc_wishlist_activities)
@@ -223,6 +232,26 @@ class WISHCART_Database {
             KEY conversion_user_id_idx (conversion_user_id)
         ) ENGINE=InnoDB $charset_collate;";
 
+        // 8. CRM Campaigns Table (fc_wishlist_crm_campaigns)
+        $sql_crm_campaigns = "CREATE TABLE IF NOT EXISTS {$this->table_prefix}fc_wishlist_crm_campaigns (
+            campaign_id bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT,
+            crm_campaign_id bigint(20) UNSIGNED NULL,
+            wishlist_trigger_type enum('item_added', 'price_drop', 'back_in_stock', 'time_based', 'cart_abandoned_with_wishlist', 'wishlist_anniversary', 'multiple_wishlists', 'high_value_wishlist') NOT NULL,
+            trigger_conditions longtext NULL,
+            discount_type enum('percentage', 'fixed', 'free_shipping', 'bogo') NULL,
+            discount_value decimal(10,2) NULL,
+            email_sequence longtext NULL,
+            target_segment longtext NULL,
+            status enum('active', 'paused', 'completed') DEFAULT 'active',
+            stats longtext NULL,
+            date_created datetime DEFAULT CURRENT_TIMESTAMP,
+            date_modified datetime NULL ON UPDATE CURRENT_TIMESTAMP,
+            PRIMARY KEY (campaign_id),
+            KEY crm_campaign_id_idx (crm_campaign_id),
+            KEY wishlist_trigger_type_idx (wishlist_trigger_type),
+            KEY status_idx (status)
+        ) ENGINE=InnoDB $charset_collate;";
+
         include_once ABSPATH . 'wp-admin/includes/upgrade.php';
 
         dbDelta($sql_wishlists);
@@ -232,8 +261,45 @@ class WISHCART_Database {
         dbDelta($sql_wishlist_notifications);
         dbDelta($sql_wishlist_activities);
         dbDelta($sql_wishlist_guest_users);
+        dbDelta($sql_crm_campaigns);
+		
+		// Migrate existing notifications table if needed
+		$this->migrate_notifications_table();
 		
 		$this->log_debug('create_tables: end');
+    }
+
+    /**
+     * Migrate existing notifications table to add CRM columns
+     *
+     * @return void
+     */
+    private function migrate_notifications_table() {
+        $table_name = $this->table_prefix . 'fc_wishlist_notifications';
+        
+        // Check if CRM columns exist
+        $columns = $this->wpdb->get_col("DESCRIBE {$table_name}");
+        
+        $crm_columns = array(
+            'crm_contact_id' => "ALTER TABLE {$table_name} ADD COLUMN crm_contact_id bigint(20) UNSIGNED NULL AFTER error_message",
+            'crm_campaign_id' => "ALTER TABLE {$table_name} ADD COLUMN crm_campaign_id bigint(20) UNSIGNED NULL AFTER crm_contact_id",
+            'crm_email_id' => "ALTER TABLE {$table_name} ADD COLUMN crm_email_id bigint(20) UNSIGNED NULL AFTER crm_campaign_id",
+            'discount_code' => "ALTER TABLE {$table_name} ADD COLUMN discount_code varchar(50) NULL AFTER crm_email_id",
+            'discount_expires' => "ALTER TABLE {$table_name} ADD COLUMN discount_expires datetime NULL AFTER discount_code",
+            'engagement_score' => "ALTER TABLE {$table_name} ADD COLUMN engagement_score decimal(5,2) NULL AFTER discount_expires",
+            'conversion_value' => "ALTER TABLE {$table_name} ADD COLUMN conversion_value decimal(19,4) NULL AFTER engagement_score"
+        );
+        
+        foreach ($crm_columns as $column => $sql) {
+            if (!in_array($column, $columns)) {
+                $this->wpdb->query($sql);
+                // Add indexes if needed
+                if (in_array($column, array('crm_contact_id', 'crm_campaign_id'))) {
+                    $index_name = $column . '_idx';
+                    $this->wpdb->query("ALTER TABLE {$table_name} ADD INDEX {$index_name} ({$column})");
+                }
+            }
+        }
     }
 
 	/**

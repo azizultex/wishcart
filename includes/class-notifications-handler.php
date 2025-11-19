@@ -16,6 +16,7 @@ class WISHCART_Notifications_Handler {
 
     private $wpdb;
     private $notifications_table;
+    private $fluentcrm;
 
     /**
      * Constructor
@@ -24,6 +25,11 @@ class WISHCART_Notifications_Handler {
         global $wpdb;
         $this->wpdb = $wpdb;
         $this->notifications_table = $wpdb->prefix . 'fc_wishlist_notifications';
+        
+        // Initialize FluentCRM integration if available
+        if (class_exists('WISHCART_FluentCRM_Integration')) {
+            $this->fluentcrm = new WISHCART_FluentCRM_Integration();
+        }
     }
 
     /**
@@ -259,31 +265,49 @@ class WISHCART_Notifications_Handler {
             array('%d')
         );
 
-        // Send email
-        $result = wp_mail(
-            $notification['email_to'],
-            $notification['email_subject'],
-            $notification['email_content'],
-            array('Content-Type: text/plain; charset=UTF-8')
-        );
+        // Try FluentCRM first if available and enabled
+        $result = $this->send_via_fluentcrm($notification);
+        
+        // Fallback to wp_mail if FluentCRM fails or is not available
+        if (is_wp_error($result)) {
+            $result = wp_mail(
+                $notification['email_to'],
+                $notification['email_subject'],
+                $notification['email_content'],
+                array('Content-Type: text/plain; charset=UTF-8')
+            );
+        }
 
-        if ($result) {
+        if ($result && !is_wp_error($result)) {
             // Mark as sent
+            $update_data = array(
+                'status' => 'sent',
+                'sent_date' => current_time('mysql'),
+            );
+            
+            // Update CRM fields if available
+            if (isset($notification['crm_contact_id']) && $notification['crm_contact_id']) {
+                $update_data['crm_contact_id'] = $notification['crm_contact_id'];
+            }
+            if (isset($notification['crm_campaign_id']) && $notification['crm_campaign_id']) {
+                $update_data['crm_campaign_id'] = $notification['crm_campaign_id'];
+            }
+            if (isset($notification['crm_email_id']) && $notification['crm_email_id']) {
+                $update_data['crm_email_id'] = $notification['crm_email_id'];
+            }
+            
             $this->wpdb->update(
                 $this->notifications_table,
-                array(
-                    'status' => 'sent',
-                    'sent_date' => current_time('mysql'),
-                ),
+                $update_data,
                 array('notification_id' => $notification_id),
-                array('%s', '%s'),
+                array('%s', '%s', '%d', '%d', '%d'),
                 array('%d')
             );
 
             return true;
         } else {
             // Mark as failed
-            $error_message = __('Failed to send email', 'wish-cart');
+            $error_message = is_wp_error($result) ? $result->get_error_message() : __('Failed to send email', 'wish-cart');
             $this->wpdb->update(
                 $this->notifications_table,
                 array(
@@ -297,6 +321,97 @@ class WISHCART_Notifications_Handler {
 
             return new WP_Error('send_failed', $error_message);
         }
+    }
+
+    /**
+     * Send notification via FluentCRM
+     *
+     * @param array $notification Notification data
+     * @return bool|WP_Error Success or error
+     */
+    public function send_via_fluentcrm($notification) {
+        if (!$this->fluentcrm || !$this->fluentcrm->is_available()) {
+            return new WP_Error('fluentcrm_not_available', __('FluentCRM is not available', 'wish-cart'));
+        }
+
+        $settings = $this->fluentcrm->get_settings();
+        if (!$settings['enabled']) {
+            return new WP_Error('integration_disabled', __('FluentCRM integration is disabled', 'wish-cart'));
+        }
+
+        // Get or create contact
+        $contact_id = null;
+        
+        // Check if we already have a contact ID
+        if (!empty($notification['crm_contact_id'])) {
+            $contact_id = intval($notification['crm_contact_id']);
+        } else {
+            // Get contact by email or create new
+            $contact = $this->fluentcrm->get_contact($notification['email_to']);
+            
+            if ($contact) {
+                $contact_id = $contact->id;
+            } else {
+                // Create contact if user exists
+                if (!empty($notification['user_id'])) {
+                    $contact_id = $this->fluentcrm->sync_wishlist_user($notification['user_id']);
+                    if (is_wp_error($contact_id)) {
+                        return $contact_id;
+                    }
+                } else {
+                    // Create contact from email
+                    $contact_id = $this->fluentcrm->create_or_update_contact(null, $notification['email_to']);
+                    if (is_wp_error($contact_id)) {
+                        return $contact_id;
+                    }
+                }
+            }
+            
+            // Update notification with contact ID
+            if ($contact_id) {
+                $this->wpdb->update(
+                    $this->notifications_table,
+                    array('crm_contact_id' => $contact_id),
+                    array('notification_id' => $notification['notification_id']),
+                    array('%d'),
+                    array('%d')
+                );
+            }
+        }
+
+        if (!$contact_id) {
+            return new WP_Error('no_contact', __('Could not create or find contact', 'wish-cart'));
+        }
+
+        // Send email via FluentCRM
+        $options = array();
+        if (!empty($notification['crm_campaign_id'])) {
+            $options['campaign_id'] = intval($notification['crm_campaign_id']);
+        }
+
+        $email_id = $this->fluentcrm->send_email(
+            $contact_id,
+            $notification['email_subject'],
+            $notification['email_content'],
+            $options
+        );
+
+        if (is_wp_error($email_id)) {
+            return $email_id;
+        }
+
+        // Update notification with email ID
+        if ($email_id && is_numeric($email_id)) {
+            $this->wpdb->update(
+                $this->notifications_table,
+                array('crm_email_id' => $email_id),
+                array('notification_id' => $notification['notification_id']),
+                array('%d'),
+                array('%d')
+            );
+        }
+
+        return true;
     }
 
     /**
@@ -463,6 +578,18 @@ class WISHCART_Notifications_Handler {
                                 array('%f'),
                                 array('%d')
                             );
+                            
+                            // Trigger CRM price drop event
+                            $price_data = array(
+                                'user_id' => $item['user_id'],
+                                'wishlist_id' => $item['wishlist_id'],
+                                'product_id' => $item['product_id'],
+                                'product_name' => $product->get_name(),
+                                'product_url' => get_permalink($item['product_id']),
+                                'old_price' => $original_price,
+                                'new_price' => $current_price,
+                            );
+                            do_action('wishcart_price_drop_detected', $price_data);
                         }
                     }
                 }
@@ -541,6 +668,16 @@ class WISHCART_Notifications_Handler {
                         
                         if (!is_wp_error($queue_result)) {
                             $results['notifications_queued']++;
+                            
+                            // Trigger CRM back in stock event
+                            $stock_data = array(
+                                'user_id' => $item['user_id'],
+                                'wishlist_id' => $item['wishlist_id'],
+                                'product_id' => $item['product_id'],
+                                'product_name' => $product->get_name(),
+                                'product_url' => get_permalink($item['product_id']),
+                            );
+                            do_action('wishcart_back_in_stock', $stock_data);
                         }
                     }
                 }

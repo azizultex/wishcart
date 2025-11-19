@@ -545,6 +545,41 @@ class WISHCART_Wishlist_Handler {
             $user_id = null;
         }
 
+        // Save guest email if provided and user is not logged in
+        if (empty($user_id) && !empty($session_id) && isset($options['guest_email']) && !empty($options['guest_email'])) {
+            $guest_email = sanitize_email($options['guest_email']);
+            if (is_email($guest_email)) {
+                $guest_handler = new WISHCART_Guest_Handler();
+                $guest_result = $guest_handler->create_or_update_guest($session_id, array(
+                    'guest_email' => $guest_email,
+                ));
+
+                // Sync to FluentCRM if available (don't block wishlist addition on failure)
+                if (!is_wp_error($guest_result) && class_exists('WISHCART_FluentCRM_Integration')) {
+                    $fluentcrm = new WISHCART_FluentCRM_Integration();
+                    if ($fluentcrm->is_available()) {
+                        $settings = $fluentcrm->get_settings();
+                        if ($settings['enabled']) {
+                            try {
+                                // Create or update contact in FluentCRM
+                                $contact_id = $fluentcrm->create_or_update_contact(null, $guest_email, array());
+                                if (!is_wp_error($contact_id)) {
+                                    // Ensure contact is added to default list
+                                    $default_list_id = $fluentcrm->get_or_create_default_list();
+                                    if (!is_wp_error($default_list_id)) {
+                                        $fluentcrm->attach_lists($contact_id, array($default_list_id));
+                                    }
+                                }
+                            } catch (Exception $e) {
+                                // Log error but don't block wishlist addition
+                                error_log('[WishCart] FluentCRM sync error: ' . $e->getMessage());
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
         // Get or create default wishlist if wishlist_id not provided
         if (empty($wishlist_id)) {
             $default_wishlist = $this->get_default_wishlist($user_id, $session_id);
@@ -623,6 +658,19 @@ class WISHCART_Wishlist_Handler {
             $this->update_guest_tracking($session_id, $wishlist_id);
         }
 
+        // Trigger CRM event hook
+        $item_data = array(
+            'item_id' => $this->wpdb->insert_id,
+            'wishlist_id' => $wishlist_id,
+            'product_id' => $product_id,
+            'variation_id' => $variation_id,
+            'user_id' => $user_id,
+            'session_id' => $session_id,
+            'product_name' => $product->get_name(),
+            'product_url' => get_permalink($product_id),
+        );
+        do_action('wishcart_item_added', $item_data);
+
         return true;
     }
 
@@ -689,6 +737,15 @@ class WISHCART_Wishlist_Handler {
 
         // Clear cache
         $this->clear_wishlist_cache($user_id, $session_id);
+
+        // Trigger CRM event hook
+        $item_data = array(
+            'wishlist_id' => $wishlist_id,
+            'product_id' => $product_id,
+            'variation_id' => $variation_id,
+            'user_id' => $user_id,
+        );
+        do_action('wishcart_item_removed', $item_data);
 
         return true;
     }

@@ -217,6 +217,12 @@ class WISHCART_Admin {
             'permission_callback' => '__return_true', // Public endpoint
         ));
 
+        register_rest_route('wishcart/v1', '/wishlist/track-cart', array(
+            'methods' => 'POST',
+            'callback' => array($this, 'wishlist_track_cart'),
+            'permission_callback' => '__return_true', // Public endpoint
+        ));
+
         register_rest_route('wishcart/v1', '/wishlist', array(
             'methods' => 'GET',
             'callback' => array($this, 'wishlist_get'),
@@ -246,6 +252,19 @@ class WISHCART_Admin {
         register_rest_route('wishcart/v1', '/wishlist/users', array(
             'methods' => 'GET',
             'callback' => array($this, 'wishlist_get_users'),
+            'permission_callback' => '__return_true', // Public endpoint
+        ));
+
+        // Guest email endpoints
+        register_rest_route('wishcart/v1', '/guest/check-email', array(
+            'methods' => 'GET',
+            'callback' => array($this, 'guest_check_email'),
+            'permission_callback' => '__return_true', // Public endpoint
+        ));
+
+        register_rest_route('wishcart/v1', '/guest/update-email', array(
+            'methods' => 'POST',
+            'callback' => array($this, 'guest_update_email'),
             'permission_callback' => '__return_true', // Public endpoint
         ));
 
@@ -329,6 +348,112 @@ class WISHCART_Admin {
             'permission_callback' => function () {
                 return current_user_can('manage_options');
             },
+        ));
+
+        // FluentCRM endpoints
+        register_rest_route('wishcart/v1', '/fluentcrm/settings', array(
+            'methods' => 'GET',
+            'callback' => array($this, 'fluentcrm_get_settings'),
+            'permission_callback' => function () {
+                return current_user_can('manage_options');
+            },
+        ));
+
+        register_rest_route('wishcart/v1', '/fluentcrm/settings', array(
+            'methods' => 'POST',
+            'callback' => array($this, 'fluentcrm_update_settings'),
+            'permission_callback' => function () {
+                return current_user_can('manage_options');
+            },
+        ));
+
+        register_rest_route('wishcart/v1', '/fluentcrm/tags', array(
+            'methods' => 'GET',
+            'callback' => array($this, 'fluentcrm_get_tags'),
+            'permission_callback' => function () {
+                return current_user_can('manage_options');
+            },
+        ));
+
+        register_rest_route('wishcart/v1', '/fluentcrm/lists', array(
+            'methods' => 'GET',
+            'callback' => array($this, 'fluentcrm_get_lists'),
+            'permission_callback' => function () {
+                return current_user_can('manage_options');
+            },
+        ));
+
+        // Campaign endpoints
+        register_rest_route('wishcart/v1', '/campaigns', array(
+            'methods' => 'GET',
+            'callback' => array($this, 'campaigns_get'),
+            'permission_callback' => function () {
+                return current_user_can('manage_options');
+            },
+        ));
+
+        register_rest_route('wishcart/v1', '/campaigns', array(
+            'methods' => 'POST',
+            'callback' => array($this, 'campaigns_create'),
+            'permission_callback' => function () {
+                return current_user_can('manage_options');
+            },
+        ));
+
+        register_rest_route('wishcart/v1', '/campaigns/(?P<id>\d+)', array(
+            'methods' => 'GET',
+            'callback' => array($this, 'campaigns_get_single'),
+            'permission_callback' => function () {
+                return current_user_can('manage_options');
+            },
+            'args' => array(
+                'id' => array(
+                    'required' => true,
+                    'type' => 'integer',
+                ),
+            ),
+        ));
+
+        register_rest_route('wishcart/v1', '/campaigns/(?P<id>\d+)', array(
+            'methods' => 'PUT',
+            'callback' => array($this, 'campaigns_update'),
+            'permission_callback' => function () {
+                return current_user_can('manage_options');
+            },
+            'args' => array(
+                'id' => array(
+                    'required' => true,
+                    'type' => 'integer',
+                ),
+            ),
+        ));
+
+        register_rest_route('wishcart/v1', '/campaigns/(?P<id>\d+)', array(
+            'methods' => 'DELETE',
+            'callback' => array($this, 'campaigns_delete'),
+            'permission_callback' => function () {
+                return current_user_can('manage_options');
+            },
+            'args' => array(
+                'id' => array(
+                    'required' => true,
+                    'type' => 'integer',
+                ),
+            ),
+        ));
+
+        register_rest_route('wishcart/v1', '/campaigns/(?P<id>\d+)/analytics', array(
+            'methods' => 'GET',
+            'callback' => array($this, 'campaigns_get_analytics'),
+            'permission_callback' => function () {
+                return current_user_can('manage_options');
+            },
+            'args' => array(
+                'id' => array(
+                    'required' => true,
+                    'type' => 'integer',
+                ),
+            ),
         ));
 
         // Sharing endpoints
@@ -732,9 +857,16 @@ class WISHCART_Admin {
         $product_id = isset( $params['product_id'] ) ? intval( $params['product_id'] ) : 0;
         $session_id = isset( $params['session_id'] ) ? sanitize_text_field( wp_unslash( $params['session_id'] ) ) : null;
         $wishlist_id = isset( $params['wishlist_id'] ) ? intval( $params['wishlist_id'] ) : null;
+        $guest_email = isset( $params['guest_email'] ) ? sanitize_email( wp_unslash( $params['guest_email'] ) ) : null;
+        
+        // Prepare options array with guest_email if provided
+        $options = array();
+        if ( ! empty( $guest_email ) && is_email( $guest_email ) ) {
+            $options['guest_email'] = $guest_email;
+        }
         
         // Handler will determine user_id or session_id automatically
-        $result = $handler->add_to_wishlist( $product_id, null, $session_id, $wishlist_id );
+        $result = $handler->add_to_wishlist( $product_id, null, $session_id, $wishlist_id, $options );
 
         if ( is_wp_error( $result ) ) {
             return new WP_Error(
@@ -792,6 +924,103 @@ class WISHCART_Admin {
         return rest_ensure_response( array(
             'success' => true,
             'message' => __( 'Product removed from wishlist', 'wish-cart' ),
+        ) );
+    }
+
+    /**
+     * Track when wishlist item is added to cart
+     *
+     * @param WP_REST_Request $request Request object
+     * @return WP_REST_Response
+     */
+    public function wishlist_track_cart( $request ) {
+        global $wpdb;
+        $analytics_handler = new WISHCART_Analytics_Handler();
+        $handler = new WISHCART_Wishlist_Handler();
+        
+        $params = $request->get_json_params();
+        $product_id = isset( $params['product_id'] ) ? intval( $params['product_id'] ) : 0;
+        $variation_id = isset( $params['variation_id'] ) ? intval( $params['variation_id'] ) : 0;
+        
+        if ( $product_id <= 0 ) {
+            return new WP_Error(
+                'invalid_product',
+                __( 'Invalid product ID', 'wish-cart' ),
+                array( 'status' => 400 )
+            );
+        }
+        
+        // Track analytics event
+        $track_result = $analytics_handler->track_event( $product_id, $variation_id, 'cart' );
+        
+        if ( ! $track_result ) {
+            return new WP_Error(
+                'tracking_failed',
+                __( 'Failed to track cart event', 'wish-cart' ),
+                array( 'status' => 500 )
+            );
+        }
+        
+        // Update wishlist item's date_added_to_cart if item exists in wishlist
+        $user_id = is_user_logged_in() ? get_current_user_id() : null;
+        $session_id = null;
+        
+        if ( ! $user_id ) {
+            // Try to get session_id from cookie or request
+            $cookie_name = 'wishcart_session_id';
+            if ( isset( $_COOKIE[ $cookie_name ] ) && ! empty( $_COOKIE[ $cookie_name ] ) ) {
+                $session_id = sanitize_text_field( wp_unslash( $_COOKIE[ $cookie_name ] ) );
+            } elseif ( isset( $params['session_id'] ) ) {
+                $session_id = sanitize_text_field( wp_unslash( $params['session_id'] ) );
+            }
+        }
+        
+        // Only update wishlist items if we have user_id or session_id
+        if ( $user_id || $session_id ) {
+            // Find wishlist items for this product
+            $items_table = $wpdb->prefix . 'fc_wishlist_items';
+            $wishlists_table = $wpdb->prefix . 'fc_wishlists';
+            
+            $where_clauses = array();
+            $where_values = array();
+            
+            $where_clauses[] = "wi.product_id = %d";
+            $where_values[] = $product_id;
+            
+            if ( $variation_id > 0 ) {
+                $where_clauses[] = "wi.variation_id = %d";
+                $where_values[] = $variation_id;
+            } else {
+                $where_clauses[] = "(wi.variation_id = 0 OR wi.variation_id IS NULL)";
+            }
+            
+            $where_clauses[] = "wi.status = 'active'";
+            $where_clauses[] = "wi.date_added_to_cart IS NULL";
+            
+            if ( $user_id ) {
+                $where_clauses[] = "w.user_id = %d";
+                $where_values[] = $user_id;
+            } elseif ( $session_id ) {
+                $where_clauses[] = "w.session_id = %s";
+                $where_values[] = $session_id;
+            }
+            
+            $where_sql = implode( ' AND ', $where_clauses );
+            
+            $query = $wpdb->prepare(
+                "UPDATE {$items_table} wi
+                INNER JOIN {$wishlists_table} w ON wi.wishlist_id = w.id
+                SET wi.date_added_to_cart = NOW()
+                WHERE {$where_sql}",
+                $where_values
+            );
+            
+            $wpdb->query( $query );
+        }
+        
+        return rest_ensure_response( array(
+            'success' => true,
+            'message' => __( 'Cart event tracked successfully', 'wish-cart' ),
         ) );
     }
 
@@ -1691,6 +1920,393 @@ class WISHCART_Admin {
             'activities' => $activities,
             'count' => count($activities),
         ));
+    }
+
+    /**
+     * Get FluentCRM settings
+     *
+     * @param WP_REST_Request $request Request object
+     * @return WP_REST_Response
+     */
+    public function fluentcrm_get_settings($request) {
+        if (!class_exists('WISHCART_FluentCRM_Integration')) {
+            return new WP_Error('not_available', __('FluentCRM integration not available', 'wish-cart'), array('status' => 404));
+        }
+
+        // Clear cache to force fresh detection
+        WISHCART_FluentCRM_Integration::clear_detection_cache();
+        
+        $fluentcrm = new WISHCART_FluentCRM_Integration();
+        $settings = $fluentcrm->get_settings();
+        $is_available = $fluentcrm->is_available();
+
+        return rest_ensure_response(array(
+            'success' => true,
+            'settings' => $settings,
+            'is_available' => $is_available,
+        ));
+    }
+
+    /**
+     * Update FluentCRM settings
+     *
+     * @param WP_REST_Request $request Request object
+     * @return WP_REST_Response
+     */
+    public function fluentcrm_update_settings($request) {
+        if (!class_exists('WISHCART_FluentCRM_Integration')) {
+            return new WP_Error('not_available', __('FluentCRM integration not available', 'wish-cart'), array('status' => 404));
+        }
+
+        $fluentcrm = new WISHCART_FluentCRM_Integration();
+        $params = $request->get_json_params();
+        
+        $result = $fluentcrm->update_settings($params);
+
+        if (!$result) {
+            return new WP_Error('update_failed', __('Failed to update settings', 'wish-cart'), array('status' => 500));
+        }
+
+        return rest_ensure_response(array(
+            'success' => true,
+            'message' => __('Settings updated successfully', 'wish-cart'),
+        ));
+    }
+
+    /**
+     * Get FluentCRM tags
+     *
+     * @param WP_REST_Request $request Request object
+     * @return WP_REST_Response
+     */
+    public function fluentcrm_get_tags($request) {
+        if (!class_exists('WISHCART_FluentCRM_Integration')) {
+            return new WP_Error('not_available', __('FluentCRM integration not available', 'wish-cart'), array('status' => 404));
+        }
+
+        $fluentcrm = new WISHCART_FluentCRM_Integration();
+        $tags = $fluentcrm->get_tags();
+
+        return rest_ensure_response(array(
+            'success' => true,
+            'tags' => $tags,
+        ));
+    }
+
+    /**
+     * Get FluentCRM lists
+     *
+     * @param WP_REST_Request $request Request object
+     * @return WP_REST_Response
+     */
+    public function fluentcrm_get_lists($request) {
+        if (!class_exists('WISHCART_FluentCRM_Integration')) {
+            return new WP_Error('not_available', __('FluentCRM integration not available', 'wish-cart'), array('status' => 404));
+        }
+
+        $fluentcrm = new WISHCART_FluentCRM_Integration();
+        $lists = $fluentcrm->get_lists();
+
+        return rest_ensure_response(array(
+            'success' => true,
+            'lists' => $lists,
+        ));
+    }
+
+    /**
+     * Get campaigns
+     *
+     * @param WP_REST_Request $request Request object
+     * @return WP_REST_Response
+     */
+    public function campaigns_get($request) {
+        if (!class_exists('WISHCART_CRM_Campaign_Handler')) {
+            return new WP_Error('not_available', __('Campaign handler not available', 'wish-cart'), array('status' => 404));
+        }
+
+        $campaign_handler = new WISHCART_CRM_Campaign_Handler();
+        $trigger_type = $request->get_param('trigger_type');
+        $status = $request->get_param('status');
+
+        if ($trigger_type) {
+            $campaigns = $campaign_handler->get_campaigns_by_trigger($trigger_type, $status);
+        } else {
+            global $wpdb;
+            $table = $wpdb->prefix . 'fc_wishlist_crm_campaigns';
+            $where = '1=1';
+            $params = array();
+
+            if ($status) {
+                $where .= ' AND status = %s';
+                $params[] = $status;
+            }
+
+            $query = "SELECT * FROM {$table} WHERE {$where} ORDER BY date_created DESC";
+            $campaigns = $wpdb->get_results(
+                $wpdb->prepare($query, $params),
+                ARRAY_A
+            );
+
+            foreach ($campaigns as &$campaign) {
+                $campaign['trigger_conditions'] = json_decode($campaign['trigger_conditions'], true);
+                $campaign['email_sequence'] = json_decode($campaign['email_sequence'], true);
+                $campaign['target_segment'] = json_decode($campaign['target_segment'], true);
+                $campaign['stats'] = json_decode($campaign['stats'], true);
+            }
+        }
+
+        return rest_ensure_response(array(
+            'success' => true,
+            'campaigns' => $campaigns,
+            'count' => count($campaigns),
+        ));
+    }
+
+    /**
+     * Create campaign
+     *
+     * @param WP_REST_Request $request Request object
+     * @return WP_REST_Response
+     */
+    public function campaigns_create($request) {
+        if (!class_exists('WISHCART_CRM_Campaign_Handler')) {
+            return new WP_Error('not_available', __('Campaign handler not available', 'wish-cart'), array('status' => 404));
+        }
+
+        $campaign_handler = new WISHCART_CRM_Campaign_Handler();
+        $params = $request->get_json_params();
+
+        $result = $campaign_handler->create_campaign($params);
+
+        if (is_wp_error($result)) {
+            return new WP_Error(
+                $result->get_error_code(),
+                $result->get_error_message(),
+                array('status' => 400)
+            );
+        }
+
+        return rest_ensure_response(array(
+            'success' => true,
+            'campaign_id' => $result,
+            'message' => __('Campaign created successfully', 'wish-cart'),
+        ));
+    }
+
+    /**
+     * Get single campaign
+     *
+     * @param WP_REST_Request $request Request object
+     * @return WP_REST_Response
+     */
+    public function campaigns_get_single($request) {
+        if (!class_exists('WISHCART_CRM_Campaign_Handler')) {
+            return new WP_Error('not_available', __('Campaign handler not available', 'wish-cart'), array('status' => 404));
+        }
+
+        $campaign_handler = new WISHCART_CRM_Campaign_Handler();
+        $campaign_id = intval($request->get_param('id'));
+
+        $campaign = $campaign_handler->get_campaign($campaign_id);
+
+        if (!$campaign) {
+            return new WP_Error('not_found', __('Campaign not found', 'wish-cart'), array('status' => 404));
+        }
+
+        return rest_ensure_response(array(
+            'success' => true,
+            'campaign' => $campaign,
+        ));
+    }
+
+    /**
+     * Update campaign
+     *
+     * @param WP_REST_Request $request Request object
+     * @return WP_REST_Response
+     */
+    public function campaigns_update($request) {
+        if (!class_exists('WISHCART_CRM_Campaign_Handler')) {
+            return new WP_Error('not_available', __('Campaign handler not available', 'wish-cart'), array('status' => 404));
+        }
+
+        $campaign_handler = new WISHCART_CRM_Campaign_Handler();
+        $campaign_id = intval($request->get_param('id'));
+        $params = $request->get_json_params();
+
+        $result = $campaign_handler->update_campaign($campaign_id, $params);
+
+        if (is_wp_error($result)) {
+            return new WP_Error(
+                $result->get_error_code(),
+                $result->get_error_message(),
+                array('status' => 400)
+            );
+        }
+
+        return rest_ensure_response(array(
+            'success' => true,
+            'message' => __('Campaign updated successfully', 'wish-cart'),
+        ));
+    }
+
+    /**
+     * Delete campaign
+     *
+     * @param WP_REST_Request $request Request object
+     * @return WP_REST_Response
+     */
+    public function campaigns_delete($request) {
+        if (!class_exists('WISHCART_CRM_Campaign_Handler')) {
+            return new WP_Error('not_available', __('Campaign handler not available', 'wish-cart'), array('status' => 404));
+        }
+
+        $campaign_id = intval($request->get_param('id'));
+        global $wpdb;
+        $table = $wpdb->prefix . 'fc_wishlist_crm_campaigns';
+
+        $result = $wpdb->delete($table, array('campaign_id' => $campaign_id), array('%d'));
+
+        if (false === $result) {
+            return new WP_Error('delete_failed', __('Failed to delete campaign', 'wish-cart'), array('status' => 500));
+        }
+
+        return rest_ensure_response(array(
+            'success' => true,
+            'message' => __('Campaign deleted successfully', 'wish-cart'),
+        ));
+    }
+
+    /**
+     * Get campaign analytics
+     *
+     * @param WP_REST_Request $request Request object
+     * @return WP_REST_Response
+     */
+    public function campaigns_get_analytics($request) {
+        if (!class_exists('WISHCART_CRM_Campaign_Handler')) {
+            return new WP_Error('not_available', __('Campaign handler not available', 'wish-cart'), array('status' => 404));
+        }
+
+        $campaign_handler = new WISHCART_CRM_Campaign_Handler();
+        $campaign_id = intval($request->get_param('id'));
+
+        $campaign = $campaign_handler->get_campaign($campaign_id);
+
+        if (!$campaign) {
+            return new WP_Error('not_found', __('Campaign not found', 'wish-cart'), array('status' => 404));
+        }
+
+        $stats = $campaign['stats'] ? $campaign['stats'] : array();
+
+        return rest_ensure_response(array(
+            'success' => true,
+            'analytics' => $stats,
+            'campaign' => array(
+                'id' => $campaign['campaign_id'],
+                'trigger_type' => $campaign['wishlist_trigger_type'],
+                'status' => $campaign['status'],
+            ),
+        ));
+    }
+
+    /**
+     * Check if guest has email
+     *
+     * @param WP_REST_Request $request Request object
+     * @return WP_REST_Response
+     */
+    public function guest_check_email( $request ) {
+        $session_id = $request->get_param( 'session_id' );
+        $session_id = is_string( $session_id ) ? sanitize_text_field( wp_unslash( $session_id ) ) : null;
+
+        if ( empty( $session_id ) ) {
+            return rest_ensure_response( array(
+                'has_email' => false,
+                'email' => null,
+            ) );
+        }
+
+        $guest_handler = new WISHCART_Guest_Handler();
+        $guest = $guest_handler->get_guest_by_session( $session_id );
+
+        if ( $guest && ! empty( $guest['guest_email'] ) ) {
+            return rest_ensure_response( array(
+                'has_email' => true,
+                'email' => $guest['guest_email'],
+            ) );
+        }
+
+        return rest_ensure_response( array(
+            'has_email' => false,
+            'email' => null,
+        ) );
+    }
+
+    /**
+     * Update guest email
+     *
+     * @param WP_REST_Request $request Request object
+     * @return WP_REST_Response
+     */
+    public function guest_update_email( $request ) {
+        $params = $request->get_json_params();
+        $email = isset( $params['email'] ) ? sanitize_email( wp_unslash( $params['email'] ) ) : null;
+        $session_id = isset( $params['session_id'] ) ? sanitize_text_field( wp_unslash( $params['session_id'] ) ) : null;
+
+        if ( empty( $email ) || ! is_email( $email ) ) {
+            return new WP_Error(
+                'invalid_email',
+                __( 'Invalid email address', 'wish-cart' ),
+                array( 'status' => 400 )
+            );
+        }
+
+        if ( empty( $session_id ) ) {
+            return new WP_Error(
+                'invalid_session',
+                __( 'Session ID is required', 'wish-cart' ),
+                array( 'status' => 400 )
+            );
+        }
+
+        $guest_handler = new WISHCART_Guest_Handler();
+        $result = $guest_handler->create_or_update_guest( $session_id, array(
+            'guest_email' => $email,
+        ) );
+
+        if ( is_wp_error( $result ) ) {
+            return new WP_Error(
+                $result->get_error_code(),
+                $result->get_error_message(),
+                array( 'status' => 400 )
+            );
+        }
+
+        // Sync to FluentCRM if available
+        if ( class_exists( 'WISHCART_FluentCRM_Integration' ) ) {
+            $fluentcrm = new WISHCART_FluentCRM_Integration();
+            if ( $fluentcrm->is_available() ) {
+                $settings = $fluentcrm->get_settings();
+                if ( $settings['enabled'] ) {
+                    // Create or update contact in FluentCRM
+                    $contact_id = $fluentcrm->create_or_update_contact( null, $email, array() );
+                    if ( ! is_wp_error( $contact_id ) ) {
+                        // Ensure contact is added to default list
+                        $default_list_id = $fluentcrm->get_or_create_default_list();
+                        if ( ! is_wp_error( $default_list_id ) ) {
+                            $fluentcrm->attach_lists( $contact_id, array( $default_list_id ) );
+                        }
+                    }
+                }
+            }
+        }
+
+        return rest_ensure_response( array(
+            'success' => true,
+            'message' => __( 'Email saved successfully', 'wish-cart' ),
+            'email' => $email,
+        ) );
     }
 }
 

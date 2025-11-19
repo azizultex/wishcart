@@ -18,11 +18,13 @@ import {
     ShieldCheck,
     Wrench,
     Palette,
-    BarChart3
+    BarChart3,
+    Mail
 } from 'lucide-react';
 
 import WishlistSettings from './WishlistSettings';
 import ButtonCustomizationSettings from './ButtonCustomizationSettings';
+import FluentCRMSettings from './FluentCRMSettings';
 import {buttonVariants} from "../../../components/ui/button";
 import { AnalyticsDashboard } from '../AnalyticsDashboard';
 
@@ -242,6 +244,10 @@ const SettingsApp = () => {
                                         <BarChart3 className="w-4 h-4" />
                                         {__('Analytics', 'wish-cart')}
                                     </TabsTrigger>
+                                    <TabsTrigger value="fluentcrm" className="flex items-center gap-2">
+                                        <Mail className="w-4 h-4" />
+                                        {__('FluentCRM', 'wish-cart')}
+                                    </TabsTrigger>
                                     <TabsTrigger value="tools" className="flex items-center gap-2">
                                         <Wrench className="w-4 h-4" />
                                         {__('Tools', 'wish-cart')}
@@ -272,6 +278,10 @@ const SettingsApp = () => {
 
                                 <TabsContent value="analytics" className="space-y-6">
                                     <AnalyticsDashboard />
+                                </TabsContent>
+
+                                <TabsContent value="fluentcrm" className="space-y-6">
+                                    <FluentCRMSettings />
                                 </TabsContent>
 
                                 <TabsContent value="tools" className="space-y-4">

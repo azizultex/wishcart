@@ -367,15 +367,46 @@ const WishlistPage = () => {
 
     // Add product to cart
     const addToCart = async (productId) => {
-        if (addingToCartIds.has(productId)) {
+        if (addingToCartIds.has(productId) || !window.WishCartWishlist) {
             return;
         }
 
         setAddingToCartIds(prev => new Set(prev).add(productId));
 
         try {
+            // Find the product to get variation_id if available
+            const product = products.find(p => p.id === productId);
+            if (!product) {
+                console.error('Product not found');
+                return;
+            }
+
+            // Track the add to cart event
+            const sessionId = getSessionId();
+            const trackUrl = `${window.WishCartWishlist.apiUrl}wishlist/track-cart`;
+            
+            const trackBody = {
+                product_id: productId,
+                variation_id: product.variation_id || 0,
+                session_id: sessionId,
+            };
+            
+            try {
+                await fetch(trackUrl, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-WP-Nonce': window.WishCartWishlist.nonce,
+                    },
+                    body: JSON.stringify(trackBody),
+                });
+            } catch (trackError) {
+                // Don't block navigation if tracking fails
+                console.error('Error tracking cart event:', trackError);
+            }
+
             // Navigate to product page - FluentCart will handle adding to cart
-            window.location.href = products.find(p => p.id === productId)?.permalink || '#';
+            window.location.href = product.permalink || '#';
         } catch (error) {
             console.error('Error adding to cart:', error);
             alert('Failed to add product to cart');

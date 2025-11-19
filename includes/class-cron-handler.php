@@ -26,6 +26,8 @@ class WISHCART_Cron_Handler {
         add_action('wishcart_cleanup_expired_shares', array($this, 'cleanup_expired_shares'));
         add_action('wishcart_recalculate_analytics', array($this, 'recalculate_analytics'));
         add_action('wishcart_cleanup_old_data', array($this, 'cleanup_old_data'));
+        add_action('wishcart_process_time_based_campaigns', array($this, 'process_time_based_campaigns'));
+        add_action('wishcart_send_scheduled_email', array($this, 'send_scheduled_email'), 10, 4);
     }
 
     /**
@@ -68,6 +70,11 @@ class WISHCART_Cron_Handler {
         if (!wp_next_scheduled('wishcart_cleanup_old_data')) {
             wp_schedule_event(time(), 'weekly', 'wishcart_cleanup_old_data');
         }
+
+        // Process time-based campaigns (daily)
+        if (!wp_next_scheduled('wishcart_process_time_based_campaigns')) {
+            wp_schedule_event(time(), 'daily', 'wishcart_process_time_based_campaigns');
+        }
     }
 
     /**
@@ -84,6 +91,7 @@ class WISHCART_Cron_Handler {
             'wishcart_cleanup_expired_shares',
             'wishcart_recalculate_analytics',
             'wishcart_cleanup_old_data',
+            'wishcart_process_time_based_campaigns',
         );
 
         foreach ($events as $event) {
@@ -285,6 +293,7 @@ class WISHCART_Cron_Handler {
             'wishcart_cleanup_expired_shares' => __('Cleanup Expired Shares', 'wish-cart'),
             'wishcart_recalculate_analytics' => __('Recalculate Analytics', 'wish-cart'),
             'wishcart_cleanup_old_data' => __('Cleanup Old Data', 'wish-cart'),
+            'wishcart_process_time_based_campaigns' => __('Process Time-Based Campaigns', 'wish-cart'),
         );
 
         $status = array();
@@ -317,6 +326,7 @@ class WISHCART_Cron_Handler {
             'wishcart_cleanup_expired_shares',
             'wishcart_recalculate_analytics',
             'wishcart_cleanup_old_data',
+            'wishcart_process_time_based_campaigns',
         );
 
         if (!in_array($hook, $valid_hooks)) {
@@ -333,6 +343,42 @@ class WISHCART_Cron_Handler {
             'success' => true,
             'message' => sprintf(__('Cron job %s triggered successfully', 'wish-cart'), $hook),
         );
+    }
+
+    /**
+     * Process time-based campaigns
+     *
+     * @return void
+     */
+    public function process_time_based_campaigns() {
+        $this->log_debug('Processing time-based campaigns...');
+        
+        if (class_exists('WISHCART_CRM_Campaign_Handler')) {
+            $campaign_handler = new WISHCART_CRM_Campaign_Handler();
+            $campaign_handler->process_time_based_campaigns();
+            
+            $this->log_debug('Time-based campaigns processed');
+        }
+    }
+
+    /**
+     * Send scheduled email
+     *
+     * @param int $contact_id Contact ID
+     * @param string $subject Email subject
+     * @param string $body Email body
+     * @param array $event_data Event data
+     * @return void
+     */
+    public function send_scheduled_email($contact_id, $subject, $body, $event_data) {
+        if (class_exists('WISHCART_FluentCRM_Integration')) {
+            $fluentcrm = new WISHCART_FluentCRM_Integration();
+            $options = array();
+            if (isset($event_data['campaign_id'])) {
+                $options['campaign_id'] = $event_data['campaign_id'];
+            }
+            $fluentcrm->send_email($contact_id, $subject, $body, $options);
+        }
     }
 
     /**

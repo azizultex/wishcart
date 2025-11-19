@@ -424,13 +424,220 @@ if (document.readyState === 'loading') {
         mountWishlistButtons();
         mountWishlistPage();
         mountSharedWishlistView();
+        setupAddToCartTracking();
     });
 } else {
     initializeSessionId();
     mountWishlistButtons();
     mountWishlistPage();
     mountSharedWishlistView();
+    setupAddToCartTracking();
 }
+
+// Wishlist status cache to avoid multiple API calls
+const wishlistStatusCache = new Map();
+
+// Get session ID helper
+const getSessionIdForTracking = () => {
+    if (window.WishCartWishlist?.isLoggedIn) {
+        return null;
+    }
+    
+    const cookies = document.cookie.split(';');
+    for (let cookie of cookies) {
+        const [name, value] = cookie.trim().split('=');
+        if (name === 'wishcart_session_id') {
+            return value;
+        }
+    }
+    
+    return window.WishCartWishlist?.sessionId || null;
+};
+
+// Check if product is in wishlist
+const checkProductInWishlist = async (productId) => {
+    // Check cache first
+    if (wishlistStatusCache.has(productId)) {
+        return wishlistStatusCache.get(productId);
+    }
+    
+    if (!productId || !window.WishCartWishlist) {
+        return false;
+    }
+    
+    try {
+        const sessionId = getSessionIdForTracking();
+        const url = `${window.WishCartWishlist.apiUrl}wishlist/check/${productId}${sessionId ? `?session_id=${sessionId}` : ''}`;
+        
+        const response = await fetch(url, {
+            headers: {
+                'X-WP-Nonce': window.WishCartWishlist.nonce,
+            },
+        });
+        
+        if (response.ok) {
+            const data = await response.json();
+            const inWishlist = data.in_wishlist || false;
+            // Cache the result
+            wishlistStatusCache.set(productId, inWishlist);
+            return inWishlist;
+        }
+    } catch (error) {
+        console.error('Error checking wishlist status:', error);
+    }
+    
+    return false;
+};
+
+// Extract product ID and variation ID from add to cart button/form
+const extractProductData = (element) => {
+    let productId = null;
+    let variationId = 0;
+    
+    // Try to get from button attributes
+    productId = element.getAttribute('data-product-id') || 
+                element.dataset?.productId ||
+                element.closest('[data-product-id]')?.getAttribute('data-product-id');
+    
+    variationId = element.getAttribute('data-variation-id') || 
+                  element.dataset?.variationId ||
+                  element.closest('[data-variation-id]')?.getAttribute('data-variation-id');
+    
+    // Try to get from form
+    const form = element.closest('form');
+    if (form) {
+        // WooCommerce form
+        const productIdInput = form.querySelector('input[name="product_id"], input[name="add-to-cart"]');
+        if (productIdInput && !productId) {
+            productId = productIdInput.value;
+        }
+        
+        const variationIdInput = form.querySelector('input[name="variation_id"]');
+        if (variationIdInput && !variationId) {
+            variationId = variationIdInput.value;
+        }
+        
+        // FluentCart form
+        if (!productId) {
+            const fcProductId = form.querySelector('[data-product-id]');
+            if (fcProductId) {
+                productId = fcProductId.getAttribute('data-product-id');
+            }
+        }
+    }
+    
+    // Try to get from URL or page context
+    if (!productId) {
+        const urlParams = new URLSearchParams(window.location.search);
+        productId = urlParams.get('product_id') || urlParams.get('add-to-cart');
+    }
+    
+    // Parse to integers
+    productId = productId ? parseInt(productId, 10) : null;
+    variationId = variationId ? parseInt(variationId, 10) : 0;
+    
+    return { productId, variationId };
+};
+
+// Track add to cart event if product is in wishlist
+const trackAddToCartIfInWishlist = async (productId, variationId = 0) => {
+    if (!productId || !window.WishCartWishlist) {
+        return;
+    }
+    
+    // Check if product is in wishlist
+    const inWishlist = await checkProductInWishlist(productId);
+    
+    if (!inWishlist) {
+        return; // Product not in wishlist, no need to track
+    }
+    
+    // Track the event
+    try {
+        const sessionId = getSessionIdForTracking();
+        const trackUrl = `${window.WishCartWishlist.apiUrl}wishlist/track-cart`;
+        const trackBody = {
+            product_id: productId,
+            variation_id: variationId || 0,
+            session_id: sessionId,
+        };
+        
+        await fetch(trackUrl, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-WP-Nonce': window.WishCartWishlist.nonce,
+            },
+            body: JSON.stringify(trackBody),
+        });
+    } catch (error) {
+        // Don't block cart addition if tracking fails
+        console.error('Error tracking cart event from product page:', error);
+    }
+};
+
+// Setup event listeners for add to cart buttons
+const setupAddToCartTracking = () => {
+    // Use event delegation to catch all add to cart button clicks
+    document.addEventListener('click', async (event) => {
+        const target = event.target;
+        
+        // Check if clicked element or its parent is an add to cart button
+        const addToCartButton = target.closest(
+            '.fluent-cart-add-to-cart-button, ' +
+            '.single_add_to_cart_button, ' +
+            'button[type="submit"][name="add-to-cart"], ' +
+            'button.add_to_cart_button, ' +
+            '[data-action="add-to-cart"], ' +
+            '.add-to-cart-button, ' +
+            'button[class*="add-to-cart"], ' +
+            'button[class*="add_to_cart"]'
+        );
+        
+        if (!addToCartButton) {
+            return;
+        }
+        
+        // Extract product data
+        const { productId, variationId } = extractProductData(addToCartButton);
+        
+        if (!productId) {
+            return;
+        }
+        
+        // Track if product is in wishlist (non-blocking)
+        trackAddToCartIfInWishlist(productId, variationId).catch(err => {
+            console.error('Error in add to cart tracking:', err);
+        });
+    }, true); // Use capture phase to catch early
+    
+    // Also listen for WooCommerce AJAX add to cart events
+    if (typeof jQuery !== 'undefined') {
+        jQuery(document.body).on('added_to_cart', (event, fragments, cart_hash, $button) => {
+            if ($button && $button.length) {
+                const { productId, variationId } = extractProductData($button[0]);
+                if (productId) {
+                    trackAddToCartIfInWishlist(productId, variationId).catch(err => {
+                        console.error('Error in add to cart tracking:', err);
+                    });
+                }
+            }
+        });
+    }
+    
+    // Listen for FluentCart add to cart events
+    document.addEventListener('fluentcart:added_to_cart', (event) => {
+        const detail = event.detail || {};
+        const productId = detail.productId || detail.product_id;
+        const variationId = detail.variationId || detail.variation_id || 0;
+        
+        if (productId) {
+            trackAddToCartIfInWishlist(productId, variationId).catch(err => {
+                console.error('Error in add to cart tracking:', err);
+            });
+        }
+    });
+};
 
 // Re-mount buttons when new content is loaded (for AJAX-loaded products)
 if (typeof MutationObserver !== 'undefined') {

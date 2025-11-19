@@ -61,6 +61,26 @@ const SharedWishlistView = ({ shareToken }) => {
         setAddingToCartIds(prev => new Set(prev).add(product.id));
 
         try {
+            // Track the add to cart event for analytics
+            const trackUrl = `${apiUrl}wishlist/track-cart`;
+            const trackBody = {
+                product_id: product.id,
+                variation_id: product.variation_id || 0,
+            };
+            
+            try {
+                await fetch(trackUrl, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(trackBody),
+                });
+            } catch (trackError) {
+                // Don't block cart addition if tracking fails
+                console.error('Error tracking cart event:', trackError);
+            }
+
             // WooCommerce/FluentCart add to cart
             const formData = new FormData();
             formData.append('product_id', product.id);
