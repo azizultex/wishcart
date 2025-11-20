@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { TrendingUp, Heart, ShoppingCart, Share2, Users, BarChart } from 'lucide-react';
+import { TrendingUp, Heart, ShoppingCart, Share2, Users, BarChart, Link as LinkIcon } from 'lucide-react';
 import { Card, CardContent } from '../../components/ui/card';
 import '../../styles/Analytics.scss';
 
@@ -7,6 +7,7 @@ export const AnalyticsDashboard = () => {
     const [overview, setOverview] = useState(null);
     const [popularProducts, setPopularProducts] = useState([]);
     const [conversionData, setConversionData] = useState(null);
+    const [linkDetails, setLinkDetails] = useState(null);
     const [isLoading, setIsLoading] = useState(true);
 
     const apiUrl = window.WishCartSettings?.apiUrl || '/wp-json/wishcart/v1/';
@@ -44,6 +45,15 @@ export const AnalyticsDashboard = () => {
             if (conversionRes.ok) {
                 const conversionData = await conversionRes.json();
                 setConversionData(conversionData.data);
+            }
+
+            // Fetch link details
+            const linksRes = await fetch(`${apiUrl}analytics/links`, {
+                headers: { 'X-WP-Nonce': nonce },
+            });
+            if (linksRes.ok) {
+                const linksData = await linksRes.json();
+                setLinkDetails(linksData);
             }
         } catch (err) {
             console.error('Error fetching analytics:', err);
@@ -203,6 +213,91 @@ export const AnalyticsDashboard = () => {
                                 </tbody>
                             </table>
                         </div>
+                    </CardContent>
+                </Card>
+            )}
+
+            {/* Link Details */}
+            {linkDetails && (
+                <Card className="links-card">
+                    <CardContent>
+                        <div className="links-header">
+                            <h3>
+                                <LinkIcon size={20} style={{ marginRight: '8px', verticalAlign: 'middle' }} />
+                                Share Links Details
+                            </h3>
+                            <span className="total-links-badge">Total Links: {linkDetails.total_links || 0}</span>
+                        </div>
+                        {linkDetails.links && linkDetails.links.length > 0 ? (
+                            <div className="links-table">
+                                <table>
+                                    <thead>
+                                        <tr>
+                                            <th>Share Link</th>
+                                            <th>Wishlist Name</th>
+                                            <th>Items Count</th>
+                                            <th>Products</th>
+                                            <th>Click Count</th>
+                                            <th>Share Type</th>
+                                            <th>Created Date</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {linkDetails.links.map((link) => (
+                                            <tr key={link.share_id}>
+                                                <td>
+                                                    <a 
+                                                        href={link.share_url} 
+                                                        target="_blank" 
+                                                        rel="noopener noreferrer"
+                                                        className="share-link"
+                                                        title={link.share_url}
+                                                    >
+                                                        {link.share_token.substring(0, 20)}...
+                                                    </a>
+                                                </td>
+                                                <td>{link.wishlist_name}</td>
+                                                <td>
+                                                    <span className="badge">{link.items_count}</span>
+                                                </td>
+                                                <td>
+                                                    <div className="products-list">
+                                                        {link.items && link.items.length > 0 ? (
+                                                            link.items.slice(0, 3).map((item, idx) => (
+                                                                <span key={idx} className="product-tag">
+                                                                    {item.product_name}
+                                                                    {item.quantity > 1 && ` (x${item.quantity})`}
+                                                                </span>
+                                                            ))
+                                                        ) : (
+                                                            <span className="no-items">No items</span>
+                                                        )}
+                                                        {link.items && link.items.length > 3 && (
+                                                            <span className="more-items">+{link.items.length - 3} more</span>
+                                                        )}
+                                                    </div>
+                                                </td>
+                                                <td>
+                                                    <span className={`click-count ${link.click_count > 0 ? 'has-clicks' : ''}`}>
+                                                        {link.click_count}
+                                                    </span>
+                                                </td>
+                                                <td>
+                                                    <span className="share-type-badge">{link.share_type}</span>
+                                                </td>
+                                                <td>
+                                                    {link.date_created ? new Date(link.date_created).toLocaleDateString() : '-'}
+                                                </td>
+                                            </tr>
+                                        ))}
+                                    </tbody>
+                                </table>
+                            </div>
+                        ) : (
+                            <div className="empty-state">
+                                <p>No share links found.</p>
+                            </div>
+                        )}
                     </CardContent>
                 </Card>
             )}

@@ -342,6 +342,14 @@ class WISHCART_Admin {
             },
         ));
 
+        register_rest_route('wishcart/v1', '/analytics/links', array(
+            'methods' => 'GET',
+            'callback' => array($this, 'analytics_get_links'),
+            'permission_callback' => function () {
+                return current_user_can('manage_options');
+            },
+        ));
+
         register_rest_route('wishcart/v1', '/analytics/product/(?P<product_id>\d+)', array(
             'methods' => 'GET',
             'callback' => array($this, 'analytics_get_product'),
@@ -1548,6 +1556,23 @@ class WISHCART_Admin {
         return rest_ensure_response(array(
             'success' => true,
             'data' => $funnel,
+        ));
+    }
+
+    /**
+     * Get link details with items and click counts
+     *
+     * @param WP_REST_Request $request Request object
+     * @return WP_REST_Response
+     */
+    public function analytics_get_links($request) {
+        $analytics = new WISHCART_Analytics_Handler();
+        $link_details = $analytics->get_link_details();
+        
+        return rest_ensure_response(array(
+            'success' => true,
+            'total_links' => $link_details['total_links'],
+            'links' => $link_details['links'],
         ));
     }
 

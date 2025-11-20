@@ -18,6 +18,7 @@ class WISHCART_Analytics_Handler {
     private $analytics_table;
     private $items_table;
     private $wishlists_table;
+    private $shares_table;
 
     /**
      * Constructor
@@ -28,6 +29,7 @@ class WISHCART_Analytics_Handler {
         $this->analytics_table = $wpdb->prefix . 'fc_wishlist_analytics';
         $this->items_table = $wpdb->prefix . 'fc_wishlist_items';
         $this->wishlists_table = $wpdb->prefix . 'fc_wishlists';
+        $this->shares_table = $wpdb->prefix . 'fc_wishlist_shares';
     }
 
     /**
@@ -332,10 +334,18 @@ class WISHCART_Analytics_Handler {
             "SELECT SUM(wishlist_count) FROM {$this->analytics_table}"
         );
 
-        // Total viewed/clicked
-        $total_clicks = $this->wpdb->get_var(
+        // Total product clicks from analytics table
+        $product_clicks = $this->wpdb->get_var(
             "SELECT SUM(click_count) FROM {$this->analytics_table}"
         );
+
+        // Total share link clicks from shares table
+        $share_clicks = $this->wpdb->get_var(
+            "SELECT SUM(click_count) FROM {$this->shares_table} WHERE status = 'active'"
+        );
+
+        // Combine product clicks and share link clicks
+        $total_clicks = intval($product_clicks) + intval($share_clicks);
 
         // Total added to cart from wishlist
         $added_to_cart = $this->wpdb->get_var(
@@ -349,7 +359,7 @@ class WISHCART_Analytics_Handler {
 
         return array(
             'added_to_wishlist' => intval($added_to_wishlist),
-            'clicked' => intval($total_clicks),
+            'clicked' => $total_clicks,
             'added_to_cart' => intval($added_to_cart),
             'purchased' => intval($purchased),
             'wishlist_to_cart_rate' => $added_to_wishlist > 0 ? round(($added_to_cart / $added_to_wishlist) * 100, 2) : 0,
@@ -500,6 +510,115 @@ class WISHCART_Analytics_Handler {
         $results['deleted'] = $result !== false ? $result : 0;
 
         return $results;
+    }
+
+    /**
+     * Get link details with items and click counts
+     *
+     * @return array Link details with items
+     */
+    public function get_link_details() {
+        // Get all active shares with wishlist info
+        $shares = $this->wpdb->get_results(
+            "SELECT 
+                s.share_id,
+                s.wishlist_id,
+                s.share_token,
+                s.share_type,
+                s.click_count,
+                s.conversion_count,
+                s.date_created,
+                s.last_clicked,
+                w.wishlist_name
+            FROM {$this->shares_table} s
+            INNER JOIN {$this->wishlists_table} w ON s.wishlist_id = w.id
+            WHERE s.status = 'active' AND w.status = 'active'
+            ORDER BY s.date_created DESC",
+            ARRAY_A
+        );
+
+        if (empty($shares)) {
+            return array(
+                'total_links' => 0,
+                'links' => array(),
+            );
+        }
+
+        $links_data = array();
+        $sharing_handler = new WISHCART_Sharing_Handler();
+
+        foreach ($shares as $share) {
+            // Get items for this wishlist
+            $items = $this->wpdb->get_results(
+                $this->wpdb->prepare(
+                    "SELECT 
+                        item_id,
+                        product_id,
+                        variation_id,
+                        quantity
+                    FROM {$this->items_table}
+                    WHERE wishlist_id = %d AND status = 'active'
+                    ORDER BY date_added ASC",
+                    $share['wishlist_id']
+                ),
+                ARRAY_A
+            );
+
+            $items_data = array();
+            foreach ($items as $item) {
+                // Get product name
+                $product_name = '';
+                if (class_exists('WISHCART_FluentCart_Helper')) {
+                    $product = WISHCART_FluentCart_Helper::get_product($item['product_id']);
+                    if ($product) {
+                        $product_name = $product->get_name();
+                    }
+                } else {
+                    // Fallback to post title
+                    $product_name = get_the_title($item['product_id']);
+                }
+
+                $items_data[] = array(
+                    'product_id' => intval($item['product_id']),
+                    'product_name' => $product_name ? $product_name : __('Product #' . $item['product_id'], 'wish-cart'),
+                    'variation_id' => intval($item['variation_id']),
+                    'quantity' => intval($item['quantity']),
+                );
+            }
+
+            // Get share URL
+            $share_url = '';
+            if (method_exists($sharing_handler, 'get_share_url')) {
+                $share_url = $sharing_handler->get_share_url($share['share_token'], $share['share_type']);
+            } else {
+                // Fallback URL construction
+                if (class_exists('WISHCART_Shared_Wishlist_Page')) {
+                    $share_url = WISHCART_Shared_Wishlist_Page::get_share_url($share['share_token']);
+                } else {
+                    $share_url = home_url('/wishlist/share/' . $share['share_token']);
+                }
+            }
+
+            $links_data[] = array(
+                'share_id' => intval($share['share_id']),
+                'share_token' => $share['share_token'],
+                'share_url' => $share_url,
+                'wishlist_id' => intval($share['wishlist_id']),
+                'wishlist_name' => $share['wishlist_name'],
+                'share_type' => $share['share_type'],
+                'click_count' => intval($share['click_count']),
+                'conversion_count' => intval($share['conversion_count']),
+                'items_count' => count($items_data),
+                'items' => $items_data,
+                'date_created' => $share['date_created'],
+                'last_clicked' => $share['last_clicked'],
+            );
+        }
+
+        return array(
+            'total_links' => count($links_data),
+            'links' => $links_data,
+        );
     }
 }
 

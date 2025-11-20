@@ -122,7 +122,8 @@
     }
 
     .funnel-card,
-    .popular-products-card {
+    .popular-products-card,
+    .links-card {
         margin-bottom: 24px;
 
         h3 {
@@ -130,6 +131,158 @@
             font-size: 18px;
             font-weight: 600;
             color: #111827;
+        }
+    }
+
+    .links-card {
+        .links-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+
+            h3 {
+                margin: 0;
+                display: flex;
+                align-items: center;
+            }
+
+            .total-links-badge {
+                padding: 6px 12px;
+                background: #f3e8ff;
+                color: #7c3aed;
+                border-radius: 12px;
+                font-size: 13px;
+                font-weight: 600;
+            }
+        }
+
+        .links-table {
+            overflow-x: auto;
+
+            table {
+                width: 100%;
+                border-collapse: collapse;
+
+                thead {
+                    background: #f9fafb;
+
+                    th {
+                        padding: 12px 16px;
+                        text-align: left;
+                        font-size: 13px;
+                        font-weight: 600;
+                        color: #6b7280;
+                        border-bottom: 2px solid #e5e7eb;
+                    }
+                }
+
+                tbody {
+                    tr {
+                        border-bottom: 1px solid #e5e7eb;
+                        transition: background 0.15s;
+
+                        &:hover {
+                            background: #f9fafb;
+                        }
+                    }
+
+                    td {
+                        padding: 12px 16px;
+                        font-size: 14px;
+                        color: #374151;
+                        vertical-align: top;
+
+                        .share-link {
+                            color: #3b82f6;
+                            text-decoration: none;
+                            font-weight: 500;
+                            font-family: monospace;
+                            font-size: 13px;
+
+                            &:hover {
+                                text-decoration: underline;
+                            }
+                        }
+
+                        .products-list {
+                            display: flex;
+                            flex-wrap: wrap;
+                            gap: 6px;
+                            max-width: 300px;
+
+                            .product-tag {
+                                display: inline-block;
+                                padding: 4px 8px;
+                                background: #e0e7ff;
+                                color: #4338ca;
+                                border-radius: 6px;
+                                font-size: 12px;
+                                font-weight: 500;
+                            }
+
+                            .more-items {
+                                display: inline-block;
+                                padding: 4px 8px;
+                                background: #f3f4f6;
+                                color: #6b7280;
+                                border-radius: 6px;
+                                font-size: 12px;
+                                font-style: italic;
+                            }
+
+                            .no-items {
+                                color: #9ca3af;
+                                font-style: italic;
+                                font-size: 13px;
+                            }
+                        }
+
+                        .click-count {
+                            display: inline-block;
+                            padding: 4px 10px;
+                            background: #f3f4f6;
+                            color: #6b7280;
+                            border-radius: 12px;
+                            font-size: 13px;
+                            font-weight: 600;
+
+                            &.has-clicks {
+                                background: #dbeafe;
+                                color: #1e40af;
+                            }
+                        }
+
+                        .share-type-badge {
+                            display: inline-block;
+                            padding: 4px 10px;
+                            background: #fef3c7;
+                            color: #d97706;
+                            border-radius: 12px;
+                            font-size: 12px;
+                            font-weight: 600;
+                            text-transform: capitalize;
+                        }
+
+                        .badge {
+                            display: inline-block;
+                            padding: 4px 10px;
+                            background: #dbeafe;
+                            color: #1e40af;
+                            border-radius: 12px;
+                            font-size: 13px;
+                            font-weight: 600;
+                        }
+                    }
+                }
+            }
+        }
+
+        .empty-state {
+            padding: 40px 20px;
+            text-align: center;
+            color: #9ca3af;
+            font-size: 14px;
         }
     }
 
@@ -258,13 +411,38 @@
             grid-template-columns: 1fr;
         }
 
-        .products-table {
+        .products-table,
+        .links-table {
             font-size: 13px;
 
             table {
                 thead th,
                 tbody td {
                     padding: 8px 12px;
+                }
+            }
+        }
+
+        .links-card {
+            .links-header {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 12px;
+
+                .total-links-badge {
+                    align-self: flex-end;
+                }
+            }
+
+            .links-table {
+                table {
+                    tbody {
+                        td {
+                            .products-list {
+                                max-width: 200px;
+                            }
+                        }
+                    }
                 }
             }
         }
