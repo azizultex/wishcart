@@ -55,6 +55,12 @@ class WISHCART_Wishlist_Shortcode {
         $handler = new WISHCART_Wishlist_Handler();
         $session_id = $handler->get_or_create_session_id();
         
+        // Get settings for enableMultipleWishlists
+        $settings = get_option( 'wishcart_settings', array() );
+        $wishlist_settings = isset( $settings['wishlist'] ) ? $settings['wishlist'] : array();
+        $default_settings = WISHCART_Wishlist_Page::get_default_settings();
+        $wishlist_settings = wp_parse_args( $wishlist_settings, $default_settings );
+        
         wp_localize_script(
             'wishcart-wishlist-frontend',
             'WishCartWishlist',
@@ -65,6 +71,7 @@ class WISHCART_Wishlist_Shortcode {
                 'isLoggedIn' => is_user_logged_in(),
                 'userId' => get_current_user_id(),
                 'shareCode' => sanitize_text_field( $atts['share_code'] ),
+                'enableMultipleWishlists' => ! empty( $wishlist_settings['enable_multiple_wishlists'] ),
             )
         );
 

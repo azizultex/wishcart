@@ -74,6 +74,43 @@ const WishlistButton = ({ productId, className, customStyles, position = 'bottom
         checkWishlist();
     }, [productId]);
 
+    // Add product directly to default wishlist (when multiple wishlists disabled)
+    const addToDefaultWishlist = async () => {
+        setIsAdding(true);
+        try {
+            const sessionId = getSessionId();
+            const url = `${window.WishCartWishlist.apiUrl}wishlist/add`;
+            
+            const response = await fetch(url, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-WP-Nonce': window.WishCartWishlist.nonce,
+                },
+                body: JSON.stringify({
+                    product_id: productId,
+                    session_id: sessionId,
+                    // No wishlist_id means it will use default wishlist
+                }),
+            });
+
+            if (response.ok) {
+                const data = await response.json();
+                setIsInWishlist(true);
+                if (data && data.message) {
+                    console.log(data.message);
+                }
+            } else {
+                const error = await response.json();
+                console.error('Error adding to wishlist:', error);
+            }
+        } catch (error) {
+            console.error('Error adding to wishlist:', error);
+        } finally {
+            setIsAdding(false);
+        }
+    };
+
     // Toggle wishlist
     const toggleWishlist = async () => {
         if (isAdding || !productId || !window.WishCartWishlist) {
@@ -111,8 +148,16 @@ const WishlistButton = ({ productId, className, customStyles, position = 'bottom
                 setIsAdding(false);
             }
         } else {
-            // If not in wishlist, open modal to select wishlist
-            setIsModalOpen(true);
+            // Check if multiple wishlists are enabled
+            const enableMultipleWishlists = window.WishCartWishlist?.enableMultipleWishlists || false;
+            
+            if (enableMultipleWishlists) {
+                // If multiple wishlists enabled, open modal to select wishlist
+                setIsModalOpen(true);
+            } else {
+                // If multiple wishlists disabled, add directly to default wishlist
+                await addToDefaultWishlist();
+            }
         }
     };
 

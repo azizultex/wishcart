@@ -114,6 +114,7 @@ class WISHCART_Wishlist_Frontend {
                 'enabled' => ! empty( $wishlist_settings['enabled'] ),
                 'showOnProduct' => ! empty( $wishlist_settings['product_page_button'] ),
                 'showOnShop' => ! empty( $wishlist_settings['shop_page_button'] ),
+                'enableMultipleWishlists' => ! empty( $wishlist_settings['enable_multiple_wishlists'] ),
                 'buttonCustomization' => array(
                     'colors' => isset( $button_customization['colors'] ) ? $button_customization['colors'] : array(),
                     'icon' => isset( $button_customization['icon'] ) ? $button_customization['icon'] : array(),

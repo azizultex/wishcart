@@ -18,6 +18,7 @@ const WishlistSettings = ({ settings, updateSettings }) => {
         wishlist_page_id: 0,
         shared_wishlist_page_id: 0,
         guest_cookie_expiry: 30,
+        enable_multiple_wishlists: false,
         button_customization: {
             colors: {
                 background: '#ffffff',
@@ -111,6 +112,22 @@ const WishlistSettings = ({ settings, updateSettings }) => {
                             id="wishlist_enabled"
                             checked={wishlistSettings.enabled || false}
                             onCheckedChange={(checked) => updateWishlistSetting('enabled', checked)}
+                        />
+                    </div>
+
+                    {/* Enable Multiple Wishlists */}
+                    <div className="flex items-center justify-between">
+                        <div className="space-y-0.5">
+                            <Label htmlFor="enable_multiple_wishlists">{__('Enable Multiple Wishlists', 'wish-cart')}</Label>
+                            <p className="text-sm text-muted-foreground">
+                                {__('Allow users to create and manage multiple wishlists. When disabled, products are added directly to the default wishlist.', 'wish-cart')}
+                            </p>
+                        </div>
+                        <Switch
+                            id="enable_multiple_wishlists"
+                            checked={wishlistSettings.enable_multiple_wishlists || false}
+                            onCheckedChange={(checked) => updateWishlistSetting('enable_multiple_wishlists', checked)}
+                            disabled={!wishlistSettings.enabled}
                         />
                     </div>
 

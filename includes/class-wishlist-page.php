@@ -238,6 +238,7 @@ class WISHCART_Wishlist_Page {
             'wishlist_page_id'     => intval( $page_id ),
             'shared_wishlist_page_id' => 0,
             'guest_cookie_expiry'  => 30,
+            'enable_multiple_wishlists' => false,
             'button_customization' => array(
                 'colors' => array(
                     'background'      => '#ffffff',

@@ -228,13 +228,15 @@ const WishlistPage = () => {
                     </div>
 
                     <div className="wishlist-actions">
-                        {/* Wishlist Selector */}
-                        <WishlistSelector
-                            wishlists={wishlists}
-                            currentWishlist={currentWishlist}
-                            onSelect={setCurrentWishlist}
-                            onCreate={createWishlist}
-                        />
+                        {/* Wishlist Selector - Only show if multiple wishlists are enabled */}
+                        {window.WishCartWishlist?.enableMultipleWishlists && (
+                            <WishlistSelector
+                                wishlists={wishlists}
+                                currentWishlist={currentWishlist}
+                                onSelect={setCurrentWishlist}
+                                onCreate={createWishlist}
+                            />
+                        )}
 
                         {/* Privacy Control */}
                         <div className="privacy-control">
