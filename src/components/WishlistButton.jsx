@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { Heart, Star, Bookmark } from 'lucide-react';
+import { Heart } from 'lucide-react';
 import { __ } from '@wordpress/i18n';
 import { cn } from '../lib/utils';
 import WishlistSelectorModal from './WishlistSelectorModal';
+import * as LucideIcons from 'lucide-react';
 
 const WishlistButton = ({ productId, className, customStyles, position = 'bottom' }) => {
     const [isInWishlist, setIsInWishlist] = useState(false);
@@ -173,8 +174,36 @@ const WishlistButton = ({ productId, className, customStyles, position = 'bottom
     // Get customization settings
     const customization = window.WishCartWishlist?.buttonCustomization || {};
     const colors = customization.colors || {};
-    const iconConfig = customization.icon || { type: 'predefined', value: 'heart', customUrl: '' };
+    const iconConfig = customization.icon || {};
     const labels = customization.labels || {};
+
+    // Support both old and new icon structure
+    let addToWishlistIcon, savedWishlistIcon;
+    
+    if (iconConfig.addToWishlist) {
+        // New format
+        addToWishlistIcon = iconConfig.addToWishlist;
+        savedWishlistIcon = iconConfig.savedWishlist || iconConfig.addToWishlist;
+    } else if (iconConfig.type || iconConfig.value || iconConfig.customUrl) {
+        // Old format - migrate on the fly
+        const iconValue = iconConfig.value ? 
+            iconConfig.value.charAt(0).toUpperCase() + iconConfig.value.slice(1) : 
+            'Heart';
+        addToWishlistIcon = {
+            type: iconConfig.type || 'predefined',
+            value: iconValue,
+            customUrl: iconConfig.customUrl || ''
+        };
+        savedWishlistIcon = {
+            type: iconConfig.type || 'predefined',
+            value: iconValue,
+            customUrl: iconConfig.customUrl || ''
+        };
+    } else {
+        // Default values
+        addToWishlistIcon = { type: 'predefined', value: 'Heart', customUrl: '' };
+        savedWishlistIcon = { type: 'predefined', value: 'Heart', customUrl: '' };
+    }
 
     // Get button labels
     const defaultAddLabel = __('Add to Wishlist', 'wish-cart');
@@ -184,12 +213,14 @@ const WishlistButton = ({ productId, className, customStyles, position = 'bottom
         : (labels.add || defaultAddLabel);
     const srLabel = isInWishlist ? __('Remove from wishlist', 'wish-cart') : __('Add to wishlist', 'wish-cart');
 
-    // Get icon component
+    // Get icon component based on wishlist state
     const getIconComponent = () => {
-        if (iconConfig.type === 'custom' && iconConfig.customUrl) {
+        const currentIcon = isInWishlist ? savedWishlistIcon : addToWishlistIcon;
+        
+        if (currentIcon.type === 'custom' && currentIcon.customUrl) {
             return (
                 <img
-                    src={iconConfig.customUrl}
+                    src={currentIcon.customUrl}
                     alt=""
                     className={cn("wishcart-wishlist-button__icon", isInWishlist && "wishcart-wishlist-button__icon--filled")}
                     style={{ width: '1.125rem', height: '1.125rem' }}
@@ -197,13 +228,9 @@ const WishlistButton = ({ productId, className, customStyles, position = 'bottom
             );
         }
 
-        const iconValue = iconConfig.value || 'heart';
-        const iconMap = {
-            heart: Heart,
-            star: Star,
-            bookmark: Bookmark,
-        };
-        const IconComponent = iconMap[iconValue] || Heart;
+        // Handle predefined icon
+        const iconValue = currentIcon.value || 'Heart';
+        const IconComponent = LucideIcons[iconValue] || Heart;
         
         return (
             <IconComponent className={cn("wishcart-wishlist-button__icon", isInWishlist && "wishcart-wishlist-button__icon--filled")} />
@@ -259,19 +286,19 @@ const WishlistButton = ({ productId, className, customStyles, position = 'bottom
 
     if (isLoading) {
         const renderLoadingIcon = () => {
-            if (iconConfig.type === 'custom' && iconConfig.customUrl) {
+            const currentIcon = addToWishlistIcon; // Use add icon for loading state
+            if (currentIcon.type === 'custom' && currentIcon.customUrl) {
                 return (
                     <img
-                        src={iconConfig.customUrl}
+                        src={currentIcon.customUrl}
                         alt=""
                         className="wishcart-wishlist-button__icon wishcart-wishlist-button__icon--loading"
                         style={{ width: '1.125rem', height: '1.125rem' }}
                     />
                 );
             }
-            const iconValue = iconConfig.value || 'heart';
-            const iconMap = { heart: Heart, star: Star, bookmark: Bookmark };
-            const IconComponent = iconMap[iconValue] || Heart;
+            const iconValue = currentIcon.value || 'Heart';
+            const IconComponent = LucideIcons[iconValue] || Heart;
             return <IconComponent className="wishcart-wishlist-button__icon wishcart-wishlist-button__icon--loading" />;
         };
 
@@ -353,17 +380,20 @@ const WishlistButton = ({ productId, className, customStyles, position = 'bottom
             }}
         >
             {isAdding ? (
-                iconConfig.type === 'custom' && iconConfig.customUrl ? (
-                    <img
-                        src={iconConfig.customUrl}
-                        alt=""
-                        className="wishcart-wishlist-button__icon wishcart-wishlist-button__icon--loading"
-                        style={{ width: '1.125rem', height: '1.125rem' }}
-                    />
-                ) : (() => {
-                    const iconValue = iconConfig.value || 'heart';
-                    const iconMap = { heart: Heart, star: Star, bookmark: Bookmark };
-                    const IconComponent = iconMap[iconValue] || Heart;
+                (() => {
+                    const currentIcon = isInWishlist ? savedWishlistIcon : addToWishlistIcon;
+                    if (currentIcon.type === 'custom' && currentIcon.customUrl) {
+                        return (
+                            <img
+                                src={currentIcon.customUrl}
+                                alt=""
+                                className="wishcart-wishlist-button__icon wishcart-wishlist-button__icon--loading"
+                                style={{ width: '1.125rem', height: '1.125rem' }}
+                            />
+                        );
+                    }
+                    const iconValue = currentIcon.value || 'Heart';
+                    const IconComponent = LucideIcons[iconValue] || Heart;
                     return <IconComponent className="wishcart-wishlist-button__icon wishcart-wishlist-button__icon--loading" />;
                 })()
             ) : (

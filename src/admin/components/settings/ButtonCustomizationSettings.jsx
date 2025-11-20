@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -6,8 +6,10 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { __ } from '@wordpress/i18n';
-import { Heart, Star, Bookmark, ShoppingCart, X } from 'lucide-react';
+import { Heart, ShoppingCart, X } from 'lucide-react';
 import { Sketch } from '@uiw/react-color';
+import IconPicker from './IconPicker';
+import * as LucideIcons from 'lucide-react';
 
 const ButtonCustomizationSettings = ({ settings, updateSettings }) => {
     const wishlistSettings = settings.wishlist || {};
@@ -40,8 +42,38 @@ const ButtonCustomizationSettings = ({ settings, updateSettings }) => {
         borderRadius: '3px'
     };
     
-    // Keep existing icon and labels
-    const icon = buttonCustomization.icon || { type: 'predefined', value: 'heart', customUrl: '' };
+    // Icon structure: support both old (single icon) and new (separate icons) format
+    // Migrate old format to new format if needed
+    // Use useMemo to recompute when buttonCustomization.icon changes
+    const { addToWishlistIcon, savedWishlistIcon } = useMemo(() => {
+        const oldIcon = buttonCustomization.icon;
+        let addIcon, savedIcon;
+        
+        if (oldIcon && oldIcon.addToWishlist) {
+            // New format already exists
+            addIcon = oldIcon.addToWishlist || { type: 'predefined', value: 'Heart', customUrl: '' };
+            savedIcon = oldIcon.savedWishlist || { type: 'predefined', value: 'Heart', customUrl: '' };
+        } else if (oldIcon) {
+            // Migrate old format to new format
+            addIcon = {
+                type: oldIcon.type || 'predefined',
+                value: oldIcon.value ? oldIcon.value.charAt(0).toUpperCase() + oldIcon.value.slice(1) : 'Heart',
+                customUrl: oldIcon.customUrl || ''
+            };
+            savedIcon = {
+                type: oldIcon.type || 'predefined',
+                value: oldIcon.value ? oldIcon.value.charAt(0).toUpperCase() + oldIcon.value.slice(1) : 'Heart',
+                customUrl: oldIcon.customUrl || ''
+            };
+        } else {
+            // Default values
+            addIcon = { type: 'predefined', value: 'Heart', customUrl: '' };
+            savedIcon = { type: 'predefined', value: 'Heart', customUrl: '' };
+        }
+        
+        return { addToWishlistIcon: addIcon, savedWishlistIcon: savedIcon };
+    }, [buttonCustomization.icon]);
+    
     const labels = buttonCustomization.labels || { add: '', saved: '' };
 
     // State for color pickers
@@ -76,29 +108,207 @@ const ButtonCustomizationSettings = ({ settings, updateSettings }) => {
         });
     };
 
-    const handleMediaUpload = (field) => {
+    // Update icon structure (supports nested icon properties)
+    const updateIcon = (iconType, property, value) => {
+        const currentCustomization = buttonCustomization || {};
+        const currentIcon = currentCustomization.icon || {};
+        const targetIcon = currentIcon[iconType] || { type: 'predefined', value: 'Heart', customUrl: '' };
+        
+        updateSettings('wishlist', 'button_customization', {
+            ...currentCustomization,
+            icon: {
+                ...currentIcon,
+                [iconType]: {
+                    ...targetIcon,
+                    [property]: value,
+                },
+            },
+        });
+    };
+
+    const handleMediaUpload = (iconType) => {
+        // Check if wp.media is available
+        if (typeof wp === 'undefined' || !wp.media) {
+            alert(__('WordPress media library is not available. Please refresh the page.', 'wish-cart'));
+            return;
+        }
+
         const mediaUploader = wp.media({
             title: __('Select Icon', 'wish-cart'),
             button: {
                 text: __('Use this icon', 'wish-cart')
             },
-            multiple: false
+            multiple: false,
+            library: {
+                type: 'image'
+            }
         });
 
         mediaUploader.on('select', function () {
-            const attachment = mediaUploader.state().get('selection').first().toJSON();
-            updateButtonCustomization('icon', 'customUrl', attachment.url);
-            updateButtonCustomization('icon', 'type', 'custom');
+            const selection = mediaUploader.state().get('selection');
+            const attachment = selection.first();
+            
+            if (!attachment) {
+                alert(__('No image selected. Please try again.', 'wish-cart'));
+                return;
+            }
+
+            // Get attachment data - use both .toJSON() and .get() methods for compatibility
+            const attachmentData = attachment.toJSON ? attachment.toJSON() : attachment;
+            
+            // Get file extension from filename or URL
+            const url = attachmentData.url || attachment.get('url') || '';
+            const filename = attachmentData.filename || attachment.get('filename') || url.split('/').pop() || '';
+            const fileExtension = filename.split('.').pop()?.toLowerCase() || '';
+            
+            // Validate file type (PNG or SVG only)
+            if (fileExtension !== 'png' && fileExtension !== 'svg') {
+                alert(__('Please upload a PNG or SVG file only.', 'wish-cart'));
+                return;
+            }
+            
+            // Also check MIME type
+            const mimeType = attachmentData.mime || attachment.get('mime') || '';
+            if (mimeType && mimeType !== 'image/png' && mimeType !== 'image/svg+xml') {
+                alert(__('Please upload a PNG or SVG file only.', 'wish-cart'));
+                return;
+            }
+            
+            // Get image URL - try multiple methods to ensure we get the URL
+            let imageUrl = url;
+            if (!imageUrl) {
+                imageUrl = attachmentData.sizes?.full?.url || 
+                          attachmentData.sizes?.medium?.url ||
+                          attachment.get('url') ||
+                          '';
+            }
+            
+            if (!imageUrl) {
+                console.error('Attachment data:', attachmentData);
+                alert(__('Error: Could not get image URL. Please try again.', 'wish-cart'));
+                return;
+            }
+            
+            // Update both type and URL in a single update to ensure consistency
+            const currentCustomization = buttonCustomization || {};
+            const currentIcon = currentCustomization.icon || {};
+            const targetIcon = currentIcon[iconType] || { type: 'predefined', value: 'Heart', customUrl: '' };
+            
+            updateSettings('wishlist', 'button_customization', {
+                ...currentCustomization,
+                icon: {
+                    ...currentIcon,
+                    [iconType]: {
+                        ...targetIcon,
+                        type: 'custom',
+                        customUrl: imageUrl
+                    },
+                },
+            });
         });
 
         mediaUploader.open();
     };
 
-    const iconOptions = [
-        { value: 'heart', label: __('Heart', 'wish-cart'), component: Heart },
-        { value: 'star', label: __('Star', 'wish-cart'), component: Star },
-        { value: 'bookmark', label: __('Bookmark', 'wish-cart'), component: Bookmark },
-    ];
+    // Icon section component (reusable for addToWishlist and savedWishlist)
+    const IconSection = ({ title, iconType, iconConfig }) => {
+        const SelectedIconComponent = iconConfig.value && LucideIcons[iconConfig.value] 
+            ? LucideIcons[iconConfig.value] 
+            : null;
+
+        return (
+            <div className="space-y-4 border rounded-lg p-4">
+                <Label className="text-base font-semibold">{title}</Label>
+                
+                <RadioGroup
+                    value={iconConfig.type || 'predefined'}
+                    onValueChange={(value) => updateIcon(iconType, 'type', value)}
+                >
+                    <div className="flex items-center space-x-2">
+                        <RadioGroupItem value="predefined" id={`${iconType}_predefined`} />
+                        <Label htmlFor={`${iconType}_predefined`} className="cursor-pointer">
+                            {__('Predefined Icon', 'wish-cart')}
+                        </Label>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                        <RadioGroupItem value="custom" id={`${iconType}_custom`} />
+                        <Label htmlFor={`${iconType}_custom`} className="cursor-pointer">
+                            {__('Custom Icon', 'wish-cart')}
+                        </Label>
+                    </div>
+                </RadioGroup>
+
+                {iconConfig.type === 'predefined' ? (
+                    <div className="space-y-2">
+                        <Label>{__('Select Icon', 'wish-cart')}</Label>
+                        <IconPicker
+                            selectedIcon={iconConfig.value}
+                            onSelect={(iconName) => updateIcon(iconType, 'value', iconName)}
+                            label={__('Select Icon', 'wish-cart')}
+                            triggerLabel={iconConfig.value || __('Select Icon', 'wish-cart')}
+                        />
+                        {SelectedIconComponent && (
+                            <div className="mt-2 p-3 border rounded-lg inline-flex items-center gap-2">
+                                <SelectedIconComponent className="w-6 h-6" />
+                                <span className="text-sm text-muted-foreground">{iconConfig.value}</span>
+                            </div>
+                        )}
+                    </div>
+                ) : (
+                    <div className="space-y-4">
+                        <Label>{__('Custom Icon', 'wish-cart')}</Label>
+                        
+                        {/* Image Preview Area - Always visible when custom is selected */}
+                        <div className="w-full">
+                            {iconConfig.customUrl ? (
+                                <div className="space-y-3">
+                                    <div className="relative inline-block border-2 border-gray-300 rounded-lg p-4 bg-gray-50 hover:bg-gray-100 transition-colors">
+                                        <img
+                                            src={iconConfig.customUrl}
+                                            alt={__('Custom icon preview', 'wish-cart')}
+                                            className="w-32 h-32 object-contain"
+                                            onError={(e) => {
+                                                console.error('Failed to load image:', iconConfig.customUrl);
+                                                e.target.style.display = 'none';
+                                            }}
+                                        />
+                                        <Button
+                                            type="button"
+                                            variant="ghost"
+                                            size="sm"
+                                            className="absolute -top-2 -right-2 h-7 w-7 p-0 rounded-full bg-white border-2 border-gray-300 hover:bg-red-50 hover:border-red-400 shadow-sm"
+                                            onClick={() => updateIcon(iconType, 'customUrl', '')}
+                                            title={__('Remove icon', 'wish-cart')}
+                                        >
+                                            <X className="h-4 w-4 text-gray-700" />
+                                        </Button>
+                                    </div>
+                                    <div className="text-xs text-muted-foreground break-all">
+                                        {iconConfig.customUrl.split('/').pop()}
+                                    </div>
+                                </div>
+                            ) : (
+                                <div className="border-2 border-dashed border-gray-300 rounded-lg p-8 bg-gray-50 text-center">
+                                    <p className="text-sm text-muted-foreground">
+                                        {__('No icon selected', 'wish-cart')}
+                                    </p>
+                                </div>
+                            )}
+                        </div>
+                        
+                        <Button
+                            type="button"
+                            variant="outline"
+                            onClick={() => handleMediaUpload(iconType)}
+                            className="w-full"
+                        >
+                            {iconConfig.customUrl ? __('Change Icon', 'wish-cart') : __('Upload Icon', 'wish-cart')}
+                        </Button>
+                    </div>
+                )}
+            </div>
+        );
+    };
 
     // Color input component with picker
     const ColorInput = ({ label, value, onChange, colorPickerId }) => {
@@ -319,84 +529,23 @@ const ButtonCustomizationSettings = ({ settings, updateSettings }) => {
 
                     {/* Icon Section */}
                     <div className="space-y-4 border-t pt-4">
-                        <Label className="text-base font-semibold">{__('Icon', 'wish-cart')}</Label>
+                        <Label className="text-base font-semibold">{__('Icons', 'wish-cart')}</Label>
+                        <p className="text-sm text-muted-foreground">
+                            {__('Configure separate icons for "Add to Wishlist" and "Saved to Wishlist" states', 'wish-cart')}
+                        </p>
                         
-                        <RadioGroup
-                            value={icon.type || 'predefined'}
-                            onValueChange={(value) => updateButtonCustomization('icon', 'type', value)}
-                        >
-                            <div className="flex items-center space-x-2">
-                                <RadioGroupItem value="predefined" id="icon_predefined" />
-                                <Label htmlFor="icon_predefined" className="cursor-pointer">
-                                    {__('Predefined Icon', 'wish-cart')}
-                                </Label>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <IconSection
+                                title={__('"Add to Wishlist" Icon', 'wish-cart')}
+                                iconType="addToWishlist"
+                                iconConfig={addToWishlistIcon}
+                            />
+                            <IconSection
+                                title={__('"Saved to Wishlist" Icon', 'wish-cart')}
+                                iconType="savedWishlist"
+                                iconConfig={savedWishlistIcon}
+                            />
                             </div>
-                            <div className="flex items-center space-x-2">
-                                <RadioGroupItem value="custom" id="icon_custom" />
-                                <Label htmlFor="icon_custom" className="cursor-pointer">
-                                    {__('Custom Icon', 'wish-cart')}
-                                </Label>
-                            </div>
-                        </RadioGroup>
-
-                        {icon.type === 'predefined' ? (
-                            <div className="space-y-2">
-                                <Label>{__('Select Icon', 'wish-cart')}</Label>
-                                <div className="flex gap-4">
-                                    {iconOptions.map((option) => {
-                                        const IconComponent = option.component;
-                                        return (
-                                            <button
-                                                key={option.value}
-                                                type="button"
-                                                onClick={() => updateButtonCustomization('icon', 'value', option.value)}
-                                                className={`p-3 border-2 rounded-lg transition-colors ${
-                                                    icon.value === option.value
-                                                        ? 'border-primary bg-primary/10'
-                                                        : 'border-gray-200 hover:border-gray-300'
-                                                }`}
-                                            >
-                                                <IconComponent className="w-6 h-6" />
-                                            </button>
-                                        );
-                                    })}
-                                </div>
-                            </div>
-                        ) : (
-                            <div className="space-y-2">
-                                <Label>{__('Custom Icon', 'wish-cart')}</Label>
-                                <div className="flex items-center gap-4">
-                                    {icon.customUrl && (
-                                        <div className="relative">
-                                            <img
-                                                src={icon.customUrl}
-                                                alt={__('Custom icon', 'wish-cart')}
-                                                className="w-12 h-12 object-contain border rounded"
-                                            />
-                                            <Button
-                                                type="button"
-                                                variant="ghost"
-                                                size="sm"
-                                                className="absolute -top-2 -right-2 h-6 w-6 p-0"
-                                                onClick={() => updateButtonCustomization('icon', 'customUrl', '')}
-                                            >
-                                                <X className="h-4 w-4" />
-                                            </Button>
-                                        </div>
-                                    )}
-                                    <Button
-                                        type="button"
-                                        variant="outline"
-                                        onClick={() => handleMediaUpload('icon')}
-                                    >
-                                        {icon.customUrl ? __('Change Icon', 'wish-cart') : __('Upload Icon', 'wish-cart')}
-                                    </Button>
-                                </div>
-                                <p className="text-sm text-muted-foreground">
-                                    {__('Upload a custom icon image (SVG, PNG, or JPG recommended)', 'wish-cart')}
-                                </p>
-                            </div>
-                        )}
                     </div>
 
                     {/* Labels Section */}
